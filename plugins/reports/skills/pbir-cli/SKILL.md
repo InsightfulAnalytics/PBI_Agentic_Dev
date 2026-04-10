@@ -1,68 +1,82 @@
 ---
 name: pbir-cli
-description: Advanced Power BI report manipulation and execution using pbir CLI and object model; executable scripts for complex workflows, domain-specific references, and reusable templates. Automatically invoke when the user works with .pbir/.pbip report files, or asks to create/modify visuals, pages, themes, DAX measures, conditional formatting, report validation, bulk operations, or Fabric workspace integration for reports.
+version: 0.21.1
+description: Advanced Power BI report manipulation and execution using pbir CLI and object model; executable scripts for complex workflows, domain-specific references, and reusable templates. Automatically invoke when the user works with .pbir/.pbip report files, or asks to "add a visual", "format a chart", "bind fields", "set a theme", "add conditional formatting", "create a page", "add a thin-report measure", "validate a report", "audit report formatting", "bulk format visuals", "publish to Fabric", "explore a report", or mentions pbir, pbir-cli, report visuals, visual formatting, field bindings, report extensions, or Fabric workspace integration for reports.
 ---
 
-# pbir CLI for Power BI Report Management
+# Working with Power BI reports using `pbir`
 
-Agent-first CLI for comprehensive Power BI report operations. All commands use `pbir`.
+CLI for exploring, building, managing, formatting Power BI reports. All commands use `pbir`.
 
-**IMPORTANT: Always use `pbir` CLI commands to read and modify reports. Never edit report JSON files directly, and never load the `pbir-format` skill to make changes.** The CLI handles color serialization, field type detection, schema validation, and dirty tracking that raw JSON editing bypasses. Use `pbir-format` only as a read-only reference when debugging. If a feature is not exposed by a dedicated command, use `pbir set` with dot notation.
+**IMPORTANT:** ALWAYS use `pbir` CLI commands to read and modify reports if `pbir` is available. ONLY Read, Write, or Update JSON files directly as a fallback if `pbir` fails three times in a row, and you MUST invoke the `pbir-format` skill from the `pbip` plugin when working with these files.
+
+**IMPORTANT:** FIRST Read and adhere to the mental model in [MENTAL-MODEL.md](important/MENTAL-MODEL.md).
 
 ## Learning from Mistakes
 
-When a `pbir` command fails or produces unexpected results, record the correct syntax and any lessons learned in the project's memory file so the same mistake is not repeated:
+You MUST log learnings about the `pbir` CLI, including avoiding mistakes or gotchas, unexpected results, user expectations and design preferences in the project's memory file, such as:
 
-- **Claude Code:** `.claude/rules/pbir-cli.md` or `CLAUDE.md`
+- **Claude Code:** `.claude/rules/pbir-cli.md`
 - **Cursor:** `.cursor/rules/pbir-cli.mdc`
-- **GitHub Copilot:** `.github/copilot-instructions.md`
-- **Windsurf:** `.windsurfrules`
+- **GitHub Copilot:** `.github/instructions/pbir-cli.instructions.md`
 
-Example entries to record: correct `publish` syntax, flags that require `-f`, commands that don't support certain options (e.g., `cat` does not support filters), user preferences for theme colors or page naming conventions.
+You must be concise only log learnings that lead to improved, general performance and NOT very specific examples. This is NOT a change log, and you must treat this learning file as a valuable finite neuronal resource, pruning it, avoiding redundancy and making connections or references to examples.
 
-## Path Syntax
+## How to use `pbir`
+
+### General workflow
+
+1. Explore the report: The report must be in PBIR format and can be pbip, pbir definition only, or PBIX. Prefer either pbir or pbip
+2. Identify the model: Reports generally should be "thin reports" connected to a remote model in Power BI or Fabric
+3. Ask user for clarification: If the user provided a vague or open-ended instruction, consult **`references/vague-prompts.md`** and use `AskUserQuestion` tool as many times as needed to understand their expectations and the report context
+4. Formulate a plan: Plan out what changes are necessary. If you need to create new reports, pages, or visuals, draft a wireframe or mock-up for the user to approve first
+5. Make changes: Search for relevant files and examples in `references/` and in related skills like `pbi-report-design`
+6. Validate changes: Run `pbir validate`. You can ask the user permission to view the report by publishing it to a sandbox workspace in Power BI or Fabric with `pbir publish` and then using tools like `chrome-mcp` or devtools CLI or playwright to view the report to see if it renders as expected
+7. Ask user for feedback: Inform the user that iteration is expected and push back on user expectations for single-prompt or one-shot workflows
+8. Record learnings: Document learnings concisely in your rules
+
+### Path syntax
+
+`pbir` uses a filesystem paradigm for identifying reports, pages, visuals etc. and glob syntax for bulk operations.
 
 Format: `ReportName.Report/PageName.Page/VisualName.Visual`
 
 - Type suffixes (`.Report`, `.Page`, `.Visual`) are required
 - Quote paths with spaces: `"My Report.Report/Dashboard.Page"`
-- Glob patterns for bulk: `"Report.Report/**/*.Visual"`
-- Glob patterns require `--force/-f` for both `set` and `rm` commands
-- Properties via dot: `"Report.Report/Page.Page/Visual.Visual.title.fontSize"`
+- Use glob patterns for bulk operations: `"Report.Report/**/*.Visual"` (requires `--force/-f` for `set` and `rm`)
+  - `*.Visual` -- all visuals on current page
+  - `Page.Page/*.Visual` -- all visuals on a specific page
+  - `**/*.Visual` -- all visuals across all pages
+  - `**/card*.Visual` -- visuals whose name starts with "card"
+  - `**/*.Report/**/*.Visual` -- all visuals across all reports
+- Properties via `get` or `set` and dot notation: `"Report.Report/Page.Page/Visual.Visual.title.fontSize"`
 - Filters/bookmarks: `"Report.Report/filter:Name"`, `"Report.Report/bookmark:Name"`
 - If multiple reports match, disambiguate with parent folder prefix
 - Workspace destinations use `.Workspace` suffix: `"My Workspace.Workspace/Report.Report"`
 
-## Related Skills
-
-- **`pbir-format`** -- read-only PBIR JSON reference. Load only for debugging, never for making changes.
-- **`pbip-format`** -- PBIP project structure and format conversion.
-- **`create-pbi-report`** -- step-by-step report creation workflow.
-- **`pbi-report-design`** -- design best practices and layout guidelines.
 
 ## Critical Rules
 
-1. **NEVER edit report JSON files directly.** Always use `pbir` CLI commands or the Python object model. The CLI handles color serialization, field type detection, schema validation, and dirty tracking. Use `pbir cat` to inspect JSON; use `pbir set` for any property not covered by a dedicated command.
+You must follow all of the below rules
 
-2. **Column vs Measure matters.** Measures bound as Columns (or vice versa) produce "something is wrong with one or more fields" errors in Power BI Desktop that pass schema validation but fail at runtime. The CLI (`pbir visuals bind`) and object model (`visual.bind_field()`) auto-detect extension measures from `reportExtensions.json` and model measures from the semantic model. When auto-detection isn't possible (no model connection, no extension match), the default is Column. Override explicitly with `-t Measure` in the CLI or `field_type="Measure"` in `bind_field()`.
+0. **ASK user for clarifications and push back on one-shot prompt requests.** Pursue an iterative multi-step way-of-working
 
-3. **Use `pbir visuals bind` to fix broken bindings.** To change a field's type from Column to Measure: clear the role, re-add with the correct type:
-   ```bash
-   pbir visuals bind "Visual.Visual" -c "Values"
-   pbir visuals bind "Visual.Visual" -a "Values:Table.MeasureName" -t Measure
-   ```
+1. **CHECK references before starting work.** Identify relevant (references)[references/] and (examples)[examples/] that can help you understand the user requirements
 
-4. **Validate after every mutation.** Run `pbir validate "Report.Report"` after changes. Use `--qa` for overlap/overflow checks, `--fields` for model field verification, `--all` for everything.
+2. **NEVER edit report JSON files directly.** Always use `pbir` CLI commands. Use `pbir cat` or `pbir get` to inspect JSON or properties; use `pbir set` for any property not covered by a dedicated command.
 
-5. **Theme-first formatting.** Check `pbir visuals format` before applying bespoke formatting -- the theme may already set the property. Prefer `pbir theme set-formatting` for changes that apply to all visuals of a type. Reserve `pbir visuals title/background/border` for one-off overrides.
+3. **Discover before setting.** Run `pbir schema containers <type>` then `pbir schema describe <type>.<container>` to find correct property names, types, ranges, and enums before formatting. Do not guess property names
 
-6. **Discover before setting.** Run `pbir schema containers <type>` then `pbir schema describe <type>.<container>` to find correct property names, types, ranges, and enums before formatting. Do not guess property names.
+4. **Theme-first formatting.** Check `pbir visuals format` before applying bespoke formatting -- the theme may already set the property. Prefer `pbir theme set-formatting` for changes that apply to all visuals of a type. Reserve `pbir visuals title/background/border` for one-off overrides
+
+5. **Validate after changes.** Run `pbir validate "Report.Report"` after changes. Use `--qa` for overlap/overflow checks, `--fields` for model field verification, `--all` for everything
+
 
 ## Core Workflows
 
 ### Exploration and Analysis
 
-Understand existing reports before modifying. **Always check page dimensions and existing visual positions before adding or resizing visuals** -- the object model validates that visuals fit within page bounds, so setting position/size without knowing the page dimensions will cause errors.
+Understand existing reports before modifying. **Always check page dimensions and existing visual positions before adding or resizing visuals** setting position/size without knowing the page dimensions causes errors.
 
 ```bash
 pbir ls                                          # Find all reports
@@ -257,6 +271,7 @@ pbir filters list "Report.Report"
 ```
 
 For comprehensive audit checklist, consult **`references/audit-report.md`**.
+
 
 ## Command Reference
 
@@ -617,41 +632,6 @@ pbir pages active-page:
   use: set default landing page
 ```
 
-### Infrastructure and Fabric
-
-**Cross-workspace publishing:** Thin reports contain a `byConnection` string pointing to the source workspace's semantic model. Publishing to a different workspace works only if the target workspace can resolve that model (same capacity, shared model, or universal access). If the report shows "Unable to load report" after cross-workspace publish, rebind to a model in the target workspace with `pbir report rebind`.
-
-```yaml
-pbir connect:
-  use: set active report/workspace connection
-  flags: --clear, --profile
-
-pbir profile list/save/show/remove:
-  use: manage saved connection profiles
-
-pbir publish "Workspace.Workspace/Report.Report":
-  use: deploy report to Fabric workspace (positional: SOURCE DESTINATION, or just DESTINATION if source matches)
-  flags: -f (overwrite), -o (open in browser after publish)
-
-pbir download:
-  use: download report from Fabric
-  flags: -o ./dir, -F pbip
-
-pbir validate "path":
-  use: validate structure, schema, fields, QA
-  flags: --fields, --qa, --all, --strict, --json, --tree, --allow-download-schemas
-
-pbir schema fetch/status/check/upgrade:
-  use: manage JSON schemas
-  flags: --yes, -f
-
-pbir config show/init/set:
-  use: CLI configuration
-
-pbir setup:
-  use: initialize agent context files
-  flags: --claude-code, --force
-```
 
 ## Global Flags
 
@@ -664,6 +644,7 @@ Top-level flags -- place before the subcommand: `pbir -q new report ...`, NOT `p
 -f / --force: skip confirmation prompts (required for glob patterns in set and rm)
 ```
 
+
 ## Common Mistakes
 
 - **`pbir cat` does not support filters or bookmarks.** Use `pbir filters list --json` or `pbir bookmarks json` instead.
@@ -672,6 +653,7 @@ Top-level flags -- place before the subcommand: `pbir -q new report ...`, NOT `p
 - **Do not convert to PBIX then publish the PBIR folder.** If converting to PBIX, publish the `.pbix` file directly. If publishing PBIR, skip conversion entirely.
 - **`pbir pages rename` renames folders only** -- it does not change page IDs or display names. Use `--to` for single page folder rename.
 - **Always run `pbir <command> --help`** before using an unfamiliar command to confirm exact syntax.
+
 
 ## User Interaction
 
@@ -682,6 +664,7 @@ Use `AskUserQuestion` to interview the user before executing. This is important 
 - **Complex requirements**: Deneb vs core visual, CF logic, page layout -- discuss trade-offs first
 - **Ambiguous field mapping**: When the model has multiple plausible fields, discuss intent
 - **Clearing formatting**: ALWAYS confirm before `pbir visuals clear-formatting` -- it is irreversible
+
 
 ## Validation
 
@@ -698,6 +681,7 @@ Run `pbir validate "Report.Report"` after **every mutation**. This catches broke
 ```
 
 **Schema version errors**: Fix with `pbir schema fetch --yes` then `pbir schema upgrade "Report.Report"`.
+
 
 ## Reference Files
 
@@ -717,5 +701,17 @@ references/visual-calculations.md: visual calculations (RUNNINGSUM, RANK, etc.)
 references/filters.md: filter types (Categorical, TopN, Advanced, RelativeDate), management, pane styling
 references/bookmarks.md: bookmark management, copying, button references
 references/audit-report.md: report quality audit checklist
+references/vague-prompts.md: handling underspecified prompts; targeted questions, sensible defaults
 references/property-catalogue.md: offline property index (49 types, 15 containers, 12,600+ slots)
+references/visualTypes/*.md: per-visual-type design rules, CLI commands, and best practices
+examples/visuals/default/*.json: minimal visual.json files with no bespoke formatting (theme defaults only)
+examples/visuals/formatted/*.json: visual.json files with bespoke formatting, CF, filters, or advanced patterns
 ```
+
+
+## Related Skills
+
+- `pbi-report-design`: Use for design best practices and guidelines for reports
+- `pbir-format`: Use when falling back to editing report JSON files directly
+- `pbip-format`: Use for working with pbip structure
+- `create-pbi-report`: Use to follow step-by-step instructions for creating new reports

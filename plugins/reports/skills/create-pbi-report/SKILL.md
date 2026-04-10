@@ -7,6 +7,10 @@ description: Step-by-step workflow for creating complete Power BI reports from s
 
 Create and scaffold Power BI reports using `pbir` CLI. Install with `uv tool install pbir-cli` or `pip install pbir-cli`. Load the `pbir-cli` and `pbi-report-design` skills alongside this one.
 
+## Vague or Underspecified Prompts
+
+When the user's request lacks specific measures, audience context, structural preferences, or formatting direction (e.g., "make me a dashboard", "create something with KPIs"), consult **`references/vague-prompts.md`** before proceeding. Close the gap between intent and specification with targeted questions; then apply sensible defaults (sqlbi theme, executive dashboard pattern, model-driven KPI selection) for anything the user can't or won't specify.
+
 ## Rules
 
 - Visuals must not overlap one another
@@ -199,4 +203,5 @@ pbir open "Sales.Report"                                               # Open in
 
 ## Reference Files
 
+- **`references/vague-prompts.md`** -- Handling underspecified prompts: targeted questions, sensible defaults, propose-before-building workflow
 - **`references/layout-example.md`** -- Complete layout with coordinates, spacing verification, time granularity table

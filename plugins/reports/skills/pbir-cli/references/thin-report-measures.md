@@ -88,7 +88,7 @@ Show a data label only on the most recent data point in a line chart:
 
 ```bash
 pbir dax measures add "Report.Report" -t _Fmt -n "RevenueLatestLabel" \
-  -e 'IF(SELECTEDVALUE(Date[Date]) = MAX(Date[Date]), [Revenue], BLANK())' \
+  -e "IF(SELECTEDVALUE('Date'[Date]) = MAX('Date'[Date]), [Revenue], BLANK())" \
   --data-type Decimal -F "#,0"
 ```
 
@@ -100,7 +100,7 @@ Show a percentage only when a single category is selected:
 
 ```bash
 pbir dax measures add "Report.Report" -t _Fmt -n "ShareIfSingle" \
-  -e 'IF(HASONEVALUE(Products[Category]), DIVIDE([Revenue], CALCULATE([Revenue], ALL(Products[Category]))), BLANK())' \
+  -e "IF(HASONEVALUE('Products'[Category]), DIVIDE([Revenue], CALCULATE([Revenue], ALL('Products'[Category]))), BLANK())" \
   --data-type Decimal -F "0.0%"
 ```
 

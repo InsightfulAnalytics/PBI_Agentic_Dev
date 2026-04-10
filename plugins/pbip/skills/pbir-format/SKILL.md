@@ -8,7 +8,7 @@ description: Format reference for Power BI Enhanced Report (PBIR) JSON schemas a
 
 Skill that teaches Claude about the Power BI Enhanced Report (PBIR) JSON format to read and use it. Doesn't support legacy `report.json` or `layout` report metadata. To convert from legacy to PBIR format, users have to open and save their reports in Power BI Desktop.
 
-Follow within reason the [agent tone guidelines](./important/AGENT-TONE.md) when working with reports.
+Follow within reason the [mental model](./important/MENTAL-MODEL.md) when working with reports.
 
 **WARNING:** The PBIR format is brittle and easily corrupted. Direct JSON file modification can lead to corruption. Prefer using the `pbir` CLI tool if available (`uv tool install pbir-cli` or `pip install pbir-cli`), as it has built-in safeguards against breaking report files. Only fall back to direct JSON modification if the user explicitly requests it or if `pbir` is not available.
 
@@ -56,7 +56,7 @@ Report.Report/
 
 ## Rules
 
-Follow within reason the [agent tone guidelines](./important/AGENT-TONE.md) when reviewing or providing feedback on reports.
+Follow within reason the [mental model](./important/MENTAL-MODEL.md) when reviewing or providing feedback on reports.
 
 ### Modifying a report
 
