@@ -75,6 +75,7 @@ extract_command() {
 resolve_command_text() {
     # If the command is a -File <path>.ps1 invocation, read the .ps1 file contents.
     # Otherwise return the command text as-is.
+    # Handles UNC paths (\\Mac\Home\...) from Parallels by converting to macOS paths.
     local cmd="$1"
     local lower
     lower="$(echo "$cmd" | tr '[:upper:]' '[:lower:]')"
@@ -84,18 +85,49 @@ resolve_command_text() {
         return
     fi
 
-    # Extract .ps1 path after -File
+    # Extract everything after -File, strip quotes and whitespace
+    local after_file
+    after_file=$(printf '%s' "$cmd" | sed 's/.*-[Ff]ile[[:space:]]*//')
+
+    # Strip surrounding quotes (regular and escaped), preserving backslashes in the path
+    after_file=$(printf '%s' "$after_file" | sed 's/^["]*//;s/["]*$//;s/^\\"//;s/\\"$//')
+
+    # Trim to just the .ps1 path (stop at first .ps1)
     local ps1_path
-    ps1_path=$(echo "$cmd" | sed -n 's/.*-[Ff]ile[[:space:]]*"\{0,1\}\([^"]*\.ps1\)"\{0,1\}.*/\1/p')
+    ps1_path=$(printf '%s' "$after_file" | sed -n 's/\(.*\.ps1\).*/\1/p')
+
     if [[ -z "$ps1_path" ]]; then
-        ps1_path=$(echo "$cmd" | sed -n 's/.*-[Ff]ile[[:space:]]*\([^[:space:]]*\.ps1\).*/\1/p')
+        echo "$cmd"
+        return
     fi
 
-    if [[ -n "$ps1_path" && -f "$ps1_path" ]]; then
+    # Try path as-is (works on Windows or local macOS paths)
+    if [[ -f "$ps1_path" ]]; then
         cat "$ps1_path"
-    else
-        echo "$cmd"
+        return
     fi
+
+    # Convert backslashes to forward slashes, then collapse consecutive slashes
+    local fwd_path
+    fwd_path="${ps1_path//\\//}"
+    fwd_path=$(printf '%s' "$fwd_path" | sed 's#/\{1,\}#/#g')
+
+    # Convert UNC /Mac/Home/... to /Users/$USER/...
+    if [[ "$fwd_path" == /Mac/Home/* ]]; then
+        local mac_path="${HOME}${fwd_path#/Mac/Home}"
+        if [[ -f "$mac_path" ]]; then
+            cat "$mac_path"
+            return
+        fi
+    fi
+
+    # Try the forward-slash version directly
+    if [[ -f "$fwd_path" ]]; then
+        cat "$fwd_path"
+        return
+    fi
+
+    echo "$cmd"
 }
 
 # #endregion
