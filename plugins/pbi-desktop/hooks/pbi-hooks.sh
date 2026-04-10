@@ -158,13 +158,18 @@ extract_bracket_refs() {
     echo "$text" | grep -oE '\[[^]]+\]' | while IFS= read -r ref; do
         local content="${ref:1:${#ref}-2}"
 
-        # Skip indexers and qualified refs (already preceded by ')
+        # Skip indexers and qualified refs
         case "$content" in
             '"'*|"'"*|'$'*|'@'*|'\\'*) continue ;;
         esac
 
         # Skip numeric-only
         if [[ "$content" =~ ^[0-9]+$ ]]; then continue; fi
+
+        # Skip PowerShell type annotations: [string], [int], [System.IO.File], [Parameter(...)], etc.
+        # These are all-lowercase, contain dots, or contain parentheses
+        if [[ "$content" == *"("* || "$content" == *"."* ]]; then continue; fi
+        if [[ "$content" =~ ^[a-z]+$ ]]; then continue; fi
 
         echo "$content"
     done | sort -u

@@ -15,12 +15,6 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" validate-dax",
             "timeout": 10,
-            "if": "Bash(*AnalysisServices*)"
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" validate-dax",
-            "timeout": 10,
             "if": "Bash(*-File*.ps1*)"
           },
           {
@@ -46,19 +40,7 @@
             "type": "command",
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" refresh-cache",
             "timeout": 30,
-            "if": "Bash(*AnalysisServices*)"
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" refresh-cache",
-            "timeout": 30,
             "if": "Bash(*-File*.ps1*)"
-          },
-          {
-            "type": "command",
-            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" check-compat",
-            "timeout": 10,
-            "if": "Bash(*AnalysisServices*)"
           },
           {
             "type": "command",
