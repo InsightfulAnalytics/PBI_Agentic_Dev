@@ -28,6 +28,7 @@ HOOK_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 CONFIG_PATH="$HOOK_DIR/config.yaml"
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-$(pwd)}"
 METADATA_PATH="$PROJECT_DIR/tmp/model-metadata.json"
+COMPAT_MARKER_PATH="$PROJECT_DIR/tmp/.compat-warned"
 
 # Read stdin once
 STDIN_BUF="$(cat)"
@@ -462,6 +463,8 @@ cmd_refresh_cache() {
     local metadata_out="$PROJECT_DIR/tmp/model-metadata.json"
 
     run_powershell_script "$snapshot_script" "-Port $port" "-OutFile \"$(convert_to_exec_path "$metadata_out")\""
+
+    rm -f "$COMPAT_MARKER_PATH" 2>/dev/null || true
 }
 
 # #endregion
@@ -598,6 +601,16 @@ cmd_check_compat() {
     done
 
     $has_missing || exit 0
+
+    # Suppress repeat warnings for the same (current_cl, max_cl) until the cache is refreshed
+    local marker_key="${current_cl}:${max_cl}"
+    if [[ -f "$COMPAT_MARKER_PATH" ]]; then
+        local prev_key
+        prev_key="$(cat "$COMPAT_MARKER_PATH" 2>/dev/null)"
+        [[ "$prev_key" == "$marker_key" ]] && exit 0
+    fi
+    mkdir -p "$(dirname "$COMPAT_MARKER_PATH")" 2>/dev/null || true
+    printf '%s' "$marker_key" > "$COMPAT_MARKER_PATH" 2>/dev/null || true
 
     echo "Model compatibility level is ${current_cl} (engine supports up to ${max_cl}). Features available by upgrading:" >&2
     printf '%b' "$missing_output" >&2
