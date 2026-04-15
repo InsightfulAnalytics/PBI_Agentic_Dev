@@ -12,7 +12,7 @@ AADSSOForGateway:
     access token info (names and emails) to data sources through the gateway service.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#azure-ad-single-sign-on-sso-for-gateway
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#azure-ad-single-sign-on-sso-for-gateway
   risk: low
@@ -25,7 +25,7 @@ ASCollectQueryTextTelemetryTenantSwitch:
     support investigations; turning it off may limit Microsoft's ability to troubleshoot Fabric.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/query-text-storage
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/query-text-storage
   risk: medium
@@ -39,7 +39,7 @@ ASShareableCloudConnectionBindingSecurityModeTenant:
     from their sources when edited by users lacking permission to those connections.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2226159
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/power-bi/connect-data/service-create-share-cloud-data-sources#granular-access-control
   risk: medium
@@ -52,7 +52,7 @@ ASWritethruContinuousExportTenantSwitch:
     so the exported tables can then be used within Fabric items such as lakehouses and warehouses.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/onelake-integration-overview
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/onelake-integration-overview
   risk: low
@@ -65,7 +65,7 @@ AdminApisIncludeDetailedMetadata:
     about Power BI items, such as semantic model table and column names in GetScanResult responses.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-admin-api-settings#enhance-admin-apis-responses-with-detailed-metadata
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-admin-api-settings#enhance-admin-apis-responses-with-detailed-metadata
   risk: low
@@ -79,7 +79,7 @@ AdminApisIncludeExpressions:
     about queries and expressions, such as DAX and mashup expressions in GetScanResult responses.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-admin-api-settings#enhance-admin-apis-responses-with-dax-and-mashup-expressions
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-admin-api-settings#enhance-admin-apis-responses-with-dax-and-mashup-expressions
   risk: low
@@ -92,7 +92,7 @@ AdminCustomDisclaimer:
   description: Users see a custom admin-defined message before a report gets published.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#show-a-custom-message-before-publishing-reports
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#show-a-custom-message-before-publishing-reports
   risk: low
@@ -105,7 +105,7 @@ AdminDataExploreViewPermission:
     experience for ad hoc analysis from that model or items connected to it.
   preview: true
   source_url: https://learn.microsoft.com/en-us/power-bi/consumer/explore-data-service#permissions-and-requirements
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/consumer/explore-data-service#permissions-and-requirements
   risk: low
@@ -118,7 +118,7 @@ AllowAccessOverPrivateLinks:
     security, with setup completed in Azure by a delegated person or group.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/security/security-private-links-overview
   risk: medium
@@ -133,7 +133,7 @@ AllowCVAuthenticationTenant:
     regional and compliance boundaries.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/organizational-visuals#appsource-custom-visuals-sso
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/organizational-visuals#appsource-custom-visuals-sso
   risk: medium
@@ -144,7 +144,7 @@ AllowCVLocalStorageV2Tenant:
   description: When enabled, custom visuals can store information in the user's browser local storage.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/organizational-visuals#appsource-custom-visuals-sso
-  recommended: false
+  recommended: "off"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/organizational-visuals#local-storage
   risk: low
@@ -157,7 +157,7 @@ AllowCVToExportDataToFileTenant:
     and configuration) with user consent, independent of other export restrictions.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/admin/organizational-visuals#export-data-to-file
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/power-bi/admin/organizational-visuals#export-data-to-file
   risk: medium
@@ -170,7 +170,7 @@ AllowCapacityMetricsReportUserMask:
     Capacity Metrics app and its reports.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/enterprise/metrics-app
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-audit-usage#show-user-data-in-the-fabric-capacity-metrics-app-and-reports
   risk: low
@@ -184,7 +184,7 @@ AllowEndorsementMasterDataSwitch:
     with the badge.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/governance/endorsement-overview
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/endorsement-master-data-enable
   risk: low
@@ -196,7 +196,7 @@ AllowExternalDataSharingReceiverSwitch:
     then view, build on, and share that data inside or outside their own tenant.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/governance/external-data-sharing-overview
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/governance/external-data-sharing-overview
   risk: medium
@@ -208,7 +208,7 @@ AllowExternalDataSharingSwitch:
     who can then view, build on, and reshare the data using their own tenants and capacities.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/governance/external-data-sharing-overview
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/governance/external-data-sharing-overview
   risk: medium
@@ -221,7 +221,7 @@ AllowFreeTrial:
     charge for 60 days from sign-up.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#users-can-try-microsoft-fabric-paid-features
-  recommended: false
+  recommended: "off"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#users-can-try-microsoft-fabric-paid-features
   risk: low
@@ -234,7 +234,7 @@ AllowGetOneLakeUDK:
     user's Entra identity, with reduced permissions and a maximum one-hour lifetime.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2268260
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/onelake/security/fabric-onelake-security
   risk: medium
@@ -248,7 +248,7 @@ AllowGuestLookup:
     works.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#users-can-see-guest-users-in-lists-of-suggested-people
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#users-can-see-guest-users-in-lists-of-suggested-people
   risk: low
@@ -262,7 +262,7 @@ AllowGuestUserToAccessSharedContent:
     access any Fabric items for which they have permission.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-admin-entra-b2b
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#guest-users-can-access-microsoft-fabric
   risk: medium
@@ -276,7 +276,7 @@ AllowNonEntraADAuthInEventStream:
     Endpoint so that only Microsoft Entra ID authentication is allowed.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#allow-non-entra-id-auth-in-eventstream
   risk: medium
@@ -289,7 +289,7 @@ AllowNotebookDataExport:
     outputs.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2299416
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing
   risk: medium
@@ -302,7 +302,7 @@ AllowOneLakeUDK:
     at a one-hour lifetime.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2268260
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/onelake/security/fabric-onelake-security
   risk: medium
@@ -314,7 +314,7 @@ AllowPowerBIASDQOnTenant:
     them to build new ones.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#allow-directquery-connections-to-power-bi-semantic-models
-  recommended: on:sg
+  recommended: "on:sg"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#allow-directquery-connections-to-power-bi-semantic-models
   risk: low
@@ -332,7 +332,7 @@ AllowSendAOAIDataToOtherRegions:
     geographic region, compliance boundary, or national cloud instance.
   preview: false
   source_url: https://learn.microsoft.com/en-us/azure/azure-maps/geographic-scope
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot
   risk: medium
@@ -344,7 +344,7 @@ AllowServicePrincipalsCreateAndUseProfiles:
     scenarios.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/developer/embedded/embed-multi-tenancy
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#allow-service-principals-to-create-and-use-profiles
   risk: medium
@@ -357,7 +357,7 @@ AllowServicePrincipalsUseReadAdminAPIs:
     by those APIs.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/read-only-apis-service-principal-authentication
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/read-only-apis-service-principal-authentication
   risk: medium
@@ -373,7 +373,7 @@ AllowServicePrincipalsUseWriteAdminAPIs:
     those APIs return.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/enable-service-principal-admin-apis
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/enable-service-principal-admin-apis
   risk: very high
@@ -390,7 +390,7 @@ AllowStoreAOAIDataInOtherRegions:
     outside the capacity's geographic region, compliance boundary, or national cloud instance.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/fundamentals/copilot-fabric-overview#available-regions
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot
   risk: medium
@@ -402,7 +402,7 @@ AppPush:
   description: Users can share apps directly with end users without requiring installation from AppSource.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-create-distribute-apps#automatically-install-apps-for-end-users
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-app#push-apps-to-end-users
   risk: low
@@ -416,7 +416,7 @@ ArtifactDBTItemTenantSwitch:
     a SQL-based transformation engine without having to configure a CLI environment.
   preview: true
   source_url: https://aka.ms/dbtjob_docs
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/data-factory/dbt-job-sample-tutorial
   risk: low
@@ -427,7 +427,7 @@ ArtifactGraphPreview:
   description: Users can create Graph items to visualize data for deeper insights and richer context.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2282471
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings
   risk: low
@@ -439,7 +439,7 @@ ArtifactOrgAppPreview:
     any existing org app items hidden if the setting is later turned off.
   preview: true
   source_url: https://learn.microsoft.com/en-us/power-bi/consumer/org-app-items/org-app-items
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/power-bi/consumer/org-app-items/org-app-items
   risk: low
@@ -452,7 +452,7 @@ ArtifactPlanningPreview:
     BI semantic models, Fabric SQL, and OneLake.
   preview: true
   source_url: https://aka.ms/planningdocs
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings
   risk: low
@@ -463,7 +463,7 @@ ArtifactSearchTenant:
   description: When on, users can use the global search bar at the top of the Power BI page.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/consumer/end-user-search-sort
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#use-global-search-for-power-bi
   risk: low
@@ -476,7 +476,7 @@ AutoInstallPowerBIAppInTeamsTenant:
     can open Fabric content.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2171149
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-microsoft-teams-app#install-the-power-bi-app-for-teams-automatically
   risk: low
@@ -488,7 +488,7 @@ AutomatedInsightsEntryPoints:
   description: Users in the organization can see and use entry points to request insights inside reports.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-insights
   risk: low
@@ -499,7 +499,7 @@ AutomatedInsightsTenant:
   description: Allows users in the organization to enable notifications for top insights from report settings.
   preview: true
   source_url: https://learn.microsoft.com/en-us/power-bi/create-reports/insights
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/create-reports/insights
   risk: low
@@ -512,7 +512,7 @@ AutomaticallyUsePBIR:
     structures that improve co-development.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2263123
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#automatically-convert-and-store-reports-using-power-bi-enhanced-metadata-format-pbir-preview
   risk: low
@@ -524,7 +524,7 @@ AzureMaps:
     by Microsoft for essential services such as resolving location names to coordinates.
   preview: false
   source_url: https://learn.microsoft.com/en-us/azure/azure-maps/power-bi-visual-get-started
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#users-can-use-the-azure-maps-visual
   risk: low
@@ -537,7 +537,7 @@ AzureMapsCrossRegionDataProcessing:
     which could be outside the tenant's geographic region, compliance boundary, or national cloud instance.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2289253
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visual-azure-maps-admin
   risk: medium
@@ -549,7 +549,7 @@ AzureMapsInFabric:
     terms of use.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2310613
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/azure/azure-maps/about-azure-maps
   risk: low
@@ -563,7 +563,7 @@ AzureMapsInFabricCrossRegionDataProcessing:
     which may be outside your capacity's geographic region, compliance boundary, or national cloud instance.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2289253
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-azure-maps-admin
   risk: medium
@@ -577,7 +577,7 @@ AzureMapsThirdPartyDataProcessing:
     data in the United States or other countries where Microsoft or its subprocessors operate.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2289928
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#data-sent-to-azure-maps-can-be-processed-by-microsoft-online-services-subprocessors
   risk: medium
@@ -588,7 +588,7 @@ AzureMapsWeatherServices:
   description: When enabled, users can access weather data from Azure Maps Weather, sourced from AccuWeather.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2340279
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/map-settings#access-to-azure-maps-weather-services-preview
   risk: low
@@ -599,7 +599,7 @@ BingMap:
   description: Allow users in the organization to use the map and filled map visualizations in their reports.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-filled-maps-choropleths
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#map-and-filled-map-visuals
   risk: low
@@ -611,7 +611,7 @@ BlockAccessFromPublicNetworks:
     can reach it.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-private-links
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-private-links
   risk: high
@@ -626,7 +626,7 @@ BlockAutoDiscoverAndPackageRefresh:
     model owner.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-dataset-security#block-republish-and-disable-package-refresh
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-dataset-security#block-republish-and-disable-package-refresh
   risk: low
@@ -641,7 +641,7 @@ BlockProtectedLabelSharingToEntireOrg:
     with the entire organization through a shareable link.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-information-protection#restrict-content-with-protected-labels-from-being-shared-via-link-with-everyone-in-your-organization
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-information-protection#restrict-content-with-protected-labels-from-being-shared-via-link-with-everyone-in-your-organization
   risk: medium
@@ -654,7 +654,7 @@ BlockResourceKeyAuthentication:
     the streaming semantic models API via resource key.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#block-resourcekey-authentication
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#block-resourcekey-authentication
   risk: medium
@@ -666,7 +666,7 @@ CDSAManagement:
   description: Users in the organization can create and use Gen1 dataflows.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/transform-model/dataflows/dataflows-introduction-self-service
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/transform-model/dataflows/dataflows-introduction-self-service
   risk: low
@@ -681,7 +681,7 @@ CertifiedCustomVisualsTenant:
     visuals; visuals on the Organizational visuals page are unaffected.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/admin/organizational-visuals#certified-power-bi-visuals
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/power-bi/admin/organizational-visuals#certified-power-bi-visuals
   risk: medium
@@ -696,7 +696,7 @@ CertifyDatasets:
     shown on the certification badge.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/admin/service-admin-setup-certification
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/admin/service-admin-setup-certification
   risk: low
@@ -711,7 +711,7 @@ ConfigureArtifactRetentionPeriod:
     not support recovery.
   preview: false
   source_url: https://aka.ms/FabricItemRecovery
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_properties:
     retentionPeriod: '7'
@@ -727,7 +727,7 @@ ConfigureFabricIdentityTenantLimit:
     when disabled, up to 10,000 Fabric identities can be created.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#define-maximum-number-of-fabric-identities-in-a-tenant
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_properties:
     MaxFabricIdentities: '10000'
@@ -743,7 +743,7 @@ ConfigureFolderRetentionPeriod:
     to the 7-day minimum.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/workspace-retention#set-up-the-retention-period-for-deleted-collaborative-workspaces
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_properties:
     ArtifactRetentionPeriod: '7'
@@ -758,7 +758,7 @@ ConfigureWorkspaceLevelIPFirewallRules:
     settings, allowing access from specific IPs and resources even when the tenant blocks public access.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2223103
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/security/security-workspace-enable-inbound-access-protection
   risk: medium
@@ -773,7 +773,7 @@ CopilotCapacitySetupPermissionSwitch:
     activity.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot#capacities-can-be-designated-as-fabric-copilot-capacities
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot#capacities-can-be-designated-as-fabric-copilot-capacities
   risk: low
@@ -787,7 +787,7 @@ CreateAppWorkspaces:
     if this setting is off.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#create-workspaces
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#create-workspaces
   risk: medium
@@ -800,7 +800,7 @@ CustomVisualsTenant:
     file; visuals allowed on the Organizational visuals page are unaffected by this setting.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/admin/organizational-visuals#visuals-from-appsource-or-a-file
-  recommended: on:sg
+  recommended: "on:sg"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/organizational-visuals#visuals-from-appsource-or-a-file
   risk: medium
@@ -815,7 +815,7 @@ DataSecurityForAIInteractions:
     Risk Management, Communication Compliance, and eDiscovery.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2296824
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/purview/ai-microsoft-purview
   risk: medium
@@ -827,7 +827,7 @@ DatamartTenant:
   description: Users in the organization can create Datamarts.
   preview: true
   source_url: https://learn.microsoft.com/en-us/power-bi/transform-model/datamarts/datamarts-administration
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-datamart
   risk: low
@@ -839,7 +839,7 @@ DatasetExecuteQueries:
     APIs.
   preview: false
   source_url: https://learn.microsoft.com/en-us/rest/api/power-bi/datasets/execute-queries
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/rest/api/power-bi/datasets/execute-queries
   risk: low
@@ -852,7 +852,7 @@ DevelopServiceApps:
     users outside the organization. Only applies to workspace apps and not Fabric OrgApps.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/connect-data/service-template-apps-overview
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-template-app#publish-template-apps
   risk: medium
@@ -867,7 +867,7 @@ DigitalOperationsPreview:
     and processes for big-picture analysis and operational efficiency.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/real-time-intelligence/digital-twin-builder/overview
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings#users-can-create-digital-twin-builder-preview-items
   risk: low
@@ -879,7 +879,7 @@ DiscoverDatasetsConsumption:
     its owners made it discoverable.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/governance/onelake-catalog-overview
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/governance/onelake-catalog-overview
   risk: low
@@ -892,7 +892,7 @@ DiscoverDatasetsSettingsCertified:
     don't yet have access to it.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-discovery
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-discovery
   risk: low
@@ -905,7 +905,7 @@ DiscoverDatasetsSettingsPromoted:
     to users who do not yet have access to it.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-discovery
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-discovery
   risk: low
@@ -918,7 +918,7 @@ DremioSSO:
     and email is sent to Dremio for authentication.
   preview: false
   source_url: https://powerquery.microsoft.com/blog/azure-ad-based-single-sign-on-for-dremio-cloud-and-power-bi
-  recommended: 'on'
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#dremio-sso
   risk: medium
@@ -931,7 +931,7 @@ EimInformationProtectionDataSourceInheritanceSetting:
     BI; see documentation for supported sources and label behavior.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-inheritance-from-data-sources
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-information-protection#apply-sensitivity-labels-from-data-sources-to-their-data-in-power-bi
   risk: low
@@ -945,7 +945,7 @@ EimInformationProtectionDefaultLabelDomainSetting:
     in the domain.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/governance/domain-default-sensitivity-label
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/governance/domain-default-sensitivity-label
   risk: medium
@@ -958,7 +958,7 @@ EimInformationProtectionDownstreamInheritanceSetting:
     propagated to eligible downstream content.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-downstream-inheritance
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-downstream-inheritance
   risk: low
@@ -971,7 +971,7 @@ EimInformationProtectionEdit:
     control is enforced.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-information-protection#allow-users-to-apply-sensitivity-labels-for-content
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-information-protection#allow-users-to-apply-sensitivity-labels-for-content
   risk: low
@@ -984,7 +984,7 @@ EimInformationProtectionWorkspaceAdminsOverrideAutomaticLabelsSetting:
     for example through label inheritance.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-change-enforcement#relaxations-to-accommodate-automatic-labeling-scenarios
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/service-security-sensitivity-label-change-enforcement#relaxations-to-accommodate-automatic-labeling-scenarios
   risk: medium
@@ -996,7 +996,7 @@ ElevatedGuestsTenant:
   description: Users can invite guest users to browse and request access to Fabric content.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-admin-entra-b2b
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#guest-users-can-browse-and-access-fabric-content
   risk: medium
@@ -1010,7 +1010,7 @@ EmailSecurityGroupsOnOutage:
     tenant is impacted by a service outage or incident.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
   risk: low
@@ -1022,7 +1022,7 @@ EmailSubscriptionTenant:
   description: Users can create email subscriptions to reports and dashboards.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/end-user-subscribe
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#users-can-set-up-email-subscriptions
   risk: low
@@ -1037,7 +1037,7 @@ EmailSubscriptionsToB2BUsers:
     them, and can be turned off to block guest users from any subscription involvement.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#b2b-guest-users-can-set-up-and-be-subscribed-to-email-subscriptions
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#b2b-guest-users-can-set-up-and-be-subscribed-to-email-subscriptions
   risk: medium
@@ -1050,7 +1050,7 @@ EmailSubscriptionsToExternalUsers:
     ID) in email subscriptions; turning it off stops users from subscribing external recipients.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#users-can-send-email-subscriptions-to-external-users
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#users-can-send-email-subscriptions-to-external-users
   risk: high
@@ -1063,7 +1063,7 @@ Embedding:
     your customers' method.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/developer/embedded/embedded-analytics-power-bi
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#embed-content-in-apps
   risk: medium
@@ -1076,7 +1076,7 @@ EnableAOAI:
     and Fabric AI agents; manageable at both tenant and capacity levels.
   preview: false
   source_url: https://aka.ms/fabric/copilot-ai-feature-status
-  recommended: false
+  recommended: "off"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot#users-can-use-copilot-and-other-features-powered-by-azure-openai
   risk: medium
@@ -1091,7 +1091,7 @@ EnableDatasetInPlaceSharing:
     semantic models with authorized guest users who can then use them in their own Power BI tenants.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-external-org-share-admin#allow-specific-users-to-turn-on-external-data-sharing
-  recommended: on:sg
+  recommended: "on:sg"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-external-org-share-admin#allow-specific-users-to-turn-on-external-data-sharing
   risk: high
@@ -1105,7 +1105,7 @@ EnableEsriLibraries:
     SQL functions and analysis tools to big data workloads.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2281344
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/data-engineering/spark-arcgis-geoanalytics
   risk: low
@@ -1117,7 +1117,7 @@ EnableExcelYellowIntegration:
     in Power BI Desktop's modeling view and surfaced through the Excel data types gallery.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-excel-featured-tables
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-excel-featured-tables
   risk: low
@@ -1130,7 +1130,7 @@ EnableReassignDataDomainSwitch:
     to another domain.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-domain-management-settings#allow-tenant-and-domain-admins-to-override-workspace-assignments-preview
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-domain-management-settings#allow-tenant-and-domain-admins-to-override-workspace-assignments-preview
   risk: low
@@ -1143,7 +1143,7 @@ EsriVisual:
     Esri.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualizations-arcgis
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualizations-arcgis
   risk: low
@@ -1156,7 +1156,7 @@ ExpFlightingTenant:
     that the Power BI team is experimenting with before general release.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
   risk: low
@@ -1167,7 +1167,7 @@ ExportReport:
   description: Allows users in the organization to download .pbix files and paginated reports.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/create-reports/service-export-to-pbix
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/create-reports/service-export-to-pbix
   risk: medium
@@ -1181,7 +1181,7 @@ ExportToCsv:
     into a .csv file.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder/export-csv-file-report-builder
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-to-csv
   risk: low
@@ -1194,7 +1194,7 @@ ExportToExcelSetting:
     Excel file.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/visuals/power-bi-visualization-export-data
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-to-excel
   risk: low
@@ -1209,7 +1209,7 @@ ExportToImage:
     with this API/action.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder/export-image-file-report-builder
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder/export-image-file-report-builder
   risk: low
@@ -1220,7 +1220,7 @@ ExportToMHTML:
   description: Users in the organization can export paginated reports to HTML documents.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-reports-as-mhtml-documents
   risk: low
@@ -1232,7 +1232,7 @@ ExportToPowerPoint:
     documents.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-reports-as-powerpoint-presentations-or-pdf-documents
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-reports-as-powerpoint-presentations-or-pdf-documents
   risk: low
@@ -1243,7 +1243,7 @@ ExportToWord:
   description: Lets users in the organization export paginated reports as Microsoft Word documents.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder/export-microsoft-word-report-builder
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-reports-as-word-documents
   risk: low
@@ -1254,7 +1254,7 @@ ExportToXML:
   description: Users in the organization can export paginated reports as XML documents.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/paginated-reports/report-builder/export-xml-report-builder
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#export-reports-as-xml-documents
   risk: low
@@ -1266,7 +1266,7 @@ ExportVisualImageTenant:
     as static images into external applications.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
   risk: low
@@ -1279,7 +1279,7 @@ ExternalDatasetSharingTenant:
     hub in Power BI Desktop and work with those models in their own Power BI tenants.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-external-org-share-admin#allow-guest-users-to-work-with-shared-datasets-in-their-own-tenants
-  recommended: on:sg
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-dataset-external-org-share-admin#allow-guest-users-to-work-with-shared-datasets-in-their-own-tenants
   risk: medium
@@ -1294,7 +1294,7 @@ ExternalSharingV2:
     adding accepted external users to the Entra directory as guest users.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-admin-entra-b2b#invite-guest-users
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/enterprise/powerbi/service-admin-entra-b2b#invite-guest-users
   risk: high
@@ -1309,7 +1309,7 @@ FabricAddPartnerWorkload:
     the setting is turned off, and interacting with workloads sends user data and tokens to the publisher.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/workload-development-kit/environment-setup#enable-the-development-tenant-setting
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/workload-development-kit/environment-setup#enable-the-development-tenant-setting
   risk: medium
@@ -1325,7 +1325,7 @@ FabricAddWorkloadToWorkspace:
     items!
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2268082
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-additional-workloads#workspace-admins-can-add-and-remove-additional-workloads-preview
   risk: medium
@@ -1340,7 +1340,7 @@ FabricFeedbackTenantSwitch:
     services.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/fundamentals/feedback
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/fundamentals/feedback
   risk: low
@@ -1352,7 +1352,7 @@ FabricGAWorkloads:
     item creation and can be managed at tenant and capacity level.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/fabric-switch
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/fabric-switch
   risk: low
@@ -1366,7 +1366,7 @@ FabricPromotionTenantSwitch:
     some of which may be organized and hosted by third parties.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings#users-can-be-informed-of-upcoming-conferences-featuring-microsoft-fabric-when-they-are-logged-in-to-fabric
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings#users-can-be-informed-of-upcoming-conferences-featuring-microsoft-fabric-when-they-are-logged-in-to-fabric
   risk: low
@@ -1378,7 +1378,7 @@ FabricThirdPartyWorkloads:
     turning it off stops developers from uploading to the workspace.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/workload-development-kit/environment-setup#enable-the-development-tenant-setting
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/workload-development-kit/environment-setup#enable-the-development-tenant-setting
   risk: medium
@@ -1391,7 +1391,7 @@ GitHubTenantSettings:
     with GitHub repositories.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-sync-workspace-items-with-github-repositories
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-sync-workspace-items-with-github-repositories
   risk: low
@@ -1405,7 +1405,7 @@ GitIntegrationCrossGeoTenantSwitch:
     than the workspace.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-export-items-to-git-repositories-in-other-geographical-locations
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-export-items-to-git-repositories-in-other-geographical-locations
   risk: medium
@@ -1418,7 +1418,7 @@ GitIntegrationSensitivityLabelsTenantSwitch:
   description: Allows users to export workspace items that have sensitivity labels applied to Git repositories.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-export-workspace-items-with-applied-sensitivity-labels-to-git-repositories
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/git-integration-admin-settings#users-can-export-workspace-items-with-applied-sensitivity-labels-to-git-repositories
   risk: medium
@@ -1432,7 +1432,7 @@ GitIntegrationTenantSwitch:
     source control; turning it off prevents any workspace-to-Git synchronization.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/cicd/git-integration/intro-to-git-integration
   risk: medium
@@ -1446,7 +1446,7 @@ GoogleBigQuerySSO:
     name and email is sent to BigQuery for authentication.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-query/connectors/google-bigquery-aad
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-query/connectors/google-bigquery-aad
   risk: medium
@@ -1459,7 +1459,7 @@ ImmersiveTenantAdminSwitch:
     analyze, and discuss different Fabric items across the service.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2306434
-  recommended: false
+  recommended: "off"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/create-reports/copilot-enable-power-bi#enable-the-standalone-power-bi-copilot-experience-preview
   risk: low
@@ -1473,7 +1473,7 @@ InstallNonvalidatedTemplateApps:
     Microsoft AppSource.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2091200
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-template-app#install-template-apps-not-listed-in-appsource
   risk: medium
@@ -1486,7 +1486,7 @@ InstallServiceApps:
     one creates an upgraded workspace.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-template-app#install-template-apps
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-template-app#install-template-apps
   risk: medium
@@ -1499,7 +1499,7 @@ LiveConnection:
     in Excel, through a live XMLA endpoint connection. Also required for composite models.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-analyze-in-excel
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-analyze-in-excel
   risk: medium
@@ -1517,7 +1517,7 @@ LogAnalyticsAttachForWorkspaceAdmins:
     Azure Log Analytics so workspace logs are sent to the configured Log Analytics workspace.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/transform-model/log-analytics/desktop-log-analytics-configure
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/transform-model/log-analytics/desktop-log-analytics-configure
   risk: low
@@ -1531,7 +1531,7 @@ M365DataSharing:
     like search and recommended content.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/admin-share-power-bi-metadata-microsoft-365-services
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/admin-share-power-bi-metadata-microsoft-365-services
   risk: medium
@@ -1544,7 +1544,7 @@ MLModelEndpointsTenantSwitch:
     batch predictions remain available even when real-time endpoints are off.
   preview: true
   source_url: https://aka.ms/MLModelEndpointsLearnMore
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/data-science/model-endpoints
   risk: low
@@ -1557,7 +1557,7 @@ ODSPRefreshEnforcementTenantAllowAutomaticUpdate:
     source Power BI file in OneDrive or SharePoint changes, including new or modified data connections.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-desktop-file-onedrive
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/connect-data/refresh-desktop-file-onedrive
   risk: low
@@ -1572,7 +1572,7 @@ OnPremAnalyzeInExcel:
     also permits connections to XMLA endpoints.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-analyze-in-excel
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#allow-xmla-endpoints-and-analyze-in-excel-with-on-premises-datasets
   risk: low
@@ -1587,7 +1587,7 @@ OneDriveSharePointAllowSharingTenantSetting:
     those files directly from Power BI Desktop.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#users-can-share-links-to-power-bi-files-stored-in-onedrive-and-sharepoint-through-power-bi-desktop-preview
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#users-can-share-links-to-power-bi-files-stored-in-onedrive-and-sharepoint-through-power-bi-desktop-preview
   risk: low
@@ -1601,7 +1601,7 @@ OneDriveSharePointViewerIntegrationTenantSettingV2:
     document libraries, with save and share permissions governed by OneDrive and SharePoint.
   preview: true
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-sharepoint-viewer
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#users-can-view-power-bi-files-saved-in-onedrive-and-sharepoint-preview
   risk: low
@@ -1616,7 +1616,7 @@ OneLakeDiagnosticLogsEUII:
     as email addresses and IP addresses; when disabled these fields are redacted from new events.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2335502
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/onelake/onelake-diagnostics-overview#personal-data
   risk: low
@@ -1629,7 +1629,7 @@ OneLakeFileExplorer:
     File Explorer similar to OneDrive.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/onelake/onelake-file-explorer
-  recommended: on:sg
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/onelake/onelake-file-explorer
   risk: low
@@ -1643,7 +1643,7 @@ OneLakeForThirdParty:
     File Explorer, and Databricks, alongside the built-in Fabric engines.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/onelake/security/fabric-onelake-security#allow-apps-running-outside-of-fabric-to-access-data-via-onelake
-  recommended: on:sg
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/onelake/security/fabric-onelake-security#allow-apps-running-outside-of-fabric-to-access-data-via-onelake
   risk: medium
@@ -1655,7 +1655,7 @@ OntologyPreview:
     logic to enable context-aware AI agents for decision intelligence.
   preview: true
   source_url: https://aka.ms/ontologyitem-overview
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings#users-can-create-ontology-preview-items
   risk: low
@@ -1670,7 +1670,7 @@ PlatformMonitoringTenantSetting:
     with a KQL database in the workspace and begins sending log data to it.
   preview: true
   source_url: https://learn.microsoft.com/en-us/fabric/fundamentals/enable-workspace-monitoring
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-audit-usage#workspace-admins-can-turn-on-monitoring-for-their-workspaces
   risk: low
@@ -1683,7 +1683,7 @@ PowerBIGoalsTenant:
   description: Users in the organization can create and use Scorecards.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-goals-settings
   risk: low
@@ -1696,7 +1696,7 @@ PowerBIMCP:
     principal access requires the Fabric public APIs setting.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2338916
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/developer/mcp/overview
   risk: medium
@@ -1713,7 +1713,7 @@ PreppedForCopilotContentDiscovery:
     permissions always apply.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2311781
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-copilot#only-show-approved-items-in-the-standalone-copilot-in-power-bi-experience-preview
   risk: low
@@ -1725,7 +1725,7 @@ Printing:
   description: Lets users in the organization print dashboards and reports.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/consumer/end-user-print
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/consumer/end-user-print
   risk: low
@@ -1738,7 +1738,7 @@ PromoteContent:
     Power BI Home.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-featured-content
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#featured-content
   risk: low
@@ -1750,7 +1750,7 @@ PublishContentPack:
   description: Users in the organization can publish Workspace apps to the entire organization.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-create-distribute-apps#publish-the-app-to-your-entire-organization
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-app#publish-apps-to-the-entire-organization
   risk: medium
@@ -1765,7 +1765,7 @@ PublishToWeb:
     admins manage embed codes in the admin portal.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#publish-to-web
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#publish-to-web
   risk: very high
@@ -1780,7 +1780,7 @@ QnaFeedbackLoop:
   description: Lets semantic model owners review the questions users have asked about their data in Q&A.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/tenant-settings-index
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-qa
   risk: low
@@ -1792,7 +1792,7 @@ QnaLsdlSharing:
     within the organization.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/natural-language/q-and-a-tooling-intro#field-synonyms
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/natural-language/q-and-a-tooling-intro#field-synonyms
   risk: low
@@ -1805,7 +1805,7 @@ QueryScaleOutTenant:
     automatically distribute queries across extra replicas when query volume is high.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-scale-out
   risk: low
@@ -1817,7 +1817,7 @@ RScriptVisual:
     scripts.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-r-python-visuals#interact-with-and-share-r-and-python-visuals
-  recommended: on:sg
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-r-python-visuals#interact-with-and-share-r-and-python-visuals
   risk: medium
@@ -1831,7 +1831,7 @@ RTHAnomalyDetectionTenantSwitch:
     data.
   preview: true
   source_url: https://aka.ms/AD_docs
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/real-time-intelligence/anomaly-detection
   risk: low
@@ -1844,7 +1844,7 @@ RTHOperationalAgentsTenantSwitch:
     inside the EU Data Boundary.
   preview: true
   source_url: https://go.microsoft.com/fwlink/?linkid=2338555
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/real-time-intelligence/operations-agent
   risk: medium
@@ -1857,7 +1857,7 @@ RedshiftSSO:
     name and email is sent to Redshift for authentication.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/connect-data/service-gateway-sso-overview
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#redshift-sso
   risk: medium
@@ -1870,7 +1870,7 @@ RestrictMyFolderCapacity:
     capacity.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#block-users-from-reassigning-personal-workspaces-my-workspace
-  recommended: on:sg
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#block-users-from-reassigning-personal-workspaces-my-workspace
   risk: low
@@ -1886,7 +1886,7 @@ ServicePrincipalAccessGlobalAPIs:
     public APIs' setting.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#service-principals-can-create-workspaces-connections-and-deployment-pipelines
-  recommended: on:sg
+  recommended: "on:sg"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#service-principals-can-create-workspaces-connections-and-deployment-pipelines
   risk: high
@@ -1899,7 +1899,7 @@ ServicePrincipalAccessPermissionAPIs:
     public APIs; a separate setting controls workspace, connection, and deployment pipeline creation.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#service-principals-can-call-fabric-public-apis
-  recommended: on:sg
+  recommended: "on:sg"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-developer#service-principals-can-call-fabric-public-apis
   risk: high
@@ -1912,7 +1912,7 @@ ShareLinkToEntireOrg:
     link, while excluding external users.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#allow-shareable-links-to-grant-access-to-everyone-in-your-organization
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#allow-shareable-links-to-grant-access-to-everyone-in-your-organization
   risk: medium
@@ -1927,7 +1927,7 @@ ShareToTeamsTenant:
     receiving Power BI notifications in Teams; full enablement may also require Teams admin action.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-collaborate-microsoft-teams
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#enable-microsoft-teams-integration
   risk: low
@@ -1940,7 +1940,7 @@ ShowActivatorEntryPointsTenantSwitch:
     notifications based on data conditions.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2331953
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-microsoft-fabric-tenant-settings#all-power-bi-users-can-see-set-alert-button-to-create-fabric-activator-alerts
   risk: low
@@ -1952,7 +1952,7 @@ SnowflakeSSO:
     is sent to Snowflake for authentication.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/connect-data/service-connect-snowflake
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/connect-data/service-connect-snowflake#admin-portal
   risk: medium
@@ -1965,7 +1965,7 @@ StorytellingTenant:
     admin to have enabled add-in support.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#enable-power-bi-add-in-for-powerpoint
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-export-sharing#enable-power-bi-add-in-for-powerpoint
   risk: low
@@ -1980,7 +1980,7 @@ TemplatePublish:
     on a single Power BI Desktop data source. Doesn't apply to Fabric OrgApps.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/connect-data/service-template-apps-create
-  recommended: false
+  recommended: "off"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/connect-data/service-template-apps-create
   risk: low
@@ -1994,7 +1994,7 @@ TenantSettingPublishGetHelpInfo:
     BI help menu.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#publish-get-help-information
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-help-support#publish-get-help-information
   risk: low
@@ -2009,7 +2009,7 @@ ThirdPartyPrivateWorkloads:
     admins should only add workloads from trusted publishers that meet organizational policies.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/workload-development-kit/publish-workload-requirements
-  recommended: on:sg
+  recommended: "on:sg"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-additional-workloads#users-can-see-and-work-with-additional-workloads-not-validated-by-microsoft
   risk: medium
@@ -2024,7 +2024,7 @@ UsageMetrics:
     models that they have appropriate permissions to.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-modern-usage-metrics
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-modern-usage-metrics
   risk: low
@@ -2037,7 +2037,7 @@ UsageMetricsTrackUserLevelInfo:
     of users accessing the content.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/collaborate-share/service-modern-usage-metrics#exclude-user-information-from-usage-metrics-reports
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-audit-usage
   risk: low
@@ -2051,7 +2051,7 @@ UseDatasetsAcrossWorkspaces:
     they have Build permission on those models.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/portal-workspace#use-semantic-models-across-workspaces
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/connect-data/service-datasets-admin-across-workspaces
   risk: low
@@ -2063,7 +2063,7 @@ VisualizeListInPowerBI:
     top of that list data, and publish the reports back to the lists.
   preview: false
   source_url: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#integration-with-sharepoint-and-microsoft-lists
-  recommended: true
+  recommended: "on"
   default: 'on'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-integration#integration-with-sharepoint-and-microsoft-lists
   risk: low
@@ -2075,7 +2075,7 @@ WebContentTilesTenant:
     warn this may expose the org to security risks from malicious web content.
   preview: false
   source_url: https://learn.microsoft.com/en-us/power-bi/create-reports/service-dashboard-add-widget#add-web-content
-  recommended: false
+  recommended: "off"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-dashboard#web-content-on-dashboard-tiles
   risk: medium
@@ -2088,7 +2088,7 @@ WebModelingTenantSwitch:
     semantic models or edits made through an API or XMLA endpoint.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2227332
-  recommended: true
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/power-bi/transform-model/service-edit-data-models
   risk: low
@@ -2104,7 +2104,7 @@ WorkspaceBlockInboundAccess:
     links.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2272575
-  recommended: on:sg
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/security/security-workspace-enable-inbound-access-protection
   risk: medium
@@ -2117,7 +2117,7 @@ WorkspaceBlockOutboundAccess:
     this tenant setting also removes outbound protection from every workspace.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2310620
-  recommended: on:sg
+  recommended: "on"
   default: null
   default_source: https://learn.microsoft.com/en-us/fabric/security/workspace-outbound-access-protection-overview
   risk: medium
@@ -2130,7 +2130,7 @@ WorkspaceCmk:
     protect their data; when off, Fabric uses Microsoft-managed keys by default.
   preview: false
   source_url: https://go.microsoft.com/fwlink/?linkid=2308801
-  recommended: true
+  recommended: "on"
   default: 'off'
   default_source: https://learn.microsoft.com/en-us/fabric/admin/service-admin-portal-encryption#enable-cmk-for-fabric-workspaces-tenant-setting
   risk: medium

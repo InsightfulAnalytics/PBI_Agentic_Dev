@@ -204,23 +204,24 @@ def diff_snapshots(previous: dict[str, Any], current: list[dict[str, Any]]) -> d
 def load_metadata(path: Path) -> dict[str, dict[str, Any]]:
     """Load the curated metadata file.
 
-    YAML 1.1 treats bare on/off as booleans, so we normalize them here back
-    into the stable string form the rest of the script expects. The YAML file
-    is the single source of truth for every field (human_name, description,
-    recommended, default, etc.), so any schema evolution happens in the YAML
-    and the script picks it up on the next run.
+    The YAML file is the single source of truth for every field (human_name,
+    description, recommended, default, etc.). Every `recommended` value must
+    be one of the quoted strings "on", "off", "on:sg", or null; bare on/off
+    would be coerced to booleans by YAML 1.1 and is rejected so the schema
+    stays obvious when read by a human.
     """
     if not path.exists():
         sys.exit(f"metadata file not found: {path}")
     with path.open() as f:
         data = yaml.safe_load(f) or {}
-    for entry in data.values():
-        for field in ("recommended", "default"):
-            val = entry.get(field)
-            if val is True:
-                entry[field] = "on"
-            elif val is False:
-                entry[field] = "off"
+    allowed = {"on", "off", "on:sg", None}
+    for name, entry in data.items():
+        rec = entry.get("recommended")
+        if rec not in allowed:
+            sys.exit(
+                f"metadata: {name} has invalid recommended={rec!r}; "
+                f"must be one of \"on\", \"off\", \"on:sg\", or null"
+            )
     return data
 # endregion
 
@@ -269,11 +270,10 @@ def merge(metadata: dict[str, dict[str, Any]], live: list[dict[str, Any]]) -> tu
 
 # region Status calculation
 def current_state(record: SettingRecord) -> str:
-    """Normalize the live state to the same vocabulary used for recommended/default.
+    """Normalize the live state to the recommendation vocabulary.
 
-    Live state maps to one of: off, on, on:sg. The metadata schema also has
-    off:sg (disable-except-SG) but at the API level that collapses into the
-    same enabled+SG shape as on:sg, so both are returned as on:sg here.
+    Live state collapses into one of the three valid postures: off, on, on:sg.
+    Any SG membership at all (enabled_sg or excluded_sg) counts as on:sg.
     """
     if not record.live_enabled:
         return "off"
@@ -302,13 +302,13 @@ def current_label(record: SettingRecord) -> str:
 def status_of(record: SettingRecord) -> str:
     """Compare recommended vs live to label compliance.
 
-    Returns one of: compliant, drift, review, unknown.
+    The recommendation vocabulary is closed: on, off, on:sg. Anything else
+    (including None) is treated as unknown so metadata bugs surface instead
+    of silently masquerading as compliant.
     """
     rec = record.recommended
     if rec is None:
         return "unknown"
-    if rec == "review":
-        return "review"
 
     has_sg_scope = bool(record.enabled_sg) or bool(record.excluded_sg)
 
@@ -316,8 +316,7 @@ def status_of(record: SettingRecord) -> str:
         return "compliant" if (record.live_enabled and not has_sg_scope) else "drift"
     if rec == "off":
         return "compliant" if not record.live_enabled else "drift"
-    if rec in ("on:sg", "off:sg"):
-        # both postures map to the same live shape: enabled with SG scoping.
+    if rec == "on:sg":
         return "compliant" if (record.live_enabled and has_sg_scope) else "drift"
     return "unknown"
 
@@ -346,7 +345,6 @@ def individuals_in_scope(record: SettingRecord) -> list[str]:
 STATUS_SYMBOL = {
     "compliant": "OK",
     "drift": "DRIFT",
-    "review": "REVIEW",
     "unknown": "UNKNOWN",
 }
 
@@ -355,7 +353,7 @@ def render_summary(records: list[SettingRecord], unknown_live: list[str], missin
     total = len(records)
     compliant = sum(1 for r in records if status_of(r) == "compliant")
     drift = sum(1 for r in records if status_of(r) == "drift")
-    review = sum(1 for r in records if status_of(r) == "review")
+    unknown = sum(1 for r in records if status_of(r) == "unknown")
     preview = sum(1 for r in records if r.preview)
     sg_scoped = sum(1 for r in records if (r.enabled_sg or r.excluded_sg))
     individuals = sum(1 for r in records if individuals_in_scope(r))
@@ -372,13 +370,14 @@ def render_summary(records: list[SettingRecord], unknown_live: list[str], missin
         f"- Total settings:           **{total}**",
         f"- Compliant:                **{compliant}**",
         f"- Drift vs. recommended:    **{drift}**",
-        f"- Review (no position):     **{review}**",
         f"- Preview features:         **{preview}**",
         f"- SG-scoped:                **{sg_scoped}**",
         f"- Flagged individuals:      **{individuals}**",
         f"- With documented default:  **{with_default}** / {total}",
         f"- Differ from default:      **{differs_from_default}** (of {with_default} with documented default)",
     ]
+    if unknown:
+        lines.append(f"- Unknown (missing recommendation in metadata): **{unknown}**")
     if needs_review:
         lines.append(f"- Metadata gaps (needs_review): **{needs_review}**")
     if unknown_live:
@@ -438,9 +437,9 @@ def render_individuals_table(records: list[SettingRecord]) -> str:
 def render_setting(record: SettingRecord) -> str:
     """Render one setting block with Current / Recommended / Default adjacent.
 
-    All three lines use the same on / off / on:sg / off:sg / review vocabulary
-    so they line up visually. Current also includes an SG-membership detail
-    in parentheses when the live state is SG-scoped.
+    All three lines use the same on / off / on:sg vocabulary so they line up
+    visually. Current also includes an SG-membership detail in parentheses
+    when the live state is SG-scoped.
     """
     status = status_of(record)
     header = f"#### {record.human_name}"

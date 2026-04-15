@@ -65,6 +65,15 @@ DRIFT     = colors.HexColor("#8F5A0E")  # muted amber
 CRITICAL  = colors.HexColor("#7A2E2C")  # muted oxblood, high-risk only
 COMPLIANT = colors.HexColor("#4E7247")  # desaturated sage
 
+# Hex strings for inline <font color="..."> markup in Paragraphs
+INK_HEX       = "#0B0C0A"
+CRITICAL_HEX  = "#7A2E2C"
+COMPLIANT_HEX = "#4E7247"
+
+# Light tint backgrounds for change-rows (regression / improvement)
+LIGHT_RED_BG   = colors.HexColor("#FBEEED")
+LIGHT_GREEN_BG = colors.HexColor("#EDF3EB")
+
 RISK_COLORS = {
     "high":   CRITICAL,
     "medium": DRIFT,
@@ -230,7 +239,103 @@ def build_styles() -> dict[str, ParagraphStyle]:
             leading=9,
             textColor=WARM_GREY,
         ),
+        "sg_line": ParagraphStyle(
+            "sg_line",
+            fontName="Helvetica",
+            fontSize=7,
+            leading=9,
+            textColor=WARM_GREY,
+        ),
     }
+
+
+def _tint(text: str, tint: str | None) -> str:
+    """Wrap a string in an inline <font color> tag when a tint is set.
+
+    Lets a single Paragraph style drive hierarchy while callers override
+    color per-row; the reportlab Paragraph markup parser honours the tag.
+    """
+    return f'<font color="{tint}">{text}</font>' if tint else text
+
+
+def status_from_state(enabled: bool, enabled_sgs: list, excluded_sgs: list, recommended: str | None) -> str:
+    """Compute a status for an arbitrary enabled/sg state against a recommendation.
+
+    Mirrors audit.status_of() but takes raw values so the changes table can
+    classify the PREVIOUS state from the snapshot (which is not a
+    SettingRecord) against the same recommendation vocabulary.
+    """
+    if recommended is None:
+        return "unknown"
+    has_sg = bool(enabled_sgs) or bool(excluded_sgs)
+    if recommended == "on":
+        return "compliant" if (enabled and not has_sg) else "drift"
+    if recommended == "off":
+        return "compliant" if not enabled else "drift"
+    if recommended == "on:sg":
+        return "compliant" if (enabled and has_sg) else "drift"
+    return "unknown"
+
+
+def _render_state_lines(enabled: bool, enabled_sgs: list, excluded_sgs: list, styles: dict[str, ParagraphStyle], tint: str | None) -> list:
+    """Base state cell: `on`/`off` followed by zero or more group lines."""
+    base = "on" if enabled else "off"
+    cell: list = [Paragraph(_tint(base, tint), styles["cell"])]
+    for sg in enabled_sgs:
+        name = sg.get("name") or sg.get("graphId", "?")
+        cell.append(Paragraph(_tint(f"+ {name}", tint), styles["sg_line"]))
+    for sg in excluded_sgs:
+        name = sg.get("name") or sg.get("graphId", "?")
+        cell.append(Paragraph(_tint(f"&minus; {name}", tint), styles["sg_line"]))
+    return cell
+
+
+def render_current_cell(record, styles: dict[str, ParagraphStyle], tint: str | None = None) -> list:
+    """Render the CURRENT state cell for a drift or changes row.
+
+    When a setting is enabled AND scoped to security groups, show `on` on
+    the first line and list each group (`+` for allowed, `-` for excluded)
+    on subsequent small grey lines. Plain `on` / `off` otherwise.
+    """
+    return _render_state_lines(
+        record.live_enabled,
+        record.enabled_sg,
+        record.excluded_sg,
+        styles,
+        tint,
+    )
+
+
+def render_previous_cell(prev_entry: dict, styles: dict[str, ParagraphStyle], tint: str | None = None) -> list:
+    """Render the PREVIOUS state cell from a raw snapshot entry.
+
+    Used by the changes table to show what each setting looked like before
+    the most recent set of mutations.
+    """
+    return _render_state_lines(
+        bool(prev_entry.get("enabled")),
+        prev_entry.get("enabledSecurityGroups", []) or [],
+        prev_entry.get("excludedSecurityGroups", []) or [],
+        styles,
+        tint,
+    )
+
+
+def render_recommended_cell(recommended: str | None, styles: dict[str, ParagraphStyle], tint: str | None = None) -> list:
+    """Render the RECOMMENDED state cell.
+
+    The recommendation vocabulary is `on` / `off` / `on:sg`. `on:sg` is
+    split into a base `on` line and a small grey human-readable hint so
+    the column never shows the raw on:sg token.
+    """
+    if recommended is None:
+        return [Paragraph(_tint("-", tint), styles["cell"])]
+    if recommended == "on:sg":
+        return [
+            Paragraph(_tint("on", tint), styles["cell"]),
+            Paragraph(_tint("(for specific security groups)", tint), styles["sg_line"]),
+        ]
+    return [Paragraph(_tint(recommended, tint), styles["cell"])]
 
 
 def section_head(title: str, styles: dict[str, ParagraphStyle]) -> list:
@@ -296,7 +401,7 @@ def build_masthead(tenant_label: str, baseline_path: Path, styles: dict[str, Par
     ]
 
 
-def build_changes_section(diff: dict[str, list[Any]] | None, previous_timestamp: str | None, styles: dict[str, ParagraphStyle]) -> list:
+def build_changes_section(diff: dict[str, list[Any]] | None, previous_timestamp: str | None, previous: dict[str, Any] | None, records: list, audit, styles: dict[str, ParagraphStyle]) -> list:
     els = section_head("Changes since last audit", styles)
     if diff is None:
         els.append(Paragraph(
@@ -322,41 +427,142 @@ def build_changes_section(diff: dict[str, list[Any]] | None, previous_timestamp:
         f"added: <b>{len(added)}</b>",
         f"removed: <b>{len(removed)}</b>",
         f"toggled: <b>{len(toggled)}</b>",
-        f"sg_changed: <b>{len(sg_changed)}</b>",
-        f"property_changed: <b>{len(prop_changed)}</b>",
+        f"group changes: <b>{len(sg_changed)}</b>",
+        f"property changes: <b>{len(prop_changed)}</b>",
     ]
     els.append(Paragraph("  &middot;  ".join(summary_bits), styles["mute"]))
+    els.append(Spacer(1, 6))
 
-    if toggled:
-        rows = [[
-            Paragraph("SETTING", styles["cell_bold"]),
-            Paragraph("FROM", styles["cell_bold"]),
-            Paragraph("TO", styles["cell_bold"]),
-        ]]
-        for t in toggled[:MAX_TOGGLE_ROWS]:
-            rows.append([
-                Paragraph(t.get("title") or t["name"], styles["cell"]),
-                Paragraph(t["from"], styles["cell_mute"]),
-                Paragraph(t["to"], styles["cell"]),
-            ])
-        tbl = Table(rows, colWidths=["72%", "14%", "14%"])
-        tbl.setStyle(TableStyle([
-            ("LINEBELOW", (0, 0), (-1, 0), 0.4, INK),
-            ("LINEBELOW", (0, 1), (-1, -1), 0.2, HAIRLINE),
-            ("VALIGN", (0, 0), (-1, -1), "TOP"),
-            ("TOPPADDING", (0, 0), (-1, -1), 4),
-            ("BOTTOMPADDING", (0, 0), (-1, -1), 4),
-            ("LEFTPADDING", (0, 0), (-1, -1), 0),
-            ("RIGHTPADDING", (0, 0), (-1, -1), 6),
-        ]))
-        els += [Spacer(1, 4), tbl]
-        if len(toggled) > MAX_TOGGLE_ROWS:
-            els.append(Spacer(1, 3))
-            els.append(Paragraph(
-                f"{len(toggled) - MAX_TOGGLE_ROWS} more toggles omitted; check the markdown audit for the full list.",
-                styles["mute"],
-            ))
+    previous_settings = (previous or {}).get("settings", {}) or {}
+    record_by_name = {r.api_name: r for r in records}
 
+    changed_names: set[str] = set()
+    for t in toggled:
+        changed_names.add(t["name"])
+    for g in sg_changed:
+        changed_names.add(g["name"])
+    for p in prop_changed:
+        changed_names.add(p["name"])
+    added_names = set(added)
+    removed_names = set(removed)
+
+    risk_order = {"high": 0, "medium": 1, "low": 2, None: 3}
+
+    def _sort_key(n: str) -> tuple:
+        r = record_by_name.get(n)
+        if r is None:
+            return (4, n)
+        return (risk_order.get(r.risk, 3), r.human_name)
+
+    ordered_active = sorted(changed_names | added_names, key=_sort_key)
+    ordered_removed = sorted(removed_names)
+
+    header = [
+        Paragraph("RISK", styles["cell_bold"]),
+        Paragraph("SETTING", styles["cell_bold"]),
+        Paragraph("PREVIOUS", styles["cell_bold"]),
+        Paragraph("CURRENT", styles["cell_bold"]),
+        Paragraph("RECOMMEND", styles["cell_bold"]),
+    ]
+    rows = [header]
+    row_backgrounds: list[tuple[int, Any]] = []
+
+    for name in ordered_active:
+        rec = record_by_name.get(name)
+        if rec is None:
+            continue
+
+        is_new = name in added_names
+        curr_status = audit.status_of(rec)
+
+        if is_new:
+            prev_status = None
+        else:
+            prev_entry = previous_settings.get(name, {})
+            prev_status = status_from_state(
+                bool(prev_entry.get("enabled")),
+                prev_entry.get("enabledSecurityGroups", []) or [],
+                prev_entry.get("excludedSecurityGroups", []) or [],
+                rec.recommended,
+            )
+
+        tint: str | None = None
+        bg = None
+        if is_new:
+            if curr_status == "drift":
+                tint, bg = CRITICAL_HEX, LIGHT_RED_BG
+            elif curr_status == "compliant":
+                tint, bg = COMPLIANT_HEX, LIGHT_GREEN_BG
+        else:
+            if prev_status == "compliant" and curr_status == "drift":
+                tint, bg = CRITICAL_HEX, LIGHT_RED_BG
+            elif prev_status == "drift" and curr_status == "compliant":
+                tint, bg = COMPLIANT_HEX, LIGHT_GREEN_BG
+
+        if is_new:
+            prev_cell = [Paragraph(_tint("(new)", tint), styles["sg_line"])]
+        else:
+            prev_cell = render_previous_cell(previous_settings.get(name, {}), styles, tint)
+
+        risk_label = (rec.risk or "-").upper()
+
+        link_color = tint or INK_HEX
+        if rec.source_url:
+            name_html = f'<link href="{rec.source_url}" color="{link_color}"><u>{rec.human_name}</u></link>'
+        else:
+            name_html = _tint(rec.human_name, tint)
+        setting_cell = [
+            Paragraph(name_html, styles["cell"]),
+            Paragraph(_tint(rec.api_name, tint), styles["code"]),
+        ]
+
+        rows.append([
+            Paragraph(_tint(risk_label, tint), styles["cell_bold"]),
+            setting_cell,
+            prev_cell,
+            render_current_cell(rec, styles, tint),
+            render_recommended_cell(rec.recommended, styles, tint),
+        ])
+
+        if bg is not None:
+            row_backgrounds.append((len(rows) - 1, bg))
+
+    for name in ordered_removed:
+        prev_entry = previous_settings.get(name, {})
+        setting_cell = [
+            Paragraph(name, styles["cell"]),
+            Paragraph("(removed from API)", styles["sg_line"]),
+        ]
+        rows.append([
+            Paragraph("-", styles["cell"]),
+            setting_cell,
+            render_previous_cell(prev_entry, styles),
+            [Paragraph("-", styles["cell"])],
+            [Paragraph("-", styles["cell"])],
+        ])
+
+    if len(rows) == 1:  # header only, no data rows
+        return els
+
+    tbl = Table(
+        rows,
+        colWidths=["10%", "42%", "18%", "15%", "15%"],
+        repeatRows=1,
+    )
+    style = [
+        ("LINEBELOW", (0, 0), (-1, 0), 0.4, INK),
+        ("LINEBELOW", (0, 1), (-1, -1), 0.2, HAIRLINE),
+        ("VALIGN", (0, 0), (-1, -1), "TOP"),
+        ("TOPPADDING", (0, 0), (-1, -1), 5),
+        ("BOTTOMPADDING", (0, 0), (-1, -1), 5),
+        ("LEFTPADDING", (0, 0), (-1, -1), 4),
+        ("RIGHTPADDING", (0, 0), (-1, -1), 4),
+    ]
+    for ri, bg in row_backgrounds:
+        style.append(("BACKGROUND", (0, ri), (-1, ri), bg))
+    tbl.setStyle(TableStyle(style))
+
+    els.append(tbl)
     return els
 
 
@@ -382,22 +588,28 @@ def build_drift_section(records: list, styles: dict[str, ParagraphStyle], audit)
         Paragraph("SETTING", styles["cell_bold"]),
         Paragraph("GROUP", styles["cell_bold"]),
         Paragraph("CURRENT", styles["cell_bold"]),
-        Paragraph("RECOMMENDED", styles["cell_bold"]),
+        Paragraph("RECOMMEND", styles["cell_bold"]),
     ]
     rows = [header]
     shown = drift_records[:MAX_DRIFT_ROWS]
     for r in shown:
         risk_label = (r.risk or "-").upper()
+        # Human name links to the official doc when a source_url is present;
+        # ReportLab <link> tags are clickable in every conforming PDF reader.
+        if r.source_url:
+            name_html = f'<link href="{r.source_url}" color="#0B0C0A"><u>{r.human_name}</u></link>'
+        else:
+            name_html = r.human_name
         setting_cell = [
-            Paragraph(r.human_name, styles["cell"]),
+            Paragraph(name_html, styles["cell"]),
             Paragraph(r.api_name, styles["code"]),
         ]
         rows.append([
             Paragraph(risk_label, styles["cell_bold"]),
             setting_cell,
             Paragraph(r.group, styles["cell_mute"]),
-            Paragraph(audit.current_state(r), styles["cell"]),
-            Paragraph(r.recommended or "-", styles["cell"]),
+            render_current_cell(r, styles),
+            render_recommended_cell(r.recommended, styles),
         ])
 
     tbl = Table(
@@ -548,6 +760,7 @@ def main() -> int:
     records, unknown, missing = audit.merge(metadata, live)
 
     diff: dict[str, list[Any]] | None = None
+    previous: dict[str, Any] | None = None
     previous_timestamp: str | None = None
     if not args.no_snapshot:
         previous = audit.load_snapshot(snapshot_path)
@@ -600,12 +813,12 @@ def main() -> int:
             ("Drift",            drift_count),
             ("High-risk drift",  high_risk_drift),
             ("Preview",          preview),
-            ("SG-scoped",        sg_scoped),
+            ("With groups",      sg_scoped),
         ],
         styles,
         doc.width,
     ))
-    story += build_changes_section(diff, previous_timestamp, styles)
+    story += build_changes_section(diff, previous_timestamp, previous, records, audit, styles)
     story += build_drift_section(records, styles, audit)
     story += build_overrides_section(overrides, args.no_overrides, styles)
 
