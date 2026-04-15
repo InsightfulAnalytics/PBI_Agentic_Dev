@@ -18,7 +18,7 @@
 </p>
 
 > [!WARNING]
-> Under active development with a daily release cadence; regular renaming or restructuring.
+> Under active development with a weekly release cadence; regular renaming or restructuring.
 
 ---
 
