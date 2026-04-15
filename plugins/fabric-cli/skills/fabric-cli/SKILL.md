@@ -1,6 +1,6 @@
 ---
 name: fabric-cli
-version: 0.25.2
+version: 0.25.3
 description: Expert guidance for using the Fabric CLI (`fab`) to fully interact with Fabric workspaces, items, and configuration. Automatically invoke this skill whenever the user mentions "Fabric" or "Power BI Service" or a "Fabric/Power BI workspace".
 ---
 
@@ -23,7 +23,7 @@ Guidance for using `fab` to programmatically manage Fabric & Power BI service
 
 ## Critical general rules
 
-- The first time you use `fab` run check that it is up to date to the latest version and run `fab auth status`; If user isn't authenticated, ask them to run `fab auth login`
+- IMPORTANT: The first time you use `fab` run check that it is up to date to the latest version and run `fab auth status`; If user isn't authenticated, ask them to run `fab auth login`
 - Always use `fab --help` and `fab <command> --help` the first time you use a command to understand its syntax
 - You must search the skill /references/ for relevant reference files that explain certain commands, examples, scripts, or workflows before you start using `fab`
 - Before first use, ask the user if they have Fabric admin access, sensitivity labels or DLP policies, any API restrictions, or preferences for Fabric/Power BI API usage; remind user to add this to memory files
@@ -48,7 +48,7 @@ The `fab` CLI prompts for confirmation, so you **you must always append `-f`** t
 
 ## Quickstart guide
 
-Here's a common list of operations with simple examples
+You must read and understand the common list of operations with simple examples
 
 0. Check the commands, syntax, and auth status: `fab --help` and `fab auth status`
 1. Check if the item exists if the user gave the workspace and item name: `fab exists "spaceparts-dev.Workspace/spaceparts-otc-full.SemanticModel"`
@@ -57,7 +57,7 @@ Here's a common list of operations with simple examples
 4. Check the commands for that item: 
    - `fab desc` to get itemTypes
    - `fab desc .<ItemType>` for commands i.e. `fab desc .SemanticModel`
-5. Get or search its definition:
+5. What's in that item; what's it for; what is it?:
    - Full TMDL definition: `fab get "spaceparts-dev.Workspace/spaceparts-otc-full.SemanticModel" -q "definition" -f`
    - Search a specific measure / table / column: `fab get "ws.Workspace/Model.SemanticModel" -q "definition" -f | rga -i "Sales Amount"`
 6. Get files, tables, or table schemas:
@@ -513,6 +513,11 @@ Check references before deploying:
 
 - [`audit-tenant-settings`](../audit-tenant-settings/SKILL.md) ; Fabric governance workflow covering tenant settings, delegated overrides (capacity / domain / workspace), and the Entra security groups those settings reference. Read-only; holds the curated metadata baseline and the audit + change-detection script.
 
+## Gotchas
+
+- **IMPORTANT:** DON'T try to use `fab ls` on items that aren't data items (.Lakehouse, .Warehouse, etc); use `fab ls` to find workspaces and items, and use `fab get` to look at definitions
+- ALWAYS Use the `-f` flag when using `fab get`, `fab import`, `fab export`, etc. as described above
+- ONLY fallback to `fab api` when a command doesn't exist
 
 ## References
 
