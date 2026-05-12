@@ -16,6 +16,14 @@ so the script's value-add is visible.
 The DataHub V2 API is undocumented internal Microsoft surface area. Use this
 script for governance, cleanup, and audit work where the unique fields actually
 matter; do not depend on it for production automation.
+
+JSON output schema note: the --output json form orders keys with the
+unique-to-DataHub-V2 fields first (lastVisited, lastRefreshed, lastModified,
+owner, ownerName, storageMode, capacitySku, naturalLanguageSupported,
+cachedModelEnabled, isDiscoverable) and identifier fields last (name,
+workspace, workspaceId, id). naturalLanguageSupported and cachedModelEnabled
+were added to the JSON output alongside the reorder. Downstream consumers
+that pin field order should switch to key-based lookup.
 Returns rich metadata not available via standard APIs (storage mode, last visited, owner, SKU).
 
 AGENT USAGE GUIDE:
@@ -660,19 +668,19 @@ def format_output(items: List[Dict], output_format: str = "table", show_fields: 
     # signals leading: last visit, last refresh, owner, storage. Name and
     # workspace are still shown so rows remain identifiable.
     lines = []
-    lines.append(f"{'Last Visit':<12} {'Last Refresh':<12} {'Storage':<12} {'Owner':<20} {'Name':<30} {'Workspace':<22}")
-    lines.append("-" * 110)
+    lines.append(f"{'Last Visit':<12} {'Last Refresh':<12} {'Storage':<14} {'Owner':<20} {'Name':<30} {'Workspace':<22}")
+    lines.append("-" * 112)
 
     for item in items:
         last_visit = item.get("lastVisitedTimeUTC", "")[:10] if item.get("lastVisitedTimeUTC") else ""
         refresh_iso = _get_refresh_time(item)
         last_refresh = refresh_iso[:10] if refresh_iso else ""
-        storage = _get_storage_mode(item)[:11]
+        storage = _get_storage_mode(item)
         owner = item.get("ownerUser", {})
         owner_name = f"{owner.get('givenName', '')} {owner.get('familyName', '')}"[:19]
         name = item.get("displayName", item.get("name", "Unknown"))[:29]
         workspace = item.get("workspaceName", "")[:21]
-        lines.append(f"{last_visit:<12} {last_refresh:<12} {storage:<12} {owner_name:<20} {name:<30} {workspace:<22}")
+        lines.append(f"{last_visit:<12} {last_refresh:<12} {storage:<14} {owner_name:<20} {name:<30} {workspace:<22}")
 
     return "\n".join(lines)
 
