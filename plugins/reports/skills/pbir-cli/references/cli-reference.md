@@ -14,6 +14,7 @@ Complete command reference for the pbir CLI. All commands prefixed with `pbir`.
 - [Filter Operations](#filter-operations)
 - [Bookmark Operations](#bookmark-operations)
 - [Annotation Operations](#annotation-operations)
+- [Best Practice Analyzer (BPA)](#best-practice-analyzer-bpa)
 - [Connection and Fabric](#connection-and-fabric)
 - [Configuration and Setup](#configuration-and-setup)
 - [Visual Types Reference](#visual-types-reference)
@@ -162,6 +163,9 @@ pbir add visual tableEx "Report.Report/Page.Page" --title "Detail"
 pbir add visual kpi "Report.Report/Page.Page" -d "Indicator:Sales.Revenue"
 pbir add visual --list                            # List all 50+ visual types with data roles
 
+# Role names match the visual list (Values, Category, Y, Series, Indicator, ...).
+# The CLI matches role names case-insensitively, so lowercase also works.
+
 # Bulk creation from JSON
 pbir add visual "Report.Report/Page.Page" --from-json visuals.json
 # JSON format: [{"visual_type": "card", "x": 0, "y": 0, "title": "Sales", "fields": {"Values": "Sales.Revenue"}}]
@@ -187,7 +191,19 @@ pbir visuals align "Report.Report/Page.Page" distribute-horizontal V1 V2 V3
 pbir visuals z-order "Visual.Visual"             # View/manage layer stacking
 pbir visuals snap "Visual.Visual"                # Snap to grid
 pbir visuals mobile "Visual.Visual"              # Get/set mobile layout
-pbir visuals group "Report.Report/Page.Page"     # Manage visual groups
+
+# Visual groups (scale/position multiple visuals together)
+pbir visuals group "Report.Report/Page.Page" --list
+pbir visuals group "Report.Report/Page.Page" --create "KPI Group"
+pbir visuals group "Report.Report/Page.Page/KPI Group.Visual" --add "Card.Visual" --add "KPI.Visual"
+pbir visuals group "Report.Report/Page.Page/KPI Group.Visual" --remove "Card.Visual"
+pbir visuals group "Report.Report/Page.Page/Visual.Visual" --ungroup     # Remove visual from its group
+pbir visuals group "Report.Report/Page.Page/KPI Group.Visual" --ungroup  # Delete group, free members
+
+# Style presets (curated formatting bundles)
+pbir visuals preset --list                                               # minimal, bold, clean, emphasis, presentation
+pbir visuals preset "Report.Report/Page.Page/Visual.Visual" --name minimal
+pbir visuals preset "Report.Report/**/*.Visual" --name presentation
 ```
 
 ### Container Formatting (all visual types)
@@ -266,11 +282,11 @@ pbir visuals bind "Visual.Visual" -c "Values"    # Clear entire role
 
 Two surfaces share one model:
 
-- **`pbir set` / `pbir get`** — dot-path reads and scalar edits on existing CF entries.
-- **`pbir visuals cf`** — structural authoring (create, copy, convert).
+- **`pbir set` / `pbir get`**. dot-path reads and scalar edits on existing CF entries.
+- **`pbir visuals cf`**. structural authoring (create, copy, convert).
 
 ```bash
-# Create measure-based CF (structural — stays on `visuals cf`)
+# Create measure-based CF (structural. stays on `visuals cf`)
 pbir visuals cf "Visual.Visual" --measure "labels.color _Fmt.StatusColor"
 pbir visuals cf "Visual.Visual" --measure "dataPoint.fill _Fmt.BarColor"
 
@@ -297,7 +313,7 @@ pbir set "Visual.Visual.dataPoint.series(Cities.City=Antwerp).fill" --value "#E6
 pbir set "Visual.Visual.y1AxisReferenceLine.id(2).lineColor" --value "#FF0000"
 pbir set "Visual.Visual.labels.hover.fontColor" --value "#E3F2FD"
 
-# Convert / copy / theme-tokenize (structural — retained on `visuals cf`)
+# Convert / copy / theme-tokenize (structural. retained on `visuals cf`)
 pbir visuals cf "Visual.Visual" --theme-colors "dataPoint.fill"             # Hex -> theme tokens
 pbir visuals cf "Visual.Visual" --to-measure dataPoint.fill                 # Convert to extension measure
 pbir visuals cf "Target.Visual" --copy-from "Source.Visual"                 # Copy CF between visuals
@@ -441,6 +457,22 @@ pbir annotations update "Report.Report" key "value"
 pbir annotations rename "Report.Report" old-key new-key
 pbir add annotation "Report.Report" --name version --value "1.0"
 ```
+
+## Best Practice Analyzer (BPA)
+
+```bash
+# Run BPA over a report
+pbir bpa run "Report.Report"
+pbir bpa run "Report.Report" --fail-on error -o json   # CI-friendly, exit code follows severity
+pbir bpa run "Report.Report" --fix --save              # Apply automatically-safe fixes in place
+
+# Manage rules
+pbir bpa rules list                                    # All rules with IDs and severities
+pbir bpa rules ignore PBIR_DROP_SHADOW "Report.Report"
+pbir bpa rules unignore PBIR_DROP_SHADOW "Report.Report"
+```
+
+Pair `pbir validate` (schema and structure) with `pbir bpa run` (design and layout rules). See `references/bpa.md` for the full workflow.
 
 ## Connection and Fabric
 

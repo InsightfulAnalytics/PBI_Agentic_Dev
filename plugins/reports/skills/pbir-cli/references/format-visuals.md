@@ -228,7 +228,7 @@ pbir visuals cf "Visual.Visual" --measure "dataPoint.fill _Fmt.RevenueColor"
 
 Use `pbir get` / `pbir set` with a `.cf` dot-path tail. The old
 `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all`
-flags are deprecated and redirect to these commands — see
+flags are deprecated and redirect to these commands. see
 [conditional-formatting.md](conditional-formatting.md) for the full rewrite
 table.
 
@@ -270,7 +270,7 @@ pbir set "Visual.Visual.dataPoint.fill.cf.measure" --value "_Fmt.NewColor"
 ```
 
 Kind mismatch hard-errors with a pointer at `pbir set ...cf --remove` +
-`pbir visuals cf --<kind>` — no automatic morphing.
+`pbir visuals cf --<kind>`. no automatic morphing.
 
 ### Converting Hex Colors to Theme Tokens
 
