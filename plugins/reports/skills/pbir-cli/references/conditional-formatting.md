@@ -4,8 +4,8 @@ Complete guide to managing conditional formatting (CF) in PBIR reports.
 
 Two surfaces share one model:
 
-- **`pbir set` / `pbir get`** — dot-path reads and scalar edits on existing CF entries. Primary surface for daily work.
-- **`pbir visuals cf`** — structural authoring: create CF from scratch, copy CF between visuals, convert to theme tokens, convert to measure-driven.
+- **`pbir set` / `pbir get`**. dot-path reads and scalar edits on existing CF entries. Primary surface for daily work.
+- **`pbir visuals cf`**. structural authoring: create CF from scratch, copy CF between visuals, convert to theme tokens, convert to measure-driven.
 
 The old `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all` flags are **deprecated** and redirect to `pbir set`/`pbir get`. See the [Deprecated Flags](#deprecated-flags) section.
 
@@ -124,14 +124,14 @@ No automatic morphing. To change CF kind, remove + recreate explicitly.
 
 ## Removing CF
 
-Both `--remove` and `--clear` are aliases — use either. For `.cf` paths, the remove verb wipes the CF entry at the addressed depth and preserves sibling state overrides.
+Both `--remove` and `--clear` are aliases. use either. For `.cf` paths, the remove verb wipes the CF entry at the addressed depth and preserves sibling state overrides.
 
 ```bash
 # Wipe CF on one container.prop
 pbir set "Visual.Visual.dataPoint.fill.cf" --remove
 pbir set "Visual.Visual.dataPoint.fill.cf" --clear     # identical
 
-# Wipe a specific kind (same effect — one CF per container.prop)
+# Wipe a specific kind (same effect. one CF per container.prop)
 pbir set "Visual.Visual.dataPoint.fill.cf.gradient" --remove
 
 # Bulk wipe every CF on a visual
@@ -291,7 +291,7 @@ pbir visuals cf "Visual.Visual" --to-measure dataPoint.fill
 
 ## Changing CF Type
 
-No automatic morphing — remove and recreate explicitly:
+No automatic morphing. remove and recreate explicitly:
 
 ```bash
 pbir set "Visual.Visual.dataPoint.fill.cf" --remove
@@ -334,11 +334,11 @@ Retained flags (create, copy, convert): `--gradient`, `--rules`, `--icons`, `--d
 
 ## Best Practices
 
-1. **Theme colors over hex** — Use sentiment tokens (`good`, `bad`, `neutral`) so theme changes cascade to all CF.
-2. **Measure-driven preferred** — Extension measures returning tokens are easier to maintain than built-in gradient/rules.
-3. **Apply sparingly** — CF should highlight exceptions, not decorate everything. Format variance columns, not raw values.
-4. **Accessible palettes** — Blue/orange instead of red/green. Always pair color with a secondary cue (icon, text).
-5. **Theme-first** — Check `pbir theme set-colors` for sentiment colors before applying CF. Create them if missing.
+1. **Theme colors over hex**. Use sentiment tokens (`good`, `bad`, `neutral`) so theme changes cascade to all CF.
+2. **Measure-driven preferred**. Extension measures returning tokens are easier to maintain than built-in gradient/rules.
+3. **Apply sparingly**. CF should highlight exceptions, not decorate everything. Format variance columns, not raw values.
+4. **Accessible palettes**. Blue/orange instead of red/green. Always pair color with a secondary cue (icon, text).
+5. **Theme-first**. Check `pbir theme set-colors` for sentiment colors before applying CF. Create them if missing.
 
 ## Copy Formatting Between Visuals
 
