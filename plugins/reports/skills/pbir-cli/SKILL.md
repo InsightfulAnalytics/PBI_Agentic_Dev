@@ -1,6 +1,6 @@
 ---
 name: pbir-cli
-version: 0.26.0
+version: 26.20
 description: This skill should be used whenever the user mentions "pbir", "pbir-cli", "Power BI reports", or "PBI reports", or works with .pbir, .pbip, or .pbix files. Covers creating, exploring, formatting, validating, and publishing Power BI reports through the pbir CLI and object model.
 ---
 
