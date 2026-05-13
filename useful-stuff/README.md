@@ -11,3 +11,4 @@ Misc. useful shit for making Claude Code more effective, safe, or satisfying bas
 | [`enable-windows-longpaths.ps1`](enable-windows-longpaths.ps1) | Enable Windows + git long path support so `git clone` and plugin installs don't blow up on `Filename too long` |
 | [`status-lines/`](status-lines/) | Claude Code statusline with host + cwd, git, model + effort, time, and usage meters; segmented for easy customization |
 | [`agent-settings/`](agent-settings/) | Sanitized `~/.claude/settings.json` template with the five Bash safety hooks (rm -rf home, npm, pip, ssh, op read) and opinionated defaults |
+| [`package-cooldowns/`](package-cooldowns/) | One-shot setup script that configures uv, bun, pnpm, npm, and pip to ignore packages released in the last 7 days. Reduces supply-chain blast radius |
