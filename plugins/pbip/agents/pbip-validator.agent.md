@@ -100,7 +100,7 @@ Flag reference:
 
 ### Step 3 — TMDL validation (only if `definition/` exists in `.SemanticModel/`)
 
-The scripts do not parse TMDL. You handle it:
+`validate_pbip.py` covers presence checks and the M-expression-vs-table name collision rule (see Step 3a). Everything else you handle:
 
 - `model.tmdl` has `ref table` entries for every file in `tables/`.
 - Each `tables/*.tmdl`:
@@ -112,6 +112,23 @@ The scripts do not parse TMDL. You handle it:
   - DAX in measures/calculated columns has balanced quotes and parentheses.
 - `relationships.tmdl`: every referenced table/column exists.
 - `cultures/*.tmdl`: `ConceptualEntity` refs match table names.
+
+### Step 3a — M-expression vs table name collision (ERROR)
+
+Power BI Desktop puts M shared expressions and tables in the same member namespace. A duplicate name fails the model load with:
+
+```
+Microsoft.Data.Mashup.Preview; This document contains a duplicate member '<name>'.
+```
+
+`validate_pbip.py` enumerates top-level declarations in `definition/expressions.tmdl` (the `expression <name>` lines) and `definition/tables/*.tmdl` (the `table <name>` lines), then reports any name in the intersection as `m_table_name_collision` with severity `ERROR`. The rule handles bare, single-quoted, double-quoted, and escaped (`#"name"`) identifiers, and ignores `expression` keywords that appear inside nested `let` blocks.
+
+When you see this error:
+- Rename the M expression. Common pattern: append ` Query` or ` Source` (e.g. `Globals` -> `Globals Query`).
+- Update every partition whose `source = <name>` referenced the old expression to use M escaped-identifier syntax: `source = #"Globals Query"`.
+- Re-run `validate_pbip.py` to confirm the collision clears.
+
+This rule is also a candidate for the Rust `tmdl-validate` binary in the out-of-tree `tools/tmdl-validate/` source. If you're adding it there, the same parse logic applies: top-level declarations only, normalized identifier comparison.
 
 ### Step 4 — Cross-reference consistency
 
