@@ -128,7 +128,16 @@ When you see this error:
 - Update every partition whose `source = <name>` referenced the old expression to use M escaped-identifier syntax: `source = #"Globals Query"`.
 - Re-run `validate_pbip.py` to confirm the collision clears.
 
-This rule is also a candidate for the Rust `tmdl-validate` binary in the out-of-tree `tools/tmdl-validate/` source. If you're adding it there, the same parse logic applies: top-level declarations only, normalized identifier comparison.
+The Rust `tmdl-validate` binary now also supports a directory mode that runs the same check across `definition/expressions.tmdl` and `definition/tables/*.tmdl`:
+
+```
+tmdl-validate path/to/Model.SemanticModel/definition
+tmdl-validate path/to/Model.SemanticModel/definition --json
+```
+
+Single-file mode (`tmdl-validate path/to/file.tmdl`) is unchanged and remains what the PostToolUse hook calls per edit. Use directory mode for whole-model checks alongside `validate_pbip.py`.
+
+Source: `tools/tmdl-validate/src/main.rs` (out-of-tree, gitignored). Only the Linux x64 binary in `plugins/pbip/hooks/bin/` has been rebuilt with the new mode; darwin-arm64, darwin-x64, and windows-x64 still need to be rebuilt on their target platforms before they pick up the check.
 
 ### Step 4 — Cross-reference consistency
 
