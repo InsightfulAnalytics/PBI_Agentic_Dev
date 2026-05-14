@@ -137,7 +137,7 @@ tmdl-validate path/to/Model.SemanticModel/definition --json
 
 Single-file mode (`tmdl-validate path/to/file.tmdl`) is unchanged and remains what the PostToolUse hook calls per edit. Use directory mode for whole-model checks alongside `validate_pbip.py`.
 
-Source: `tools/tmdl-validate/src/main.rs` (out-of-tree, gitignored). Only the Linux x64 binary in `plugins/pbip/hooks/bin/` has been rebuilt with the new mode; darwin-arm64, darwin-x64, and windows-x64 still need to be rebuilt on their target platforms before they pick up the check.
+Source: separate `tmdl-validator` repo (private). The linux-x64 and windows-x64 binaries in `plugins/pbip/hooks/bin/` have been rebuilt with the new mode; darwin-arm64 and darwin-x64 still need to be rebuilt on a macOS host before they pick up the check.
 
 ### Step 4 — Cross-reference consistency
 
