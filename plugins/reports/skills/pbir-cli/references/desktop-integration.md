@@ -38,7 +38,7 @@ pbir desktop refresh "C:\Temp\Sales.Report"          # Absolute path to a .Repor
 pbir desktop screenshot "C:\Reports\Flash.pbix"      # Absolute path to an open .pbix
 ```
 
-Default screenshot file name derives from the page display name (forbidden characters replaced); default scale is 2 (retina-quality, suitable for inspection).
+Default screenshot file name derives from the page display name (forbidden characters replaced); default scale is 2, maximum 3. Captures follow Desktop's current canvas zoom, which reloads can change -- for pixel-level checks, capture at `--scale 3` and crop, or move the visual under test to the page's top-left first.
 
 ## The Edit-Verify Loop
 

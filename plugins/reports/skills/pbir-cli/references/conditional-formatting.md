@@ -152,7 +152,8 @@ Structural authoring stays in the builder command. Reads and edits live on `pbir
 Measure-driven CF is the preferred pattern. Create a DAX measure returning theme sentiment tokens (`"good"`, `"bad"`, `"neutral"`), then bind it to a visual property.
 
 ```bash
-# Step 1: Create formatting measure
+# Step 1: Create formatting measure (-t table must exist in the model;
+# measures on phantom tables break every referencing visual in Desktop)
 pbir dax measures add "Report.Report" -t _Fmt -n "RevenueColor" \
   -e 'IF([Revenue] >= [Target], "good", IF([Revenue] >= [Target] * 0.8, "neutral", "bad"))' \
   --data-type Text
@@ -191,9 +192,13 @@ pbir visuals cf "Visual.Visual" --measure "valueAxis.end _Fmt.AxisCeiling"
 pbir visuals cf "Report.Report/Page.Page/Visual.Visual" \
   --gradient --field "Invoices.Net Invoice Value" --min-color bad --max-color good
 
-# 3-color gradient
+# 3-color gradient (omit --mid-value for an automatic midpoint)
 pbir visuals cf "Visual.Visual" \
   --gradient --field "Table.Field" --min-color "#FF0000" --max-color "#00FF00" --mid-color "#FFFF00"
+
+# 3-color gradient with an explicit midpoint value
+pbir visuals cf "Visual.Visual" \
+  --gradient --field "Table.Field" --min-color bad --mid-color neutral --max-color good --mid-value 0
 
 # Gradient on a specific container.prop
 pbir visuals cf "Visual.Visual" \
@@ -219,16 +224,20 @@ pbir visuals cf "Visual.Visual" --rules --field "Invoices.Net Invoice Value" \
 pbir visuals cf "Visual.Visual" --rules --field "Table.Field" \
   --rule "gt 100 good" --rule "lte 100 neutral" --on labels.fontColor
 
-# Icons CF
+# Icons CF (pass --on values for table/matrix; icons render before the value)
 pbir visuals cf "Visual.Visual" --icons --field "Invoices.Net Invoice Value" \
-  --rule "gt 0 circle_green" --rule "lte 0 circle_red"
+  --rule "gt 0 circle_green" --rule "lte 0 circle_red" --on values
 ```
 
 Rule format: `"operator value color_or_icon"`. Operators: `gt`, `lt`, `gte`, `lte`, `eq`, `neq`.
 
-Icon names: `circle_red`, `circle_yellow`, `circle_green`, `arrow_up`, `arrow_right`, `arrow_down`, `flag_red`, `flag_yellow`, `flag_green`, `check`, `x`, `exclamation`.
+Friendly icon names: `circle_`/`traffic_`/`flag_` + `red|yellow|green`; `arrow_up/right/down`; `triangle_up/dash/down`; `star_full/half/empty`; `bar_full/three_quarter/half/quarter/empty`; `check`/`exclamation`/`x`.
 
-Shared flags: `--field` (required), `--min-color`, `--max-color`, `--mid-color`, `--positive-color`, `--negative-color`, `--on container.prop`.
+Raw PBIR names (`TriangleHigh`, `SignalBarFull`, ...) follow `<Shape><Level>` (High=green, Medium=yellow, Low=red). Unknown names are rejected -- Desktop renders them as broken images. Icons default to the `Before` layout; use `layout("icon_only")` (Python API) for icon-only columns.
+
+Shared flags: `--field` (required), `--min-color`, `--max-color`, `--mid-color`, `--mid-value`, `--positive-color`, `--negative-color`, `--on container.prop`.
+
+Re-applying a builder on the same property and scope replaces the entry; different column scopes coexist.
 
 ## Copying CF Between Visuals
 
@@ -291,13 +300,15 @@ pbir visuals cf "Visual.Visual" --to-measure dataPoint.fill
 
 ## Changing CF Type
 
-No automatic morphing. remove and recreate explicitly:
+Re-running a builder on the same property and scope replaces the entry, so changing kinds is one command:
 
 ```bash
-pbir set "Visual.Visual.dataPoint.fill.cf" --remove
+# dataPoint.fill holds a gradient; this replaces it with rules
 pbir visuals cf "Visual.Visual" --rules --field "Table.Field" \
   --rule "gt 100 good" --rule "lt 0 bad"
 ```
+
+`pbir set` leaf edits never morph kinds (hard error). To drop CF entirely: `pbir set "Visual.Visual.dataPoint.fill.cf" --remove`.
 
 ## Common Containers and Properties
 
@@ -313,7 +324,7 @@ pbir visuals cf "Visual.Visual" --rules --field "Table.Field" \
 | `columnFormatting` | `backColor` | Matrix column header background |
 | `accentBar` | `color` | KPI accent bar color |
 | `fillCustom` | `color` | Card fill color |
-| `value` | `color` | Card value font color |
+| `value` | `fontColor` | Card visual value font color (`value.color` does not exist) |
 | `referenceLabel` | `color` | KPI reference label color |
 | `referenceLabelDetail` | `color` | KPI reference label detail |
 

@@ -23,6 +23,11 @@ pbir cat "Report.Report/reportExtensions"         # Raw reportExtensions.json
 
 ## Creating Extension Measures
 
+**The `-t` table must exist in the model.** A measure homed on a nonexistent
+table (e.g. `_Fmt` when the model has no such table) breaks every visual that
+references it in Desktop. Check `pbir model -d` first; do not bypass with
+`--no-validate`.
+
 ```bash
 # Basic measure
 pbir dax measures add "Report.Report" -t _Fmt -n "StatusColor" \
