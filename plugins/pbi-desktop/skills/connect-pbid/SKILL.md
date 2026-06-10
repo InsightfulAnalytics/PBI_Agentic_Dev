@@ -68,20 +68,29 @@ Packages install DLLs under `lib\net45\`. Load with `Add-Type -Path`.
 Find the port, load TOM, connect, enumerate -- in one script:
 
 ```powershell
-# Find port
+# Find ports (deduped; netstat lists IPv4 and IPv6 entries per port)
 $pids = (Get-Process msmdsrv -ErrorAction SilentlyContinue).Id
 $ports = netstat -ano | Select-String "LISTENING" |
     Where-Object { $pids -contains ($_ -split "\s+")[-1] } |
-    ForEach-Object { ($_ -split "\s+")[2] -replace ".*:" }
+    ForEach-Object { ($_ -split "\s+")[2] -replace ".*:" } |
+    Select-Object -Unique
 
 # Load TOM
 $basePath = "$env:TEMP\tom_nuget\Microsoft.AnalysisServices.retail.amd64\lib\net45"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Core.dll"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Tabular.dll"
 
-# Connect to first port
+# Connect to the first port that hosts a model; skip thin-report engines (0 databases)
 $server = New-Object Microsoft.AnalysisServices.Tabular.Server
-$server.Connect("Data Source=localhost:$($ports[0])")
+foreach ($p in $ports) {
+    $server.Connect("Data Source=localhost:$p")
+    if ($server.Databases.Count -eq 0) {
+        Write-Output "localhost:$p hosts no model (thin report); trying next port"
+        $server.Disconnect()
+        continue
+    }
+    break
+}
 $model = $server.Databases[0].Model
 
 # Enumerate
@@ -214,7 +223,7 @@ $conn.Open()
 All queries should preferably use `SUMMARIZECOLUMNS`.
 Check `dax.guide` online for information about DAX functions, if necessary.
 
-**Important:** ADOMD.NET returns fully-qualified column names (e.g., `'Monsters'[Name]` not `Name`). Do not access columns by short name (`$reader["Name"]`) -- it fails silently and returns blank. Use `$reader.GetName($i)` to discover column names, then access by index:
+**Important:** ADOMD.NET returns fully-qualified column names without quotes around the table name (e.g., `Brands[Brand Class]` not `Brand Class`; measure projections come back as `[@Alias]`). Do not access columns by short name (`$reader["Brand Class"]`) -- it fails silently and returns blank. Use `$reader.GetName($i)` to discover column names, then access by index:
 
 ```powershell
 $cmd = $conn.CreateCommand()
@@ -544,7 +553,7 @@ $job = Register-ObjectEvent -InputObject $trace -EventName "OnEvent" -MessageDat
 }
 ```
 
-**Always clear the VertiPaq cache** before debug queries; cached results prevent EVALUATEANDLOG from firing:
+**Trace delivery is asynchronous**: `DAXEvaluationLog` events typically arrive 2-3.5 seconds after the query returns, so a short fixed sleep misses them. Poll the captured-event count (up to ~10s in 500ms steps) before reading results. Warm-cache runs still emit the event; do not rely on cache clearing to make it fire. Clear the VertiPaq cache only when cold-cache timings are needed:
 
 ```powershell
 $server.Execute('{ "clearCache": { "object": { "database": "' + $db.Name + '" } } }') | Out-Null
@@ -613,12 +622,13 @@ TOM changes apply immediately, so no reload step is needed. Screenshots require 
 - [Performance Profiling](./references/performance-profiling.md) - DAX Server Timings via Trace API; FE/SE time split, cold/warm cache comparison, PBIR visual-to-DAX translation, trace event column compatibility
 - [Query Listener](./references/query-listener.md) - Capture live visual DAX queries via DMV polling; interpret query structure, timings, filter patterns
 - [Export Model](./references/export-model.md) - Export to BIM/TMDL via Tabular Editor CLI, fab CLI, or TOM serializer
+- [Loading TMDL/BIM Files](./references/load-tmdl-files.md) - Load local TMDL folders or BIM files into TOM offline; inspect, modify, serialize back, deploy via fab CLI
 - [VertiPaq Statistics](./references/vertipaq-stats.md) - Column cardinality, dictionary/data size, memory by table, server timings via DMVs
 - [Refresh Model](./references/refresh-model.md) - All refresh methods (TMSL, TOM RequestRefresh, ADOMD.NET)
 - [macOS + Parallels Guide](./references/parallels-macos.md) - Connecting from macOS when PBI Desktop runs in a Parallels VM
 - [DAX Library Packages](./references/daxlib.md) - Installing reusable DAX UDF packages from daxlib.org; DaxLib.SVG, PowerofBI.IBCS, package structure, annotations
 
-**CLI tools in `bin/`:**
+**CLI tools at the skill root:**
 
 - **`daxlib`** -- CLI for browsing, downloading, and installing DAX library packages from daxlib.org. Script at `daxlib.sh` (requires bash + jq). Model operations (add/update/remove) call `scripts/daxlib-tom/` via `dotnet run` (requires .NET 8 SDK). On macOS, model operations route through Parallels automatically. See [daxlib.md](./references/daxlib.md) for full command reference.
 
@@ -635,6 +645,7 @@ TOM changes apply immediately, so no reload step is needed. Screenshots require 
 - `modify-tom-objects.ps1` - Create table, rename measures, set folders/formats, hide columns, create relationship (with undo)
 - `create-field-parameter.ps1` - Create a field parameter table from a list of measures with all required metadata
 - `debug-dax.ps1` - Debug DAX with EVALUATEANDLOG trace capture and performance timings; auto-detects port, enumerates model measures, provides `Invoke-DebugQuery` helper
+- `load-tmdl.ps1` - Load a local TMDL folder or BIM file into TOM offline (no running engine), enumerate the model, optionally add a measure and save back
 - `connect-from-mac.sh` - macOS wrapper that runs PowerShell scripts in a Parallels VM via `prlctl exec`
 
 **External references:**
