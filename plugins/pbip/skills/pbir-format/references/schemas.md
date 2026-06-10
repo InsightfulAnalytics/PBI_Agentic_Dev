@@ -25,7 +25,7 @@ https://developer.microsoft.com/json-schemas/fabric/item/report/{type}/{version}
 
 ## K201 Example Schema Versions (late 2025)
 
-Versions below match the K201 example project bundled with this skill. As of early 2026, newer versions exist (e.g., `visualContainer/2.7.0`, `report/3.2.0`, `page/2.1.0`, `bookmark/2.1.0`). Microsoft updates schemas roughly monthly — **always use the `$schema` URL from your existing project files** rather than assuming these versions.
+Versions below match the K201 example project bundled with this skill. As of early 2026, newer versions exist (e.g., `visualContainer/2.7.0`, `report/3.3.0`, `page/2.1.0`, `bookmark/2.1.0`). Microsoft updates schemas roughly monthly — **always use the `$schema` URL from your existing project files** rather than assuming these versions.
 
 | Schema Type | Version | File |
 |-------------|---------|------|

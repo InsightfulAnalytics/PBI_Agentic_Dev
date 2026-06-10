@@ -259,7 +259,7 @@ definition/pages/
 ```
 
 **Rules:**
-- Folder names can be changed freely; spaces are allowed (Power BI Desktop creates them), but prefer letters, digits, underscores, hyphens for human-authored names
+- Folder names can be changed freely; spaces are valid PBIR (Power BI Desktop creates them), but the pbir CLI's path syntax handles them awkwardly and `pbir validate` emits an INVALID_PAGE_FOLDER warning; rename to letters, digits, underscores, hyphens when practical
 - JSON filenames (`visual.json`, `page.json`) must remain unchanged
 - The `name` property inside JSON files must remain unchanged
 - Power BI Desktop preserves renamed folders on save
