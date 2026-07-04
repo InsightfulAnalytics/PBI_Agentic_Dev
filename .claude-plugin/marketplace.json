@@ -1,10 +1,10 @@
 {
-  "name": "power-bi-agentic-development",
+  "name": "power-bi-agentic-development-tim",
   "owner": {
-    "name": "Kurt Buhler"
+    "name": "Tim"
   },
   "metadata": {
-    "description": "A marketplace for skills and tools for agentic Power BI development.",
+    "description": "Tim's personalized fork of Kurt Buhler's power-bi-agentic-development marketplace. Skills and tools for agentic Power BI development.",
     "version": "26.25"
   },
   "plugins": [
