@@ -178,6 +178,13 @@ Key fields: `__row__` (zero-based row index, replaces removed `__identity__`), `
 
 > **Breaking change in 1.9:** `__identity__` and `__key__` were removed. Replace any `datum.__identity__` with `datum.__row__`.
 
+## Gotchas (hard-won)
+
+- **Cross-filtering OUT of a Deneb visual does not behave like a native visual.** An in-visual "slicer" built from Vega signals will not filter the rest of the report. For report-level filtering, place a native slicer next to the Deneb visual and treat Deneb selection as internal to the visual unless `enableSelection` is explicitly configured and tested.
+- **Deneb's native tooltip cannot be styled per-point.** For colored/conditional tooltips, build custom Vega tooltip marks inside the spec.
+- **`jq empty` / `pbir validate` is necessary but not sufficient.** The final check is Desktop/Service rendering — use the `pbi-verify-loop` skill when Desktop is open.
+- **Editing an existing spec: use round-trip tooling, not hand-edits.** The spec is a single-quote-wrapped PBIR literal (embedded `'` doubled). Extract → edit → offline-render → embed via the `deneb-pbir` skill's `deneb_spec.py` + offline renderer; never hand-edit the literal string.
+
 ## Best Practices
 
 1. **Use Vega-Lite** for new visuals unless Vega-specific features are needed (signals, events, force layouts)
@@ -223,6 +230,7 @@ To retrieve current Power BI custom visual docs, use `microsoft_docs_search` + `
 
 ## Related Skills
 
+- **`deneb-pbir`** -- round-trip tooling for editing an existing spec: extract/embed the spec in visual.json (`deneb_spec.py`) + offline Vega→PNG/SVG render to verify without Power BI
 - **`pbir-format`** (pbip plugin) -- PBIR JSON format reference
 - **`pbi-report-design`** -- Layout and design best practices
 - **`r-visuals`** -- R Script visuals (ggplot2)
