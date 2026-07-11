@@ -14,6 +14,12 @@ C:\Users\timos\.claude\plugins\cache\power-bi-agentic-development-tim\<plugin>\<
 
 The cache is keyed by **git commit SHA**, and `claude plugin update` only re-copies when the plugin's **`version` changes**. So editing a file here does nothing until you **commit** the change **and bump the version**. This was verified end-to-end.
 
+> **If you move or rename this repo folder**, the marketplace registration breaks (Claude Code can no longer find the `directory` source and its plugins silently stop attaching). Fix the path in **two** places, then restart Claude Code:
+> - `~/.claude/settings.json` → `extraKnownMarketplaces."power-bi-agentic-development-tim".source.path`
+> - `~/.claude/plugins/known_marketplaces.json` → `"power-bi-agentic-development-tim"` → `source.path` **and** `installLocation`
+>
+> The per-commit cache under `~/.claude/plugins/cache/` lives outside the repo, so it survives the move — no re-install needed, just correct the path. (This repo was moved from `…\PBI Agentic Development\power-bi-agentic-development-tim` to `…\PBI_Automated_Development` on 2026-07-04; the paths above were corrected then.)
+
 ## The personalization loop (verified working)
 
 To personalize a skill and have Claude pick it up:
@@ -22,7 +28,7 @@ To personalize a skill and have Claude pick it up:
 2. **Bump the version** in `plugins/<plugin>/.claude-plugin/plugin.json` — e.g. `"26.25"` → `"26.25.1"`. (This is the trigger; without it, `plugin update` no-ops.)
 3. **Commit** the change:
    ```powershell
-   cd "B:\VS Code Files\PBI Agentic Development\power-bi-agentic-development-tim"
+   cd "B:\VS Code Files\PBI_Automated_Development"
    git add -A
    git commit -m "Personalize <plugin>: <what you changed>"
    ```
@@ -44,7 +50,7 @@ The 6 plugins (and their skill folders) you can personalize:
 `gh` (GitHub CLI) 2.96 is installed but you must log in yourself (interactive). In a **fresh** terminal:
 
 ```powershell
-cd "B:\VS Code Files\PBI Agentic Development\power-bi-agentic-development-tim"
+cd "B:\VS Code Files\PBI_Automated_Development"
 gh auth login          # GitHub.com → HTTPS → login with a browser
 gh repo create power-bi-agentic-development-tim --private --source . --remote origin --push
 ```
