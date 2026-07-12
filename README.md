@@ -1,4 +1,4 @@
-<h1 align="center">power-bi-agentic-development-tim</h1>
+<h1 align="center">Power BI Agentic Dev</h1>
 
 <p align="center">
   A personalized fork of Kurt Buhler's Power BI &amp; Microsoft Fabric skills marketplace <br></br>
@@ -14,7 +14,7 @@
 </p>
 
 > [!NOTE]
-> This is **Tim's personalized fork** of [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development), renamed to `power-bi-agentic-development-tim` so it can coexist with the original. It carries the upstream plugins plus additional personal skills, and tracks Kurt's releases selectively rather than following his weekly cadence. Full credit for the original work goes to Kurt Buhler — see [Attribution](#attribution).
+> This is **Tim's personalized fork** of [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development), renamed to `power-bi-agentic-dev` so it can coexist with the original. It carries the upstream plugins plus additional personal skills, and tracks Kurt's releases selectively rather than following his weekly cadence. Full credit for the original work goes to Kurt Buhler — see [Attribution](#attribution).
 
 ---
 
@@ -32,25 +32,25 @@ Add the marketplace in Claude Code — run this in the terminal:
 claude plugin marketplace add InsightfulAnalytics/PBI_Agentic_Dev
 ```
 
-This registers the marketplace under the name **`power-bi-agentic-development-tim`** (from the repo's `.claude-plugin/marketplace.json`). Install commands below reference that name.
+This registers the marketplace under the name **`power-bi-agentic-dev`** (from the repo's `.claude-plugin/marketplace.json`). Install commands below reference that name.
 
 ### Claude Code
 
-After adding the marketplace, install plugins interactively via `/plugin` → **Marketplaces** → select `power-bi-agentic-development-tim` → install the plugins you want. You can also enable auto-update per marketplace there.
+After adding the marketplace, install plugins interactively via `/plugin` → **Marketplaces** → select `power-bi-agentic-dev` → install the plugins you want. You can also enable auto-update per marketplace there.
 
 Or install from the command line:
 
 ```bash
-claude plugin install semantic-models@power-bi-agentic-development-tim
-claude plugin install reports@power-bi-agentic-development-tim
-claude plugin install pbip@power-bi-agentic-development-tim
-claude plugin install custom-visuals@power-bi-agentic-development-tim
-claude plugin install tabular-editor@power-bi-agentic-development-tim
-claude plugin install pbi-desktop@power-bi-agentic-development-tim
-claude plugin install fabric-cli@power-bi-agentic-development-tim
-claude plugin install fabric-admin@power-bi-agentic-development-tim
-claude plugin install paginated-reports@power-bi-agentic-development-tim
-claude plugin install etl@power-bi-agentic-development-tim
+claude plugin install semantic-models@power-bi-agentic-dev
+claude plugin install reports@power-bi-agentic-dev
+claude plugin install pbip@power-bi-agentic-dev
+claude plugin install custom-visuals@power-bi-agentic-dev
+claude plugin install tabular-editor@power-bi-agentic-dev
+claude plugin install pbi-desktop@power-bi-agentic-dev
+claude plugin install fabric-cli@power-bi-agentic-dev
+claude plugin install fabric-admin@power-bi-agentic-dev
+claude plugin install paginated-reports@power-bi-agentic-dev
+claude plugin install etl@power-bi-agentic-dev
 ```
 
 Verify what's installed with `claude plugin list`, and inspect a plugin's contents and token cost with `claude plugin details <plugin>`.
@@ -83,7 +83,7 @@ This repository is an [Anthropic-format plugin marketplace](https://code.claude.
 
 ```bash
 copilot plugin marketplace add InsightfulAnalytics/PBI_Agentic_Dev
-copilot plugin install tabular-editor@power-bi-agentic-development-tim
+copilot plugin install tabular-editor@power-bi-agentic-dev
 ```
 
 **2. Or install a single plugin directly from its subdirectory, no marketplace registration needed:**
@@ -92,7 +92,7 @@ copilot plugin install tabular-editor@power-bi-agentic-development-tim
 copilot plugin install InsightfulAnalytics/PBI_Agentic_Dev:plugins/pbip
 ```
 
-Both forms are documented in the [Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference) and the [plugins how-to](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing). Inside an interactive Copilot session, `/plugin install PLUGIN-NAME@power-bi-agentic-development-tim` is the equivalent of (1). The bare `copilot plugin install InsightfulAnalytics/PBI_Agentic_Dev` (no qualifier) will not install anything useful, because the root is a marketplace catalog, not a plugin.
+Both forms are documented in the [Copilot CLI plugin reference](https://docs.github.com/en/copilot/reference/copilot-cli-reference/cli-plugin-reference) and the [plugins how-to](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/plugins-finding-installing). Inside an interactive Copilot session, `/plugin install PLUGIN-NAME@power-bi-agentic-dev` is the equivalent of (1). The bare `copilot plugin install InsightfulAnalytics/PBI_Agentic_Dev` (no qualifier) will not install anything useful, because the root is a marketplace catalog, not a plugin.
 
 </details>
 

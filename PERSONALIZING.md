@@ -1,6 +1,6 @@
 # Personalizing this marketplace
 
-This is **Tim's personal fork** of Kurt Buhler's [`power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace, renamed to **`power-bi-agentic-development-tim`** so it can coexist with the original in Claude Code.
+This is **Tim's personal fork** of Kurt Buhler's [`power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace, renamed to **`power-bi-agentic-dev`** so it can coexist with the original in Claude Code.
 
 Claude Code loads the Power BI skills from **this repo** (via a local `directory`-source marketplace). **All 10 plugins from this fork are enabled.** The upstream `data-goblin/power-bi-agentic-development` marketplace stays *registered* (so you can harvest Kurt's updates — see [Tracking upstream](#tracking-upstream-kurts-updates)), but its plugins are not enabled; the previously-disabled upstream toggles and the on-disk cache were removed on 2026-07-12.
 
@@ -11,14 +11,14 @@ This fork also **owns Tim's personal Power BI add-in skills**, migrated in from 
 Claude does **not** read skills live from this folder. When a plugin is installed, its files are copied into a per-commit cache:
 
 ```
-C:\Users\timos\.claude\plugins\cache\power-bi-agentic-development-tim\<plugin>\<commit-sha>\
+C:\Users\timos\.claude\plugins\cache\power-bi-agentic-dev\<plugin>\<commit-sha>\
 ```
 
 The cache is keyed by **git commit SHA**, and `claude plugin update` only re-copies when the plugin's **`version` changes**. So editing a file here does nothing until you **commit** the change **and bump the version**. This was verified end-to-end.
 
 > **If you move or rename this repo folder**, the marketplace registration breaks (Claude Code can no longer find the `directory` source and its plugins silently stop attaching). Fix the path in **two** places, then restart Claude Code:
-> - `~/.claude/settings.json` → `extraKnownMarketplaces."power-bi-agentic-development-tim".source.path`
-> - `~/.claude/plugins/known_marketplaces.json` → `"power-bi-agentic-development-tim"` → `source.path` **and** `installLocation`
+> - `~/.claude/settings.json` → `extraKnownMarketplaces."power-bi-agentic-dev".source.path`
+> - `~/.claude/plugins/known_marketplaces.json` → `"power-bi-agentic-dev"` → `source.path` **and** `installLocation`
 >
 > The per-commit cache under `~/.claude/plugins/cache/` lives outside the repo, so it survives the move — no re-install needed, just correct the path. (Current location: `B:\VS Code Files\PBI_Agentic_Dev`. The folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on 2026-07-12; the paths above were corrected then.)
 
@@ -36,8 +36,8 @@ To personalize a skill and have Claude pick it up:
    ```
 4. **Refresh the marketplace and plugin:**
    ```powershell
-   claude plugin marketplace update power-bi-agentic-development-tim
-   claude plugin update <plugin>@power-bi-agentic-development-tim
+   claude plugin marketplace update power-bi-agentic-dev
+   claude plugin update <plugin>@power-bi-agentic-dev
    ```
 5. **Restart Claude Code** for the change to load.
 
@@ -90,7 +90,7 @@ The upstream marketplace is still registered, so you can re-enable its plugins a
 $plugins = 'tabular-editor','pbi-desktop','pbip','semantic-models','reports','fabric-cli'
 foreach ($p in $plugins) {
   claude plugin enable  "$p@power-bi-agentic-development"
-  claude plugin disable "$p@power-bi-agentic-development-tim"
+  claude plugin disable "$p@power-bi-agentic-dev"
 }
 ```
 
