@@ -1,7 +1,7 @@
 ---
 name: power-bi-theme
 version: 26.25
-description: Browse, visually compare, and apply Power BI report themes. Use when the user wants to "pick a theme", "choose a Power BI theme", "see all my themes", "preview themes", "compare themes", "open the theme gallery", or "apply a theme to my report/PBIP". Generates a visual HTML gallery of every theme in the library (each rendered as a mock report) so the user can choose by sight, then delegates apply to reports:modifying-theme-json. This skill BROWSES/CHOOSES a preset theme — to GENERATE a bespoke theme from brand colors use pbi-theme instead.
+description: Browse, visually compare, and apply Power BI report themes. Use when the user wants to "pick a theme", "choose a Power BI theme", "see all my themes", "preview themes", "compare themes", "open the theme gallery", or "apply a theme to my report/PBIP". Generates a visual HTML gallery of every theme in the library (each rendered as a mock report) so the user can choose by sight, then delegates apply to reports:modifying-theme-json. This skill BROWSES/CHOOSES a preset theme; for editing/enforcing a theme on a live report use reports:modifying-theme-json.
 ---
 
 # Power BI Theme
