@@ -14,5 +14,8 @@ tests/
 node_modules/
 package-lock.json
 package.json
+# but the deneb-pbir offline renderer ships its manifests (node_modules stays ignored)
+!plugins/custom-visuals/skills/deneb-pbir/renderer/package.json
+!plugins/custom-visuals/skills/deneb-pbir/renderer/package-lock.json
 plugins/pbi-desktop/hooks/bin/
 plugins/pbi-desktop/skills/connect-pbid/bin/
