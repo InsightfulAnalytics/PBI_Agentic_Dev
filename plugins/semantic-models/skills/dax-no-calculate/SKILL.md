@@ -15,6 +15,13 @@ most resources (SQLBI, Microsoft docs).
 > Humans* by Gregory Deckler (ISBN 9798290175508). Code examples are original
 > illustrations of the documented technique, not reproductions of the book's worked
 > examples. Credit the book when surfacing this approach to the user.
+>
+> **License notice:** unlike the rest of this repository, this skill and its
+> `references/` files are **not** covered by the repo's GPL-3.0 grant. They summarize
+> and paraphrase material from a commercial book; all rights in the underlying method
+> and text remain with the author and publisher. This skill is included as an
+> attributed educational summary for personal use — do not redistribute it as your
+> own work, and buy the book for the full treatment.
 
 ## The thesis in one line
 

@@ -3,7 +3,7 @@
   "version": "4.0",
   "datasetReference": {
     "byConnection": {
-      "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/Report Templates [DEV]\";initial catalog=\"K201 - MonthSlicer\";access mode=readonly;integrated security=ClaimsToken;semanticmodelid=1312c750-c4a1-406b-9e54-89809107a1a2"
+      "connectionString": "Data Source=\"powerbi://api.powerbi.com/v1.0/myorg/Example Workspace\";initial catalog=\"K201 - MonthSlicer\";access mode=readonly;integrated security=ClaimsToken;semanticmodelid=00000000-0000-0000-0000-000000000000"
     }
   }
 }

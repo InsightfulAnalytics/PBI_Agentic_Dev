@@ -150,10 +150,12 @@ VER="$ver" perl -pi -e 'if(!$d && s/^version:.*$/version: $ENV{VER}/){$d=1}' "$D
 write_get_ref
 inject_pointer
 
-if git -C "$REPO_ROOT" diff --quiet -- plugins/tabular-editor/skills/te-cli 2>/dev/null; then
+# status --porcelain sees modified tracked files AND untracked new ones
+# (diff --quiet misses files upstream adds that are not yet tracked here).
+if [ -z "$(git -C "$REPO_ROOT" status --porcelain -- plugins/tabular-editor/skills/te-cli 2>/dev/null)" ]; then
   printf 'sync-te-cli: up to date with upstream (version kept at %s)\n' "$ver"
 else
   printf 'sync-te-cli: te-cli skill updated from upstream (version kept at %s); review and commit:\n' "$ver"
-  git -C "$REPO_ROOT" --no-pager diff --stat -- plugins/tabular-editor/skills/te-cli
+  git -C "$REPO_ROOT" --no-pager status --short -- plugins/tabular-editor/skills/te-cli
 fi
 exit 0

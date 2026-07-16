@@ -1,5 +1,5 @@
 {
-  "description": "Validates PBIP project files (PBIR structure, TMDL syntax, report binding) after Write/Edit and Bash modifications",
+  "description": "Validates PBIP project files (PBIR structure, TMDL syntax, report binding) after Write/Edit modifications",
   "hooks": {
     "PostToolUse": [
       {

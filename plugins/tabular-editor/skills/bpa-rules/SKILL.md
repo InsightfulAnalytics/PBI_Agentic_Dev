@@ -326,19 +326,19 @@ Working examples in `examples/`:
 
 Utility scripts:
 
-- **`/scripts/bpa_rules_audit.py`** - Comprehensive BPA rules audit across all sources (built-in, URL, model, user, machine). Supports Windows, WSL, and macOS with Parallels. Outputs ASCII report and JSON export.
+- **`../../scripts/bpa_rules_audit.py`** (lives at the plugin root, not this skill's `scripts/`) - Comprehensive BPA rules audit across all sources (built-in, URL, model, user, machine). Supports Windows, WSL, and macOS with Parallels. Outputs ASCII report and JSON export.
 - **`scripts/validate_rules.py`** - Validate BPA rule JSON files for schema compliance
 
-**Audit Script Usage:**
+**Audit Script Usage** (paths relative to this skill directory; the audit script sits at the plugin root):
 ```bash
 # Basic audit
-python scripts/bpa_rules_audit.py /path/to/model
+python ../../scripts/bpa_rules_audit.py /path/to/model
 
 # Export to JSON
-python scripts/bpa_rules_audit.py /path/to/model --json output.json
+python ../../scripts/bpa_rules_audit.py /path/to/model --json output.json
 
 # Quiet mode (summary only)
-python scripts/bpa_rules_audit.py /path/to/model --quiet
+python ../../scripts/bpa_rules_audit.py /path/to/model --quiet
 ```
 
 ### Related Commands

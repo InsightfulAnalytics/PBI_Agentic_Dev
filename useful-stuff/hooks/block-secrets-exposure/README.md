@@ -31,7 +31,7 @@ Note: `.env.example` and `.env.template` are also blocked by these glob patterns
 
 | Pattern | Why |
 |---------|-----|
-| `az account get-access-token` | Azure CLI bearer token; agents should use DefaultAzureCredential in code |
+| `az account get-access-token` | Azure CLI bearer token. This rule asks instead of denying: approve only if the workflow genuinely needs a raw token (e.g. the Fabric Livy API); prefer DefaultAzureCredential in code |
 | `aws sts get-session-token` | AWS session token; agents should use IAM roles or env vars |
 | `gcloud auth print-access-token` | GCP access token extraction |
 | `gcloud auth print-identity-token` | GCP identity token extraction |

@@ -21,7 +21,9 @@ on:
 jobs:
   validate:
     runs-on: ubuntu-latest
-    if: vars.ENABLE_PLUGIN_CI == 'true'
+    # Always run on this repo; downstream forks opt in via the ENABLE_PLUGIN_CI
+    # Actions variable (repo variables don't carry over on fork).
+    if: github.repository == 'InsightfulAnalytics/PBI_Agentic_Dev' || vars.ENABLE_PLUGIN_CI == 'true'
     steps:
       - uses: actions/checkout@v4
 

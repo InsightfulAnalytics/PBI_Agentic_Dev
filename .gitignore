@@ -6,10 +6,12 @@ __pycache__/
 *.log
 .claude/
 CLAUDE.md
+.vscode/
 *.tmuo
-tools/
+/tools/
+# tmp/ stays un-anchored: pbi-desktop hooks cache tmp/model-metadata.json under whichever project dir they run in
 tmp/
-tests/
+/tests/
 .worktrees/
 node_modules/
 package-lock.json

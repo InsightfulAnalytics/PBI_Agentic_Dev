@@ -13,8 +13,10 @@ if [ -n "$repo_root" ]; then
     head_file="$repo_root/.git/HEAD"
     index_file="$repo_root/.git/index"
 
-    mt=$(stat -f '%m' "$cache_file" "$head_file" "$index_file" 2>/dev/null \
-       || stat -c '%Y' "$cache_file" "$head_file" "$index_file" 2>/dev/null)
+    # GNU stat (-c) first, BSD/mac (-f %m) as fallback: on GNU, `stat -f`
+    # "succeeds" with multi-line filesystem info and would contaminate mt.
+    mt=$(stat -c '%Y' "$cache_file" "$head_file" "$index_file" 2>/dev/null \
+       || stat -f '%m' "$cache_file" "$head_file" "$index_file" 2>/dev/null)
     cm=$(echo "$mt" | sed -n '1p'); hm=$(echo "$mt" | sed -n '2p'); im=$(echo "$mt" | sed -n '3p')
     : "${cm:=0}" "${hm:=0}" "${im:=0}"
 
