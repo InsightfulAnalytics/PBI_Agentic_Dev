@@ -1,8 +1,8 @@
 blank_issues_enabled: false
 contact_links:
   - name: Documentation
-    url: https://github.com/data-goblin/power-bi-agentic-development
+    url: https://github.com/InsightfulAnalytics/PBI_Agentic_Dev#readme
     about: Plugin documentation and installation guide
   - name: pbir CLI
-    url: https://github.com/data-goblin/pbir-cli
+    url: https://github.com/maxanatsko/pbir.tools
     about: For pbir CLI bugs and features, file issues on the pbir-cli repo instead

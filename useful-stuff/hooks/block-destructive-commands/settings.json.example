@@ -6,37 +6,37 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}'",
-            "if": "Bash(*rm *-rf ~*)"
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+~/?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+~/?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
+            "if": "Bash(*rm *)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}'",
-            "if": "Bash(*rm *-rf $HOME*)"
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+\\$HOME/?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+\\$HOME/?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
+            "if": "Bash(*rm *)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting root filesystem.\"}}'",
-            "if": "Bash(*rm *-rf /*)"
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+/[.*]?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+/[.*]?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting root filesystem.\"}}' && exit 0; fi; exit 0",
+            "if": "Bash(*rm *)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: Force push to main/master. Use --force-with-lease or push to a feature branch.\"}}'",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)git\\s+push\\s.*--force\\s.*main'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: Force push to main. Use --force-with-lease or push to a feature branch.\"}}' && exit 0; fi; exit 0",
             "if": "Bash(*git push*--force*main*)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: Force push to main/master. Use --force-with-lease or push to a feature branch.\"}}'",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)git\\s+push\\s.*--force\\s.*master'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: Force push to master. Use --force-with-lease or push to a feature branch.\"}}' && exit 0; fi; exit 0",
             "if": "Bash(*git push*--force*master*)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: git reset --hard discards uncommitted work. Commit or stash first.\"}}'",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)git\\s+reset\\s+--hard'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: git reset --hard discards uncommitted work. Commit or stash first.\"}}' && exit 0; fi; exit 0",
             "if": "Bash(*git reset --hard*)"
           },
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: chmod 777 is a security risk. Use more restrictive permissions.\"}}'",
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)chmod\\s+.*777'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: chmod 777 is a security risk. Use more restrictive permissions.\"}}' && exit 0; fi; exit 0",
             "if": "Bash(*chmod*777*)"
           }
         ]

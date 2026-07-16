@@ -155,7 +155,7 @@ case "$model" in
         fi
         ;;
     Opus*)
-        if echo "$model_id $model_full" | grep -qE '4\.[7-9]|4-[7-9]|4\.1[0-9]|4-1[0-9]'; then
+        if _effort_ge "4.7"; then
             case "$effort_level" in
                 low)       effort_dots="●○○○○" ;;
                 medium)    effort_dots="●●○○○" ;;

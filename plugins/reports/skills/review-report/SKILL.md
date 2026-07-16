@@ -279,4 +279,4 @@ LOW
 - **`semantic-model`** -- Companion skill for semantic model design and review (run in parallel when model is in scope)
 - **`pbi-report-design`** -- Detailed report design guidelines and layout rules
 - **`modifying-theme-json`** -- Theme authoring, compliance auditing, formatting promotion
-- **`deneb-visuals`**, **`python-visuals`**, **`r-visuals`**, **`svg-visuals`** -- Visual-specific review criteria (now in the **custom-visuals** plugin; add with `claude plugin install custom-visuals@power-bi-agentic-development`)
+- **`deneb-visuals`**, **`python-visuals`**, **`r-visuals`**, **`svg-visuals`** -- Visual-specific review criteria (now in the **custom-visuals** plugin; add with `claude plugin install custom-visuals@power-bi-agentic-dev`)

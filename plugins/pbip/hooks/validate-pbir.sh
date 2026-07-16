@@ -39,7 +39,7 @@ fi
 check_enabled() {
     local check_name="$1"
     [[ -f "$HOOK_CONFIG" ]] || return 0
-    grep -qE "^${check_name}:\\s*false" "$HOOK_CONFIG" 2>/dev/null && return 1
+    grep -qE "^${check_name}:[[:space:]]*false" "$HOOK_CONFIG" 2>/dev/null && return 1
     return 0
 }
 

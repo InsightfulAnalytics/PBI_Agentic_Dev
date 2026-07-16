@@ -30,7 +30,7 @@
       },
       {
         "type": "command",
-        "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)az\\s+account\\s+get-access-token'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: Azure CLI token extraction. Use DefaultAzureCredential in code instead.\"}}' && exit 0; fi; exit 0",
+        "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)az\\s+account\\s+get-access-token'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"ask\",permissionDecisionReason:\"Azure CLI token extraction - approve only if the workflow genuinely needs a raw token (e.g. the Fabric Livy API); prefer DefaultAzureCredential in code.\"}}' && exit 0; fi; exit 0",
         "if": "Bash(*az account get-access-token*)"
       },
       {

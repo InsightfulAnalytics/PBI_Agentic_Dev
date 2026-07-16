@@ -10,7 +10,7 @@ A PreToolUse hook that blocks all `npm` commands and tells the agent to use `bun
 
 ## How it works
 
-The hook uses an `if` condition (`Bash(npm *)`) so it only fires when the Bash command starts with `npm`. It outputs a JSON deny decision with `permissionDecision: "deny"`, which prevents the command from running and tells the agent to use bun instead.
+The hook command reads the tool-use JSON from stdin, extracts `.tool_input.command` with jq, and only emits a JSON deny decision (`permissionDecision: "deny"`) when the command actually invokes `npm` (at the start of the command or after `;`, `&&`, `||`); otherwise it outputs nothing and exits 0. The `if` condition (`Bash(*npm *)`) remains as a cheap pre-filter, but the command re-checks its own trigger because some environments (native Windows bash, Copilot CLI) ignore `if` and run every matcher entry on every Bash call -- an unconditional deny command would then block all Bash commands.
 
 ## Installation
 
