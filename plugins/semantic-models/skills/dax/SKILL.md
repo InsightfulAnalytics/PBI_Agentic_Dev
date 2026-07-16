@@ -1,7 +1,7 @@
 ---
 name: dax
 version: 26.25
-description: DAX performance optimization for semantic models. Automatically invoke when the user asks to "optimize DAX", "fix slow DAX", "DAX performance", "tune a measure", "debug a measure", "DAX anti-patterns", or mentions slow queries or server timings. For DAX *authoring* — writing new or more readable measures — use the dax-no-calculate skill instead; this skill is tuning/measurement only.
+description: DAX performance optimization for semantic models. Automatically invoke when the user asks to "optimize DAX", "fix slow DAX", "DAX performance", "tune a measure", "debug a measure", "DAX anti-patterns", or mentions slow queries or server timings. This skill is for DAX tuning and measurement only, not authoring new measures.
 ---
 
 # DAX

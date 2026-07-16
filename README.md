@@ -146,7 +146,6 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 |------|------|-------------|
 | Skill | [`semantic-model`](plugins/semantic-models/skills/semantic-model/) | Design, build, refresh, and review semantic models through a `te`-first tool cascade |
 | Skill | [`dax`](plugins/semantic-models/skills/dax/) | Debug and optimize DAX performance (server timings, anti-patterns, tuning) |
-| Skill | [`dax-no-calculate`](plugins/semantic-models/skills/dax-no-calculate/) | Author readable DAX in the "No CALCULATE" (*DAX For Humans*) style |
 | Skill | [`power-query`](plugins/semantic-models/skills/power-query/) | Write M expressions, debug query folding, execute M locally or via Fabric API |
 | Skill | [`standardize-naming-conventions`](plugins/semantic-models/skills/standardize-naming-conventions/) | Audit and standardize naming conventions in semantic models |
 | Skill | [`refresh-semantic-model`](plugins/semantic-models/skills/refresh-semantic-model/) | Trigger or troubleshoot refreshes |
@@ -283,8 +282,6 @@ General-purpose agent resources that don't fit into a plugin: defensive hooks, p
 These plugins are licensed **GPL-3.0** and intended for free community use.
 
 This is a fork; the original work is Kurt Buhler's. If you copy these skills — manually or by using an agent to rewrite them — you must retain attribution and a link to the [original project](https://github.com/data-goblin/power-bi-agentic-development), per the license. Modifications relative to upstream are listed in [FORK-CHANGES.md](FORK-CHANGES.md).
-
-**License exception:** the [`dax-no-calculate`](plugins/semantic-models/skills/dax-no-calculate/) skill contains material paraphrased from the book *DAX For Humans* by Gregory Deckler and is not covered by this repository's GPL-3.0 grant — see the notice in that skill.
 
 <br>
 
