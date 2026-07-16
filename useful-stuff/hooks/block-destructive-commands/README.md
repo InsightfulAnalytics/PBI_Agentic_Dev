@@ -6,7 +6,7 @@ PreToolUse hooks that block dangerous Bash commands while still allowing normal 
 
 | Pattern | Why |
 |---------|-----|
-| `rm` with recursive + force flags in any spelling (`-rf`, `-fr`, `-r -f`, `-Rf`, `--recursive --force`) targeting `~`, `$HOME` (quoted or unquoted), or `/` | Nuking your home or root directory |
+| `rm` with recursive + force flags in any spelling (`-rf`, `-fr`, `-r -f`, `-Rf`, `--recursive --force`), optionally via `sudo`, targeting `~`, `$HOME` (quoted or unquoted), or `/` (incl. `//`, `/*`, `/.`) | Nuking your home or root directory |
 | `git push --force` to main/master | Overwriting shared history; use `--force-with-lease` |
 | `git reset --hard` | Discards uncommitted work silently |
 | `chmod 777` | World-writable permissions; security risk |

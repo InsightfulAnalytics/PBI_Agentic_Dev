@@ -14,10 +14,14 @@ if command -v uv &>/dev/null; then
   fi
   UV_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/uv/uv.toml"
   mkdir -p "$(dirname "$UV_CFG")"
-  if grep -q 'exclude-newer' "$UV_CFG" 2>/dev/null; then
-    sed -i.bak "s|^exclude-newer.*|exclude-newer = \"$DAYS days\"|" "$UV_CFG" && rm -f "$UV_CFG.bak"
+  if grep -q '^[[:space:]]*exclude-newer' "$UV_CFG" 2>/dev/null; then
+    sed -i.bak "s|^[[:space:]]*exclude-newer.*|exclude-newer = \"$DAYS days\"|" "$UV_CFG" && rm -f "$UV_CFG.bak"
+  elif [ -s "$UV_CFG" ]; then
+    # exclude-newer is a root-table key: it must precede any [section] header,
+    # so prepend it rather than appending under whatever table ends the file.
+    printf 'exclude-newer = "%s days"\n' "$DAYS" | cat - "$UV_CFG" > "$UV_CFG.tmp" && mv "$UV_CFG.tmp" "$UV_CFG"
   else
-    printf '\nexclude-newer = "%s days"\n' "$DAYS" >> "$UV_CFG"
+    printf 'exclude-newer = "%s days"\n' "$DAYS" > "$UV_CFG"
   fi
   echo "uv: exclude-newer = $DAYS days"
 fi

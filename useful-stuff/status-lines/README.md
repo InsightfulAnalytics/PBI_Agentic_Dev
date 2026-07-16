@@ -128,7 +128,7 @@ LATEST_HAIKU_ID="haiku-4-5"
 
 ## Effort dots
 
-Effort calibration lives in the model case-statement. Fable and Opus 4.7+ have 5 levels (low/medium/high/xhigh/max), where `ultracode` maps to the xhigh dot pattern; Opus 4.6 and Sonnet 4.6 have 4 (xhigh falls back to high); Haiku has no effort and stays blank. Add cases for new models as they ship.
+Effort calibration lives in the model case-statement. Fable 5, Opus 4.7+, and Sonnet 5+ have the full 5 levels (low/medium/high/xhigh/max) plus a separate `ultracode` mode, shown as purple diamonds (◆◆◆◆◆) rather than reusing the xhigh dots. Haiku 4.5+ has the same 5 levels but no ultracode. Older Sonnet (pre-5) and Opus (pre-4.7) collapse high+xhigh into one dot (4 levels) and have no ultracode. Add cases for new models as they ship.
 
 ## Requirements
 
