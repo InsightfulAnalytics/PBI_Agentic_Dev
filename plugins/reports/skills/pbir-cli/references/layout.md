@@ -33,7 +33,7 @@ Some scenarios need custom visuals. Route to the appropriate skill:
 | Statistical charts (distributions, regressions, correlation) | `python-visuals` | matplotlib/seaborn |
 | Statistical charts (forecast, heatmap, corrplot) | `r-visuals` | ggplot2 |
 
-These skills live in the **custom-visuals** plugin (add with `claude plugin install custom-visuals@power-bi-agentic-development`).
+These skills live in the **custom-visuals** plugin (add with `claude plugin install custom-visuals@power-bi-agentic-dev`).
 
 **Trade-offs**: Custom visuals offer more flexibility but take more iterations to develop and are harder to maintain. Always discuss with the user before committing to a custom visual approach using `AskUserQuestion`.
 

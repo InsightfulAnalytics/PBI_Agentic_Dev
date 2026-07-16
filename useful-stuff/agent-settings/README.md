@@ -11,7 +11,7 @@ A reference `~/.claude/settings.json` for projects or user settings.
 | `env.CLAUDE_CODE_ENABLE_PROMPT_SUGGESTION: "false"` | No autocompleted prompt suggestions in the input box |
 | `env.CLAUDE_CODE_ENABLE_TASKS: "false"` | Disable the built-in tasks panel (skip if you actively use it) |
 | `attribution.commit: ""` and `attribution.pr: ""` | Force-empty so Claude Code does not append AI attribution lines to commits or PRs |
-| `permissions.defaultMode: "bypassPermissions"` | Run only in sandboxed containers; this is my personal preference. You can use auto mode too, but I personally do not like that as much. |
+| `permissions.defaultMode: "acceptEdits"` | Auto-accept file edits while still prompting for commands. If you want `bypassPermissions`, set it yourself and run only in sandboxed containers. Warning: `bypassPermissions` skips every permission prompt, so it is unsafe as a shipped default. |
 | `feedbackSurveyRate: 0`, `spinnerTipsEnabled: false`, `promptSuggestionEnabled: false`, `prefersReducedMotion: false`, `autoMemoryEnabled: false`, `todoFeatureEnabled: false` | Quieter UI, fewer nudges |
 | `alwaysThinkingEnabled: true` | Extended thinking on by default |
 | `effortLevel: "xhigh"` | Default reasoning budget. Adjust to taste |

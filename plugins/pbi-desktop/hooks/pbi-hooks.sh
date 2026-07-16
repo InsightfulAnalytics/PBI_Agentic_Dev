@@ -68,6 +68,16 @@ config_is_enabled() {
     return 0
 }
 
+config_is_explicitly_enabled() {
+    # Opt-in variant for keys guarding irreversible actions: returns 0 ONLY if
+    # the key is present and set to "true". Missing file or key means disabled.
+    local key="$1"
+    [[ -f "$CONFIG_PATH" ]] || return 1
+    local val
+    val=$(grep -E "^${key}:" "$CONFIG_PATH" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | tr -d '[:space:]')
+    [[ "$val" == "true" ]]
+}
+
 # #endregion
 
 
@@ -503,6 +513,7 @@ cmd_refresh_cache() {
     local snapshot_script="$HOOK_DIR/snapshot-model.ps1"
     local metadata_out="$PROJECT_DIR/tmp/model-metadata.json"
 
+    mkdir -p "$(dirname "$metadata_out")" 2>/dev/null || true
     run_powershell_script "$snapshot_script" "-Port $port" "-OutFile \"$(convert_to_exec_path "$metadata_out")\""
 
     rm -f "$COMPAT_MARKER_PATH" 2>/dev/null || true
@@ -573,7 +584,7 @@ cmd_check_ri() {
 # #region Subcommand: check-compat
 
 cmd_check_compat() {
-    config_is_enabled "compatibility_check" || config_is_enabled "compatibility_auto_upgrade" || exit 0
+    config_is_enabled "compatibility_check" || config_is_explicitly_enabled "compatibility_auto_upgrade" || exit 0
 
     local tool_name
     tool_name="$(extract_tool_name)"
@@ -659,11 +670,17 @@ cmd_check_compat() {
     echo "Model compatibility level is ${current_cl} (engine supports up to ${max_cl}). Features available by upgrading:" >&2
     printf '%b' "$missing_output" >&2
 
-    # Auto-upgrade if enabled
-    if config_is_enabled "compatibility_auto_upgrade"; then
+    # Auto-upgrade only when explicitly opted in (irreversible model change):
+    # a missing config.yaml or missing key must NOT trigger it.
+    if config_is_explicitly_enabled "compatibility_auto_upgrade"; then
         local upgrade_script="\$basePath = \"\$env:TEMP\\tom_nuget\\Microsoft.AnalysisServices.retail.amd64\\lib\\net45\"; Add-Type -Path \"\$basePath\\Microsoft.AnalysisServices.Core.dll\"; Add-Type -Path \"\$basePath\\Microsoft.AnalysisServices.Tabular.dll\"; \$server = New-Object Microsoft.AnalysisServices.Tabular.Server; \$server.Connect(\"Data Source=localhost:${port}\"); \$server.Databases[0].CompatibilityLevel = ${max_cl}; \$server.Databases[0].Model.SaveChanges(); Write-Output \"Upgraded to CL ${max_cl}\"; \$server.Disconnect()"
-        run_powershell_inline "$upgrade_script"
-        echo "Compatibility level auto-upgraded from ${current_cl} to ${max_cl}." >&2
+        local upgrade_out
+        upgrade_out="$(run_powershell_inline "$upgrade_script")"
+        if [[ "$upgrade_out" == *"Upgraded to CL ${max_cl}"* ]]; then
+            echo "Compatibility level auto-upgraded from ${current_cl} to ${max_cl}." >&2
+        else
+            echo "Auto-upgrade was attempted but could not be confirmed; compatibility level may still be ${current_cl}. Verify via TOM." >&2
+        fi
     else
         echo "Check Microsoft documentation for these features to see if any would benefit this model. To upgrade, set \$db.CompatibilityLevel = ${max_cl} via TOM and call \$model.SaveChanges(). There are no known downsides to upgrading; only benefits. However, it is irreversible; ask the user before proceeding." >&2
     fi
@@ -722,7 +739,10 @@ run_powershell_script() {
     if [[ -n "$vm" ]]; then
         prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$exec_path\" $*" 2>/dev/null || true
     elif command -v powershell.exe &>/dev/null; then
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$exec_path" "$@" 2>/dev/null || true
+        # Callers pass pre-quoted arg strings ("-Port 4000", "-OutFile \"...\"").
+        # -File would bind each string as ONE parameter name and fail, so flatten
+        # via -Command exactly like the Parallels branch above.
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& \"$exec_path\" $*" 2>/dev/null || true
     fi
 }
 
@@ -737,7 +757,8 @@ run_powershell_script_capture() {
     if [[ -n "$vm" ]]; then
         prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$exec_path\" $*" 2>/dev/null || true
     elif command -v powershell.exe &>/dev/null; then
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$exec_path" "$@" 2>/dev/null || true
+        # Same pre-quoted-args contract as run_powershell_script: flatten via -Command.
+        powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& \"$exec_path\" $*" 2>/dev/null || true
     fi
 }
 

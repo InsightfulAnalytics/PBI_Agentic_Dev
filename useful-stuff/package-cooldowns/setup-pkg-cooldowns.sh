@@ -7,7 +7,11 @@ DAYS=7
 
 # ── uv ────────────────────────────────────────────────────────────────────────
 if command -v uv &>/dev/null; then
-  uv self update
+  # `uv self update` only works for standalone installs; pip/pipx/homebrew
+  # installs exit non-zero, which must not abort the script under set -e.
+  if ! uv self update 2>/dev/null; then
+    echo "note: uv self-update unavailable (non-standalone install), continuing"
+  fi
   UV_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/uv/uv.toml"
   mkdir -p "$(dirname "$UV_CFG")"
   if grep -q 'exclude-newer' "$UV_CFG" 2>/dev/null; then
@@ -20,11 +24,19 @@ fi
 
 # ── bun ───────────────────────────────────────────────────────────────────────
 if command -v bun &>/dev/null; then
-  bun upgrade
+  # `bun upgrade` fails for package-manager (brew/npm) installs; don't abort.
+  if ! bun upgrade 2>/dev/null; then
+    echo "note: bun upgrade unavailable (package-manager install), continuing"
+  fi
   BUNFIG="$HOME/.bunfig.toml"
   SECS=$(( DAYS * 86400 ))
-  if grep -q 'minimumReleaseAge' "$BUNFIG" 2>/dev/null; then
-    sed -i.bak "s|^minimumReleaseAge.*|minimumReleaseAge = $SECS|" "$BUNFIG" && rm -f "$BUNFIG.bak"
+  if grep -q '^[[:space:]]*minimumReleaseAge' "$BUNFIG" 2>/dev/null; then
+    sed -i.bak "s|^[[:space:]]*minimumReleaseAge.*|minimumReleaseAge = $SECS|" "$BUNFIG" && rm -f "$BUNFIG.bak"
+  elif grep -q '^\[install\]' "$BUNFIG" 2>/dev/null; then
+    # [install] exists without the key: insert inside it (appending a second
+    # [install] block would be duplicate-table invalid TOML).
+    awk -v secs="$SECS" '{print} /^\[install\]/ && !done {print "minimumReleaseAge = " secs; done=1}' \
+      "$BUNFIG" > "$BUNFIG.tmp" && mv "$BUNFIG.tmp" "$BUNFIG"
   else
     printf '\n[install]\nminimumReleaseAge = %s\n' "$SECS" >> "$BUNFIG"
   fi
@@ -55,13 +67,15 @@ fi
 if command -v python3 &>/dev/null; then
   PIP_CFG="${XDG_CONFIG_HOME:-$HOME/.config}/pip/pip.conf"
   mkdir -p "$(dirname "$PIP_CFG")"
-  if grep -q 'uploaded-prior-to' "$PIP_CFG" 2>/dev/null; then
-    sed -i.bak "s|^uploaded-prior-to.*|uploaded-prior-to = P${DAYS}D|" "$PIP_CFG" && rm -f "$PIP_CFG.bak"
+  if grep -q '^[[:space:]]*uploaded-prior-to' "$PIP_CFG" 2>/dev/null; then
+    sed -i.bak "s|^[[:space:]]*uploaded-prior-to.*|uploaded-prior-to = P${DAYS}D|" "$PIP_CFG" && rm -f "$PIP_CFG.bak"
+  elif grep -q '^\[install\]' "$PIP_CFG" 2>/dev/null; then
+    # [install] exists without the key: insert inside it so the key doesn't
+    # land at file end under whatever section happens to be last.
+    awk -v days="$DAYS" '{print} /^\[install\]/ && !done {print "uploaded-prior-to = P" days "D"; done=1}' \
+      "$PIP_CFG" > "$PIP_CFG.tmp" && mv "$PIP_CFG.tmp" "$PIP_CFG"
   else
-    if ! grep -q '^\[install\]' "$PIP_CFG" 2>/dev/null; then
-      printf '[install]\n' >> "$PIP_CFG"
-    fi
-    printf 'uploaded-prior-to = P%sD\n' "$DAYS" >> "$PIP_CFG"
+    printf '\n[install]\nuploaded-prior-to = P%sD\n' "$DAYS" >> "$PIP_CFG"
   fi
   echo "pip: uploaded-prior-to = P${DAYS}D"
 fi

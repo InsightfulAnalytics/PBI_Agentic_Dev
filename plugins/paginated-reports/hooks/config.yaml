@@ -5,6 +5,6 @@
 # (escape hatch, e.g. on Windows if a hook misbehaves).
 all_hooks_enabled: true
 
-# Validate .rdl structure with validate_rdl.py after Write/Edit (and on Bash
-# commands that touch .rdl files). Blocks on structural errors only.
+# Validate .rdl structure with validate_rdl.py after Write/Edit.
+# Blocks on structural errors only.
 rdl_validation: true

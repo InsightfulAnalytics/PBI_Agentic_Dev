@@ -1,18 +1,18 @@
 [
   {
     "type": "command",
-    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)rm\\s+.*-rf\\s+~/'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
-    "if": "Bash(*rm *-rf*)"
+    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+~/?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+~/?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
+    "if": "Bash(*rm *)"
   },
   {
     "type": "command",
-    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)rm\\s+.*-rf\\s+\\$HOME'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
-    "if": "Bash(*rm *-rf*)"
+    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+\\$HOME/?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+\\$HOME/?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting home directory. Use a more specific path.\"}}' && exit 0; fi; exit 0",
+    "if": "Bash(*rm *)"
   },
   {
     "type": "command",
-    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|[;&|]\\s*)rm\\s+.*-rf\\s+/[^a-zA-Z]'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting root filesystem.\"}}' && exit 0; fi; exit 0",
-    "if": "Bash(*rm *-rf*)"
+    "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty' | tr -d \"\\\"'\"); if echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*[rR][[:alnum:]]*|--recursive)([[:space:]]+-[^[:space:]]+)*[[:space:]]+/[.*]?([[:space:]]|$|[;&|])' && echo \"$cmd\" | grep -qE '(^|[;&|][[:space:]]*)rm([[:space:]]+-[^[:space:]]+)*[[:space:]]+(-[[:alnum:]]*f[[:alnum:]]*|--force)([[:space:]]+-[^[:space:]]+)*[[:space:]]+/[.*]?([[:space:]]|$|[;&|])'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"BLOCKED: rm -rf targeting root filesystem.\"}}' && exit 0; fi; exit 0",
+    "if": "Bash(*rm *)"
   },
   {
     "type": "command",

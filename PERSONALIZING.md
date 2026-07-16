@@ -2,7 +2,7 @@
 
 This is **Tim's personal fork** of Kurt Buhler's [`power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development) marketplace, renamed to **`power-bi-agentic-dev`** so it can coexist with the original in Claude Code.
 
-Claude Code loads the Power BI skills from **this repo** (via a local `directory`-source marketplace). **All 10 plugins from this fork are enabled.** The upstream `data-goblin/power-bi-agentic-development` marketplace stays *registered* (so you can harvest Kurt's updates — see [Tracking upstream](#tracking-upstream-kurts-updates)), but its plugins are not enabled; the previously-disabled upstream toggles and the on-disk cache were removed on 2026-07-12.
+On the maintainer's machine, Claude Code loads the Power BI skills from a local clone of **this repo** (via a `directory`-source marketplace), with all 10 plugins enabled. The upstream `data-goblin/power-bi-agentic-development` marketplace stays *registered* (so upstream updates can be harvested — see [Tracking upstream](#tracking-upstream-kurts-updates)), but its plugins are not enabled; the previously-disabled upstream toggles and the on-disk cache were removed on 2026-07-12.
 
 This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `dax-no-calculate` (semantic-models), `pbi-verify-loop` / `power-bi-theme` / `claude-design-handoff` (reports), and `deneb-pbir` (custom-visuals).
 
@@ -11,7 +11,7 @@ This fork also **owns Tim's personal Power BI add-in skills**, migrated in from 
 Claude does **not** read skills live from this folder. When a plugin is installed, its files are copied into a per-commit cache:
 
 ```
-C:\Users\timos\.claude\plugins\cache\power-bi-agentic-dev\<plugin>\<commit-sha>\
+<your-claude-home>\plugins\cache\power-bi-agentic-dev\<plugin>\<commit-sha>\
 ```
 
 The cache is keyed by **git commit SHA**, and `claude plugin update` only re-copies when the plugin's **`version` changes**. So editing a file here does nothing until you **commit** the change **and bump the version**. This was verified end-to-end.
@@ -20,7 +20,7 @@ The cache is keyed by **git commit SHA**, and `claude plugin update` only re-cop
 > - `~/.claude/settings.json` → `extraKnownMarketplaces."power-bi-agentic-dev".source.path`
 > - `~/.claude/plugins/known_marketplaces.json` → `"power-bi-agentic-dev"` → `source.path` **and** `installLocation`
 >
-> The per-commit cache under `~/.claude/plugins/cache/` lives outside the repo, so it survives the move — no re-install needed, just correct the path. (Current location: `B:\VS Code Files\PBI_Agentic_Dev`. The folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on 2026-07-12; the paths above were corrected then.)
+> The per-commit cache under `~/.claude/plugins/cache/` lives outside the repo, so it survives the move — no re-install needed, just correct the path. (The local folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on 2026-07-12; the paths above were corrected then.)
 
 ## The personalization loop (verified working)
 
@@ -30,7 +30,7 @@ To personalize a skill and have Claude pick it up:
 2. **Bump the version** in `plugins/<plugin>/.claude-plugin/plugin.json` — e.g. `"26.25"` → `"26.25.1"`. (This is the trigger; without it, `plugin update` no-ops.)
 3. **Commit** the change:
    ```powershell
-   cd "B:\VS Code Files\PBI_Agentic_Dev"
+   cd "<local-clone-path>"
    git add -A
    git commit -m "Personalize <plugin>: <what you changed>"
    ```
@@ -48,7 +48,7 @@ The 10 plugins (and their skill folders) you can personalize:
 
 ## Back up / publish to GitHub
 
-The repo is already wired to a **private** GitHub repo as `origin`:
+The maintainer's local clone is wired to this **public** GitHub repo as `origin`:
 
 ```
 origin    https://github.com/InsightfulAnalytics/PBI_Agentic_Dev.git
@@ -57,9 +57,11 @@ origin    https://github.com/InsightfulAnalytics/PBI_Agentic_Dev.git
 So publishing new personalization commits is just:
 
 ```powershell
-cd "B:\VS Code Files\PBI_Agentic_Dev"
+cd "<local-clone-path>"
 git push
 ```
+
+(If you fork this repo for your own personalization, point `origin` at your fork instead.)
 
 ## Tracking upstream (Kurt's updates)
 
@@ -72,19 +74,19 @@ upstream  https://github.com/data-goblin/power-bi-agentic-development.git
 To review and harvest Kurt's new work manually:
 
 ```powershell
-cd "B:\VS Code Files\PBI_Agentic_Dev"
+cd "<local-clone-path>"
 git fetch upstream
 git log --oneline HEAD..upstream/main          # new upstream commits since you diverged
 git cherry-pick <sha>                          # bring in a specific value-add commit
 ```
 
-A **weekly cloud routine** `upstream-plugin-watch` (Mondays 09:00 Australia/Sydney) also does this automatically and reports new commits classified value-add vs noise: <https://claude.ai/code/routines/trig_018b4SFz5M21oavUhaWR7L2A>
+The maintainer also runs a weekly scheduled agent that checks upstream for new commits and reports them classified value-add vs noise.
 
 Avoid a blanket `git merge upstream/main` — the fork has diverged (renamed marketplace, migrated personal skills, deleted skills), so cherry-picking specific commits is cleaner than a full merge.
 
 ## Revert to the original data-goblin skills
 
-The upstream marketplace is still registered, so you can re-enable its plugins and disable this fork's:
+If the upstream marketplace is registered alongside this fork (as on the maintainer's machine), you can re-enable its plugins and disable this fork's:
 
 ```powershell
 $plugins = 'tabular-editor','pbi-desktop','pbip','semantic-models','reports','fabric-cli'

@@ -620,7 +620,7 @@ pbir usage "Sales.Workspace" --no-datahub        # Skip the last-visited lookup
 pbir usage "Sales.Workspace" -o json             # JSON for piping
 ```
 
-A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry; see `.claude/rules/undocumented-apis.md` for the underlying WABI metrics APIs.
+A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry (internal WABI usage-metrics APIs, not part of the public REST API) — they can change or break without notice, so treat failures as expected breakage rather than bugs.
 
 ## Configuration and Setup
 

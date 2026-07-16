@@ -1,6 +1,6 @@
 # Useful stuff
 
-Misc. useful shit for making Claude Code more effective, safe, or satisfying based on my personal experiences and research.
+General-purpose resources for making Claude Code more effective, safe, or satisfying, collected from the upstream project and this fork's experience.
 
 | What | Description |
 |------|-------------|
