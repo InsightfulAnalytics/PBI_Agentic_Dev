@@ -8,7 +8,7 @@ description: Round-trip TOOLING for Deneb specs in PBIR — extract/embed the Ve
 
 Deneb stores its spec inside `visual.json` at `visual.objects.vega[0].properties.jsonSpec.expr.Literal.Value` — a single-quote-wrapped PBIR string literal with embedded `'` doubled. Never hand-edit that string; use the scripts.
 
-> This skill is the sanctioned exception to the CLAUDE.md "prefer Edit for PBIR files" rule: `embed` script-patches visual.json but writes a `.bak` beside it, which substitutes for checkpoint protection (rewind can't revert script writes — restore from the `.bak` instead).
+> The general guidance to prefer the Edit tool for PBIR files exists because editor checkpoint/rewind can only revert Edit/Write changes, not script writes. This skill's scripted spec-embedding is a safe exception: `embed` script-patches visual.json but writes a `.bak` beside it, which substitutes for checkpoint protection — restore from the `.bak` instead of relying on rewind.
 
 ## Edit loop
 
@@ -50,5 +50,5 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/deneb-pbir/renderer/render.mjs" spec.json out
 
 Spec authoring rules (theme `pbiColor`, escaping, interactivity, responsive sizing) and the hard-won Deneb gotchas (cross-filter-out, per-point tooltips, validate-not-sufficient) live in the **`custom-visuals:deneb-visuals`** skill. This skill is the round-trip *tooling* only (extract / embed / offline-render).
 
-- House config convention: `{"background":"transparent","view":{"stroke":"transparent"},"font":"Segoe UI"}` — keep `jsonConfig` consistent with existing visuals.
+- A sensible default `jsonConfig`: `{"background":"transparent","view":{"stroke":"transparent"},"font":"Segoe UI"}` — whatever config you settle on, keep `jsonConfig` consistent across the report's existing Deneb visuals.
 - Writing any OTHER inline node script against vega: packages are ESM-only — dynamic `import()`, never `require()`.

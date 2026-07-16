@@ -15,6 +15,10 @@ body:
         - tabular-editor
         - fabric-cli
         - pbi-desktop
+        - custom-visuals
+        - etl
+        - fabric-admin
+        - paginated-reports
     validations:
       required: true
 

@@ -344,7 +344,7 @@ Before declaring a design done, run the closing gate in **`references/quality-ga
 
 Reports often need visuals beyond what Power BI provides natively. Always consider in-repo code paths before reaching for a packaged third-party visual. See **`references/custom-visuals.md`** for the build-vs-buy decision and AppSource/org-store tradeoffs.
 
-Skill routing for in-repo code visuals (all in the **custom-visuals** plugin; add with `claude plugin install custom-visuals@power-bi-agentic-development`):
+Skill routing for in-repo code visuals (all in the **custom-visuals** plugin; add with `claude plugin install custom-visuals@power-bi-agentic-dev`):
 - **`deneb-visuals`** -- Vega/Vega-Lite declarative visuals; preferred for advanced custom interactive charts (cross-filtering, tooltips, hover)
 - **`svg-visuals`** -- SVG via DAX measures; preferred for inline table/matrix/card graphics with no row cap issues
 - **`python-visuals`** -- matplotlib/seaborn scripts (static PNG); for statistical visualizations that must compute at render time

@@ -11,7 +11,7 @@ A PreToolUse hook that blocks `pip` and `pip3` commands and tells the agent to u
 
 ## How it works
 
-Two `if` conditions (`Bash(pip *)` and `Bash(pip3 *)`) catch both variants. Each outputs a JSON deny decision telling the agent to use uv instead.
+The hook command reads the tool-use JSON from stdin, extracts `.tool_input.command` with jq, and only emits a JSON deny decision when the command actually invokes `pip` or `pip3` (at the start of the command or after `;`, `&&`, `||`); otherwise it outputs nothing and exits 0. The `if` condition (`Bash(*pip*)`) remains as a cheap pre-filter, but the command re-checks its own trigger because some environments (native Windows bash, Copilot CLI) ignore `if` and run every matcher entry on every Bash call -- an unconditional deny command would then block all Bash commands.
 
 ## Installation
 

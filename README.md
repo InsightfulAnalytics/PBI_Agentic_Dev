@@ -32,7 +32,7 @@ Add the marketplace in Claude Code — run this in the terminal:
 claude plugin marketplace add InsightfulAnalytics/PBI_Agentic_Dev
 ```
 
-This registers the marketplace under the name **`power-bi-agentic-dev`** (from the repo's `.claude-plugin/marketplace.json`). Install commands below reference that name.
+This registers the marketplace under the name **`power-bi-agentic-dev`** (from the repo's `.claude-plugin/marketplace.json`). Note that the GitHub repo slug (`PBI_Agentic_Dev`) differs from the marketplace name (`power-bi-agentic-dev`) — the slug is used only in the `marketplace add` command above; the install commands below reference the marketplace name.
 
 ### Claude Code
 
@@ -282,7 +282,9 @@ General-purpose agent resources that don't fit into a plugin: defensive hooks, p
 
 These plugins are licensed **GPL-3.0** and intended for free community use.
 
-This is a fork; the original work is Kurt Buhler's. If you copy these skills — manually or by using an agent to rewrite them — you must retain attribution and a link to the [original project](https://github.com/data-goblin/power-bi-agentic-development), per the license.
+This is a fork; the original work is Kurt Buhler's. If you copy these skills — manually or by using an agent to rewrite them — you must retain attribution and a link to the [original project](https://github.com/data-goblin/power-bi-agentic-development), per the license. Modifications relative to upstream are listed in [FORK-CHANGES.md](FORK-CHANGES.md).
+
+**License exception:** the [`dax-no-calculate`](plugins/semantic-models/skills/dax-no-calculate/) skill contains material paraphrased from the book *DAX For Humans* by Gregory Deckler and is not covered by this repository's GPL-3.0 grant — see the notice in that skill.
 
 <br>
 

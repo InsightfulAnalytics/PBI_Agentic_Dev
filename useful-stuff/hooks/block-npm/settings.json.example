@@ -6,8 +6,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "cat > /dev/null; jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"Use bun instead of npm.\"}}'",
-            "if": "Bash(npm *)"
+            "command": "input=$(cat); cmd=$(echo \"$input\" | jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE '(^|;|&&|\\|\\|)[[:space:]]*npm[[:space:]]'; then jq -n '{hookSpecificOutput:{hookEventName:\"PreToolUse\",permissionDecision:\"deny\",permissionDecisionReason:\"Use bun instead of npm.\"}}' && exit 0; fi; exit 0",
+            "if": "Bash(*npm *)"
           }
         ]
       }
