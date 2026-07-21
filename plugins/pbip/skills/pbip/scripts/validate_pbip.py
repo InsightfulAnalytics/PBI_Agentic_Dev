@@ -39,6 +39,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -566,10 +567,14 @@ def run_pbir_validate(report_dir: Path, result: Result) -> None:
                    "pbir CLI not found on PATH. Install for deeper .Report validation: "
                    "`uv tool install pbir-cli`", None)
         return
+    # pbir prints ✓/✗ glyphs; on a cp1252 Windows console the child process dies
+    # with a charmap UnicodeEncodeError before it can report anything.
+    env = {**os.environ, "PYTHONIOENCODING": "utf-8", "PYTHONUTF8": "1"}
     try:
         proc = subprocess.run(
-            ["pbir", "validate", str(report_dir), "--quiet"],
-            capture_output=True, text=True, timeout=60,
+            ["pbir", "validate", str(report_dir)],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            timeout=60, env=env,
         )
     except subprocess.TimeoutExpired:
         result.add(WARN, "pbir_cli_timeout",
@@ -580,12 +585,17 @@ def run_pbir_validate(report_dir: Path, result: Result) -> None:
         return
     result.pbir_cli_output = (proc.stdout or "") + (proc.stderr or "")
     result.pbir_cli_exit = proc.returncode
-    if proc.returncode not in (0, 1):
+    # pbir exit codes (verified against pbir 0.9.25): 0 = passed, and it still
+    # exits 0 when it emitted warnings; 1 = validation errors. Anything else is
+    # the CLI itself failing (bad usage, crash) and says nothing about the report.
+    if proc.returncode == 1:
         result.add(ERROR, "pbir_cli_reported_errors",
                    "pbir validate reported errors (see output below)", report_dir)
-    elif proc.returncode == 1:
-        result.add(WARN, "pbir_cli_reported_warnings",
-                   "pbir validate reported warnings (see output below)", report_dir)
+    elif proc.returncode != 0:
+        result.add(WARN, "pbir_cli_failed",
+                   f"pbir validate exited {proc.returncode} without validating the report "
+                   f"(see output below); the .Report folder was not deeply checked",
+                   report_dir)
 
 #endregion
 
