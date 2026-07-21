@@ -4,7 +4,7 @@ This is **Tim's personal fork** of Kurt Buhler's [`power-bi-agentic-development`
 
 On the maintainer's machine, Claude Code loads the Power BI skills from a local clone of **this repo** (via a `directory`-source marketplace), with all 10 plugins enabled. The upstream `data-goblin/power-bi-agentic-development` marketplace stays *registered* (so upstream updates can be harvested — see [Tracking upstream](#tracking-upstream-kurts-updates)), but its plugins are not enabled; the previously-disabled upstream toggles and the on-disk cache were removed on 2026-07-12.
 
-This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `pbi-verify-loop` / `power-bi-theme` / `claude-design-handoff` (reports), and `deneb-pbir` (custom-visuals). (The `dax-no-calculate` skill is deliberately **not** in this public repo — it paraphrases a commercial book, so it's kept personal-only under `~/.claude/skills`.)
+This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `pbi-verify-loop` / `power-bi-theme` / `claude-design-handoff` (reports), `deneb-pbir` (custom-visuals), and `date-table` (semantic-models — the standard DimDate template, migrated from `PBI Projects\Date Table Template` on 2026-07-21; it bundles third-party community code, credited in [ATTRIBUTIONS.md](ATTRIBUTIONS.md)). (The `dax-no-calculate` skill is deliberately **not** in this public repo — it paraphrases a commercial book, so it's kept personal-only under `~/.claude/skills`.)
 
 ## How Claude actually loads these skills (important)
 

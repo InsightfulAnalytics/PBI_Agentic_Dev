@@ -64,6 +64,7 @@ Audit against the categories below and produce prioritized findings with file lo
 - `connect-pbid`: TOM / ADOMD via PowerShell against a live Desktop instance; traces; the TOM / MCP tier
 - `te-cli`: the `te` command reference
 - `c-sharp-scripting`: TOM C# scripts and macros (`te script`) for properties `te` cannot reach
+- `date-table`: drop a ready-made DimDate (calendar / ISO week / fiscal, plus a `Dates Selected` title measure) into a PBIP model
 - `standardize-naming-conventions`: naming audit and remediation
 - `refresh-semantic-model`: refresh monitoring and troubleshooting
 - `lineage-analysis`: artifact lineage (downstream reports and models that consume this model, across workspaces); distinct from intra-model object dependencies
