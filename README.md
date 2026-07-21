@@ -145,6 +145,7 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 | Type | Name | Description |
 |------|------|-------------|
 | Skill | [`semantic-model`](plugins/semantic-models/skills/semantic-model/) | Design, build, refresh, and review semantic models through a `te`-first tool cascade |
+| Skill | [`date-table`](plugins/semantic-models/skills/date-table/) | Drop a ready-made 58-column DimDate (calendar, ISO week, fiscal, to-date flags) plus the `Dates Selected` title measure into any PBIP model |
 | Skill | [`dax`](plugins/semantic-models/skills/dax/) | Debug and optimize DAX performance (server timings, anti-patterns, tuning) |
 | Skill | [`power-query`](plugins/semantic-models/skills/power-query/) | Write M expressions, debug query folding, execute M locally or via Fabric API |
 | Skill | [`standardize-naming-conventions`](plugins/semantic-models/skills/standardize-naming-conventions/) | Audit and standardize naming conventions in semantic models |

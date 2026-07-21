@@ -1,0 +1,24 @@
+expression Year_Variable =
+		let
+		    Source = Date.Year(DateTime.LocalNow()) + 2
+		in
+		    Source
+	lineageTag: c2009312-ff3a-4492-8e7f-41c1fd51bc90
+	queryGroup: Others
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Number
+
+expression TodayDate =
+		let
+		  Source = Date.From(DateTime.LocalNow()),
+		  #"Convert to table" = Table.FromValue(Source)
+		in
+		  #"Convert to table"
+	lineageTag: cf1f5e38-0cab-4c05-9ac9-4893a6b9a6ac
+	queryGroup: Others
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table

@@ -11,6 +11,7 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   - `reports/power-bi-theme`
   - `reports/claude-design-handoff`
   - `custom-visuals/deneb-pbir`
+  - `semantic-models/date-table` — bundles third-party community code (see [ATTRIBUTIONS.md](ATTRIBUTIONS.md))
 - Assorted fixes and personalization, documented in [PERSONALIZING.md](PERSONALIZING.md).
 
-Notice dated 2026-07-16.
+Notice dated 2026-07-21.

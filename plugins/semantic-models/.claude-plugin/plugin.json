@@ -1,6 +1,6 @@
 {
   "name": "semantic-models",
-  "version": "26.25",
+  "version": "26.25.1",
   "description": "Design, build, optimize, and review semantic models.",
   "author": {
     "name": "Kurt Buhler",
@@ -12,6 +12,7 @@
   "keywords": [
     "power-bi",
     "semantic-model",
+    "date-table",
     "naming-conventions",
     "tmdl",
     "power-query"

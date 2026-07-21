@@ -1,0 +1,242 @@
+	measure 'Dates Selected' = ```
+			// Source: Rick de Groot / Datahub -- "Showing period selections in Power BI"
+			// https://datahub.nl/showing-period-selections-in-power-bi/
+			// Shipped with attribution; adapted for the DimDate column names in this skill's DimDate.tmdl.
+			
+			// Return selected Dates: Years, Month & Year, use with v3 date table
+			
+			    /* _________________________________________________________________________________________________________________________________________________________ */
+			    // Adjust this variable to change the prefix used for the period title
+			    VAR __PeriodPrefix =                "Selected Period: "
+			    VAR __DiverseDates =                "a range of dates in "
+			
+			    // Define main start and end dates
+			    VAR __StartDate =                   MIN( 'DimDate'[Date] )
+			    VAR __EndDate =                     MAX( 'DimDate'[Date] )
+			
+			    // Provide information about the current context
+			    VAR __DaysInCurrentContext =        COUNTROWS( DimDate ) 
+			    VAR __DaysBetween_StartAndEnd =     DATEDIFF( __StartDate, __EndDate, DAY )  + 1
+			    VAR __IsConsecutivePeriod =         __DaysBetween_StartAndEnd = __DaysInCurrentContext
+			
+			    // Day Related Variables
+			    VAR __FormattedEndDate =            FORMAT( __EndDate, "d mmm yyyy" ) 
+			
+			    // Month related variables
+			    VAR __FormattedStartDateMonth =     FORMAT( __StartDate, "mmm yyyy" )
+			    VAR __FormattedEndMonth =           FORMAT( __EndDate,   "mmm yyyy" ) // "d mmm yyyy"
+			    VAR __FiltersFullMonthsOnly =
+			            VAR YearsSummary = SUMMARIZECOLUMNS( DimDate[MonthOfYear], 'DimDate'[Days In Month] )
+			            VAR DaysInYears = ADDCOLUMNS( YearsSummary, "@DaysInContext", CALCULATE( COUNTROWS( DimDate ) ) )
+			            VAR IncompleteMonths = FILTER( DaysInYears, [@DaysInContext] <> 'DimDate'[Days In Month] )
+			            VAR Result = ISEMPTY( IncompleteMonths )
+			        RETURN
+			            Result
+			
+			    // Year related variables
+			    VAR __IsSingleYear =                HASONEVALUE( 'DimDate'[Year] )
+			    VAR __FiltersFullYearsOnly =
+			        VAR YearsSummary = 
+			            VALUES( 'DimDate'[Year] )
+			        VAR IncompleteYearFlag = 
+			            ADDCOLUMNS(
+			                YearsSummary,
+			                "@IsIncompleteYear",
+			                    VAR DatesInContext = CALCULATE( COUNTROWS( DimDate ) )
+			                    VAR DatesInYear = CALCULATE( MAX( 'DimDate'[Days in Year] ) )
+			                    VAR IncompleteYearInContext = DatesInContext <> DatesInYear
+			                RETURN
+			                    IncompleteYearInContext
+			                )
+			        VAR IncompleteYears = 
+			            FILTER(
+			                IncompleteYearFlag,
+			                [@IsIncompleteYear] = TRUE()
+			                )
+			        VAR Result = ISEMPTY( IncompleteYears )
+			    RETURN
+			        Result
+			    VAR __Result = 
+			        SWITCH( TRUE(),
+			    /* _________________________________________________________________________________________________________________________________________________________  
+			    Logic for creating a YEAR selection string */
+			    
+			    // Perform this logic only if full years are selected
+			        __FiltersFullYearsOnly, 
+			        
+			        // Retrieve all Period Combinations that exist in the current filter context
+			        VAR SelectedYears = VALUES( 'DimDate'[Year] )
+			        // Find what the previous and next period is in the selection and add the values as a column
+			        VAR AddPrev_Next_Year = 
+			            ADDCOLUMNS(
+			                SelectedYears,
+			                "@PreviousPeriod", 
+			                MAXX(
+			                    FILTER(	SelectedYears,
+			                        'DimDate'[Year] < EARLIER( 'DimDate'[Year] ) ),
+			                    'DimDate'[Year] ),
+			                "@NextPeriod", 
+			                MINX(
+			                    FILTER(	SelectedYears,
+			                        'DimDate'[Year] > EARLIER( 'DimDate'[Year] ) ),
+			                    'DimDate'[Year] )
+			            )
+			        /* Based on whether the previous or next period combination in the context is consecutive, define logic.
+			            - The very last combination should end with a regular year value.
+			            - The start of a range should start with a period and end with a dash "-" to indicate the start of a range
+			            - All values within a range return blank, they don't need to be included
+			            - A single month (outside of a range) or the last month in a range should both show: Period and a separator ( pipe symbol ) */
+			            
+			        VAR __ConcatenationLogic = 
+			            ADDCOLUMNS( 
+			                AddPrev_Next_Year,
+			                "@PartOfRange",
+			                    VAR __NextPeriod =  'DimDate'[Year] + 1
+			                    VAR __PrevPeriod =  'DimDate'[Year] - 1
+			                    VAR __StringElements = 
+			                        SWITCH( TRUE(),
+			                            ISBLANK( [@NextPeriod] ), 											      'DimDate'[Year], 	        // The last period in the context
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod <> [@PreviousPeriod],       'DimDate'[Year] & " | " ,    // A period outside of a range 
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       'DimDate'[Year] & " | " ,    // The last period value in a range
+			                            __NextPeriod =  [@NextPeriod] && __PrevPeriod <> [@PreviousPeriod],       'DimDate'[Year] & " - " , 	// The first [Period] in a range
+			                            __NextPeriod =  [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       BLANK(), 					    // A period in the middle of a range
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       'DimDate'[Year] & " | "      // The last period in a range
+			                        )
+			                    RETURN __StringElements
+			            )
+			        RETURN
+			        __PeriodPrefix & CONCATENATEX( __ConcatenationLogic, [@PartOfRange], "", 'DimDate'[Year], ASC ),
+			            
+			    /* _________________________________________________________________________________________________________________________________________________________
+			        For month selections below calculation returns the right values: */
+			            
+			    // Check if users filter full months only
+			        __FiltersFullMonthsOnly,
+			        
+			    // Retrieve all Start of Month Combinations that exist in the current filter context
+			        VAR SelectedDates = VALUES( 'DimDate'[Start Of Month] )
+			        VAR __MultipleYearsInContext = YEAR( __StartDate ) <> YEAR( __EndDate )
+			        
+			        // Find what the previous and next month-year combination is and add the values as a column
+			        VAR AddPreviousDates = 
+			            ADDCOLUMNS(
+			                SelectedDates,
+			                "@PreviousMonthYear", 
+			                MAXX(
+			                    FILTER(	SelectedDates,
+			                        'DimDate'[Start Of Month] < EARLIER( 'DimDate'[Start Of Month] ) ),
+			                    'DimDate'[Start Of Month] ),
+			                "@NextMonthYear", 
+			                MINX(
+			                    FILTER(	SelectedDates,
+			                        'DimDate'[Start Of Month] > EARLIER( 'DimDate'[Start Of Month] ) ),
+			                    'DimDate'[Start Of Month] )
+			            )
+			        /* Based on whether the previous or next month-year combination in the context is consecutive, define logic.
+			            - The very last combination should end with both the month (short) and the year value.
+			            - The start of a range should start with month (short) and end with a dash "-" to indicate the start of a range
+			            - All values within a range return blank, they don't need to be included
+			            - A single month (outside of a range) or the last month in a range should both show: Month (short) and a separator (pipe symbol ) */
+			
+			        VAR __ConcatenationLogic = 
+			            ADDCOLUMNS(
+			                AddPreviousDates,
+			                "@PartOfRange",
+			                VAR  __NextMonth = EDATE( 'DimDate'[Start Of Month], 1 )
+			                VAR  __PrevMonth = EDATE( 'DimDate'[Start Of Month], - 1 )
+			                VAR  __StringElements = 
+			                SWITCH(
+			                    TRUE(),
+			                    /* __________________ Multiple year logic ____________________________ */
+			                    
+			                    ISBLANK( [@NextMonthYear] ), FORMAT( 'DimDate'[Start Of Month], "mmm yyyy " ),   // The last period of all periods
+			                    
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear] && __MultipleYearsInContext, FORMAT( 'DimDate'[Start Of Month], "mmm yyyy - " ),     // The first period in a range, when multiple years are selected
+			
+			
+			                    YEAR( [@NextMonthYear] ) <> YEAR( 'DimDate'[Start Of Month] ) && NOT ( __IsConsecutivePeriod ), FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),       // The last period in current year (in non consecutive selection)
+			                    
+			                    __MultipleYearsInContext && __NextMonth <> [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),    // A period outside of a range
+			                    __MultipleYearsInContext && __NextMonth <> [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),     // Last period value in a range
+			                    
+			                    /* __________________ Single Year Logic   ____________________________ */
+			                    
+			                    __NextMonth <> [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm | " ),     // A month outside of a range
+			                    __NextMonth <> [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear],  FORMAT( 'DimDate'[Start Of Month], "mmm | " ),     // The last date/month value in a range
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear],  FORMAT( 'DimDate'[Start Of Month], "mmm - " ),     // The first period in a range, with a single year selection
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear],   BLANK()                                             // A month in the middle of a range
+			                )
+			                RETURN
+			                __StringElements
+			            )
+			        VAR __RemoveMiddleOfRange = FILTER( __ConcatenationLogic, [@PartOfRange] <> "" )
+			        VAR __YearRangeStartCorrection =
+			            ADDCOLUMNS(
+			                __RemoveMiddleOfRange,
+			                "@RangeElements",
+			                VAR __NextPartOfRange =
+			                    MINX(
+			                        FILTER(	__RemoveMiddleOfRange, 'DimDate'[Start Of Month] > EARLIER( 'DimDate'[Start Of Month] ) ),
+			                        'DimDate'[Start Of Month] 
+			                    )
+			                VAR Result =
+			                IF( 
+			                    RIGHT( [@PartOfRange], 2 ) = "- " 
+			                        && YEAR( __NextPartOfRange ) = YEAR( 'DimDate'[Start Of Month] ), 
+			                    LEFT( [@PartOfRange], 3 ) & RIGHT( [@PartOfRange], 3 ),
+			                    [@PartOfRange]
+			                )
+			                RETURN Result
+			            )
+			                        
+			                        
+			        RETURN
+			        __PeriodPrefix & CONCATENATEX( __YearRangeStartCorrection, [@RangeElements], "", 'DimDate'[Start Of Month], ASC ),
+			        
+			    /* _________________________________________________________________________________________________________________________________________________________ 
+			            When the selection consists of a single day, simply return the day */
+			
+			            __DaysInCurrentContext = 1,
+			            __PeriodPrefix & FORMAT( VALUES( 'DimDate'[Date] ), "d mmm yyyy" ),
+			        
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define non-consecutive periods within the same month , e.g. 1 jan 2023, 5 jan 2023, 6 jan 2023 -> 
+			            returns: niet openeenvolgende datums in Jan 2023 */
+			                    VAR SameYearMonth =      __FormattedStartDateMonth = __FormattedEndMonth 
+			                    RETURN  
+			            __IsSingleYear &&  SameYearMonth && NOT( __IsConsecutivePeriod ),
+			            __PeriodPrefix & __DiverseDates & __FormattedStartDateMonth,
+			
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define consecutive periods within the same month , e.g. 1 - 3 jan 2023
+			            returns: niet openeenvolgende datums in Jan 2023 */
+			                    VAR SameYearMonth =      __FormattedStartDateMonth = __FormattedEndMonth 
+			
+			                    RETURN  
+			            __IsSingleYear &&  SameYearMonth &&  __IsConsecutivePeriod,
+			                    VAR __FormattedStartDayShort = FORMAT( __StartDate, "d" )
+			                    VAR __FormattedEndDayMonth = FORMAT( __EndDate, "d mmm yyyy" )
+			                RETURN
+			            __PeriodPrefix & __FormattedStartDayShort & " - " & __FormattedEndDayMonth,
+			
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define consecutive date range within the year where end date is not end of the month, but start date is start of the month. 
+			            In those cases, return the short full date format of both the start and end date , e.g. 1 jan 2023 t/m 19 feb 2023-> 
+			            returns: 1 jan 2023 - 19 feb 2023*/
+			                VAR __DatesNotStartTillEndOfMonth =      __EndDate <>  EOMONTH( __EndDate, 0 ) || __StartDate =  ( EOMONTH( __StartDate, - 1 ) + 1 )
+			            RETURN
+			            __IsSingleYear && __DatesNotStartTillEndOfMonth /* && __StartDate_IsStartOfMonth */ && __IsConsecutivePeriod,
+			                    VAR __FormattedStartDateShort = FORMAT( __StartDate, "d mmm" ) 
+			                RETURN 
+			                __PeriodPrefix & __FormattedStartDateShort & " - " & __FormattedEndDate
+			            
+			        )
+			    RETURN     
+			        
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( __Result ), "Selected Period: See Date Slicers",
+			        __Result
+			    )
+			```
+		lineageTag: 0d4d8f72-bef0-435c-a99e-45ebef7e4ffb
