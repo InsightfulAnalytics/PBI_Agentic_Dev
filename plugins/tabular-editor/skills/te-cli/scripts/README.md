@@ -1,56 +1,77 @@
-# TE CLI Scripts
+# TE CLI Utility Scripts
 
-Utility C# scripts for `te script`. Pass `--output-format json` for agent use,
-and add `--save` when setting or deleting metadata.
+Scripts that are meant to be run through `te script`.
 
-## Semantic model AI metadata
+These scripts are experimental utilities provided as-is. They are not official
+Tabular Editor product features, are not covered by normal product support, and
+may depend on metadata shapes or implementation details that can change. Review
+the scripts before use and test against copies or non-production models first.
 
-### manage-ai-metadata.csx
+## manage-ai-metadata.csx
 
-Read, set, list, or delete semantic model AI instructions and AI schema stored
-in culture linguistic metadata:
+Non-interactive CRUD for semantic model AI instructions and AI schema stored in culture linguistic metadata. It follows the v1 extension contract:
 
-- `CustomInstructions` maps to Copilot instructions.
-- `Entities` maps to the semantic model AI schema.
+- `CustomInstructions` maps to `Copilot/Instructions/instructions.md`
+- `Entities` maps to `Copilot/schema.json`
 
-```bash
-TE_AI_ACTION=get TE_AI_TARGET=both \
-  te script -s "workspace" -d "model" \
-  -S scripts/manage-ai-metadata.csx \
-  --output-format json --non-interactive
+PowerShell examples:
+
+```powershell
+$env:TE_AI_ACTION = "get"
+$env:TE_AI_TARGET = "both"
+te script -S scripts/manage-ai-metadata.csx -m ./Model.SemanticModel --output-format json
+
+$env:TE_AI_ACTION = "set"
+$env:TE_AI_TARGET = "instructions"
+$env:TE_AI_INPUT_FILE = "./instructions.md"
+te script -S scripts/manage-ai-metadata.csx -m ./Model.SemanticModel --save
+
+$env:TE_AI_ACTION = "set"
+$env:TE_AI_TARGET = "schema"
+$env:TE_AI_INPUT_FILE = "./schema.json"
+te script -S scripts/manage-ai-metadata.csx -m ./Model.SemanticModel --save
+
+$env:TE_AI_ACTION = "delete"
+$env:TE_AI_TARGET = "schema"
+te script -S scripts/manage-ai-metadata.csx -m ./Model.SemanticModel --save
 ```
 
-```bash
-TE_AI_ACTION=set TE_AI_TARGET=instructions TE_AI_INPUT_FILE=instructions.md \
-  te script -s "workspace" -d "model" \
-  -S scripts/manage-ai-metadata.csx \
-  --save --output-format json --non-interactive
-```
+In bash/zsh, set the same variables inline, for example
+`TE_AI_ACTION=get TE_AI_TARGET=both te script ...`.
 
 Environment variables:
 
-- `TE_AI_ACTION`: `list`, `get`, `set`, or `delete`. Default: `get`.
-- `TE_AI_TARGET`: `instructions`, `schema`, or `both`.
-- `TE_AI_CULTURE`: optional culture name. Defaults to the best available
-  culture and creates `en-US` on `set` when needed.
-- `TE_AI_INPUT_FILE`: payload file for `set`.
-- `TE_AI_INPUT`: inline payload for `set`.
-- `TE_AI_OUTPUT_FILE`: optional output file.
-- `TE_AI_ALLOW_OVER_LIMIT=true`: allow instructions over 10000 characters.
+- `TE_AI_ACTION`: `list`, `get`, `set`, or `delete`
+- `TE_AI_TARGET`: `instructions`, `schema`, or `both`
+- `TE_AI_CULTURE`: optional culture name
+- `TE_AI_INPUT_FILE`: file used by `set`
+- `TE_AI_INPUT`: inline payload used by `set` when no input file is provided
+- `TE_AI_OUTPUT_FILE`: optional JSON output path
+- `TE_AI_ALLOW_OVER_LIMIT=true`: allows AI instructions longer than 10000 characters
 
-### edit-ai-instructions-interactive.csx
+`schema.json` uses the Copilot schema shape:
 
-TE3 Desktop GUI editor for AI instructions. It uses the connected model,
-defaults to `en-US`, does not require a selected object, and enforces the
-10000 character guard.
+```json
+{
+  "tables": [
+    {
+      "name": "Sales",
+      "include": true,
+      "columns": [{ "name": "Order Date", "include": true }],
+      "measures": [{ "name": "Sales Amount", "include": true }]
+    }
+  ]
+}
+```
 
-### edit-ai-schema-interactive.csx
+## edit-ai-instructions-interactive.csx
 
-TE3 Desktop GUI editor for AI schema. It opens on a perspective-editor-style
-object tree and includes a JSON tab for exact schema roundtrips.
+TE3 Desktop GUI editor for `CustomInstructions`. It uses the model, not the current selection, defaults to `en-US`, uses a plain multiline text editor, enforces the 10000-character guard, and edits the same metadata as the non-interactive script.
 
-### manage-ai-metadata-interactive.csx
+## edit-ai-schema-interactive.csx
 
-Original combined TE3 Desktop prototype for editing both AI instructions and
-AI schema in one dialog. Prefer the two focused GUI editors above for normal
-interactive work.
+TE3 Desktop GUI editor for Copilot schema JSON. It uses the model, not the current selection, defaults to `en-US`, uses a plain multiline text editor for the JSON tab, and edits the culture `Entities` payload.
+
+## manage-ai-metadata-interactive.csx
+
+Combined experimental TE3 GUI for both targets. Prefer the two single-purpose scripts above for demos and screenshots.

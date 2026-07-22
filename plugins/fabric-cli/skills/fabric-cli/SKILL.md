@@ -1,6 +1,5 @@
 ---
 name: fabric-cli
-version: 26.25
 description: Expert guidance for using the Fabric CLI (`fab`) to fully interact with Fabric workspaces, items, and configuration. Automatically invoke this skill whenever the user mentions "Fabric" or "Power BI Service" or a "Fabric/Power BI workspace".
 ---
 
@@ -62,18 +61,20 @@ You must read and understand the common list of operations with simple examples
 5. What's in that item; what's it for; what is it?:
    - Full TMDL definition: `fab get "spaceparts-dev.Workspace/spaceparts-otc-full.SemanticModel" -q "definition" -f`
    - Search a specific measure / table / column: `fab get "ws.Workspace/Model.SemanticModel" -q "definition" -f | rga -i "Sales Amount"`
+   - Retrieve AI instructions / AI schema: `python3 scripts/get_semantic_model_ai_metadata.py "ws.Workspace/Model.SemanticModel" --instructions-out instructions.md --schema-out schema.json`
 6. Get files, tables, or table schemas:
    - List lakehouse files: `fab ls "ws.Workspace/LH.Lakehouse/Files"`
    - List lakehouse tables: `fab ls "ws.Workspace/LH.Lakehouse/Tables"`
    - Table schema: `fab table schema "ws.Workspace/LH.Lakehouse/Tables/gold/orders"`
 7. Query data (always prefer the wrapper scripts over raw `fab api` / `duckdb` / `sqlcmd`; they resolve IDs, hosts, and auth for you):
    - Semantic model (DAX): `python3 scripts/execute_dax.py "ws.Workspace/Model.SemanticModel" -q "EVALUATE TOPN(10, 'Orders')"`
-   - Lakehouse or warehouse (DuckDB + Delta against OneLake): `python3 scripts/query_lakehouse_duckdb.py "ws.Workspace/LH.Lakehouse" -q "SELECT * FROM tbl LIMIT 10" -t gold.orders`
-   - Lakehouse SQL endpoint, warehouse, or SQL database (T-SQL via `sqlcmd` + `az` session): `python3 scripts/query_sql_endpoint.py "ws.Workspace/LH.Lakehouse" -q "SELECT TOP 10 * FROM dbo.orders"`
+   - Lakehouse SQL endpoint, warehouse, or SQL database (T-SQL): prefer the `fabric-sql` MCP `execute_query(workspaceId, itemId, query)` when it is loaded; fall back to `python3 scripts/query_sql_endpoint.py "ws.Workspace/LH.Lakehouse" -q "SELECT TOP 10 * FROM dbo.orders"`. See [querying-data.md](./references/querying-data.md#querying-the-sql-endpoint-route-priority)
+   - Lakehouse or warehouse Delta over OneLake (DuckDB): `python3 scripts/query_lakehouse_duckdb.py "ws.Workspace/LH.Lakehouse" -q "SELECT * FROM tbl LIMIT 10" -t gold.orders`
 8. Set properties for an item or workspace: `fab set "ws.Workspace/Item.Notebook" -q displayName -i "New Name"` or `fab set "ws.Workspace" -q description -i "Production environment"`
 9. Review or manage permissions:
    - Item ACL: `fab acl ls "ws.Workspace/Model.SemanticModel"` then `fab acl set "ws.Workspace/Model.SemanticModel" -I user@contoso.com -R Read`
    - Workspace roles: `fab acl ls "ws.Workspace"` then `fab acl set "ws.Workspace" -I user@contoso.com -R Member`
+   - Setting up a service principal for automation instead of a human identity: [service-principals.md](./references/service-principals.md) - creation via az CLI, the workspace-role-plus-tenant-setting-group double requirement, and how to authenticate `fab` as it
 10. Deploy items to Fabric: `fab import "ws.Workspace/New.Notebook" -i ./local-path/Nb.Notebook -f`
 11. Download items from Fabric: `fab export "ws.Workspace/Nb.Notebook" -o ./backup -f` (always `mkdir -p ./backup` first)
 12. Copy or move items between workspaces: `fab cp "dev.Workspace/Item.Notebook" "prod.Workspace" -f` or `fab mv "ws.Workspace/Old.Notebook" "ws.Workspace/New.Notebook" -f`
@@ -280,7 +281,7 @@ Flags:
 - `-i` (JSON body or file)
 - `-f` (skip sensitivity prompt on definition pulls).
 
-Fabric exposes three query paths depending on the source; always prefer the wrapper scripts — they resolve IDs, hosts, and auth for you:
+Fabric exposes three query paths depending on the source; always prefer the wrapper scripts -- they resolve IDs, hosts, and auth for you:
 
 - Semantic models (DAX):
   - Find model fields first: `fab get "ws.Workspace/Model.SemanticModel" -q "definition"`
@@ -289,9 +290,11 @@ Fabric exposes three query paths depending on the source; always prefer the wrap
   - Query a single table: [`scripts/query_lakehouse_duckdb.py`](./scripts/query_lakehouse_duckdb.py) (use `tbl` as a placeholder and pass `-t schema.table`)
   - Multi-table joins or raw files in `Files/`: pass `--sql` with your own `delta_scan()` / `read_csv` / `read_json_auto` calls
   - Optionally scaffold a Direct Lake model instead: [`scripts/create_direct_lake_model.py`](./scripts/create_direct_lake_model.py)
-- Lakehouse SQL endpoint, Warehouse, or SQL Database (T-SQL via `sqlcmd`):
-  - Query any SQL-capable item: [`scripts/query_sql_endpoint.py`](./scripts/query_sql_endpoint.py) (auto-detects host per item type, reuses `az login` via `ActiveDirectoryAzCli`)
-  - Prefer this over DuckDB when you need `INFORMATION_SCHEMA`, `sys.*` metadata, CTEs, or window functions
+- Lakehouse SQL endpoint, Warehouse, or SQL Database (T-SQL):
+  - Prefer the `fabric-sql` MCP `execute_query(workspaceId, itemId, query)` when loaded; server-side, no local tooling
+  - Fall back to [`scripts/query_sql_endpoint.py`](./scripts/query_sql_endpoint.py) (`sqlcmd`; auto-detects host per item type, reuses `az login` via `ActiveDirectoryAzCli`) when the MCP is unavailable
+  - Prefer either over DuckDB when you need `INFORMATION_SCHEMA`, `sys.*` metadata, CTEs, or window functions
+  - Full route priority: [querying-data.md](./references/querying-data.md#querying-the-sql-endpoint-route-priority)
 
 Check references before writing queries:
 
@@ -401,6 +404,7 @@ Check references before modifying workspaces:
 | `fab job run-list` | List executions | `fab job run-list "ws/Nb.Notebook"` |
 | `fab job run-status` | Check status | `fab job run-status "ws/Nb.Notebook" --id <job-id>` |
 | `fab job run-cancel` | Cancel a job | `fab job run-cancel "ws/Nb.Notebook" --id <job-id> -w` |
+| `scripts/run_notebook_checked.py` | Run a notebook + verify its exit value (status `Completed` ≠ ETL succeeded) | `python3 scripts/run_notebook_checked.py "ws/ETL.Notebook"` |
 | `fab api -A powerbi .../refreshes` | Trigger semantic model refresh | `fab api -A powerbi "groups/<ws-id>/datasets/<model-id>/refreshes" -X post -i '{"type":"Full"}'` |
 
 Flags:
@@ -417,6 +421,7 @@ Jobs map to different endpoints depending on item type:
   - Run asynchronously: `fab job start "ws/ETL.Notebook"`
   - Check status: `fab job run-status "ws/Nb.Notebook" --id <job-id>`
   - List history: `fab job run-list "ws/Nb.Notebook"`
+  - Verify the REAL outcome: a job `Completed` only means the process finished -- a notebook can catch its own exception and exit a failure payload while still showing `Completed`. Read its exit value, or use [`scripts/run_notebook_checked.py`](./scripts/run_notebook_checked.py); details in [notebooks.md](./references/notebooks.md#the-notebooks-exit-value-the-only-reliable-success-signal)
   - Python / PySpark kernels, Livy sessions, cell-level CRUD: [notebooks.md](./references/notebooks.md)
 - Semantic model refresh (not exposed as `fab job`):
   - Trigger: `fab api -A powerbi "groups/<ws-id>/datasets/<model-id>/refreshes" -X post -i '{"type":"Full"}'`
@@ -485,13 +490,28 @@ Flags:
 - `--format` (definition format for export / import)
 - `-f` (skip overwrite and sensitivity prompts)
 
+> [!IMPORTANT]
+> **The poll interval is by far the biggest performance lever for any definition change.**
+> Creating or updating an item definition is a long-running operation (LRO): the API returns
+> `202 Accepted` with a `Retry-After: 20` header. `fab import`, `nb create`, and `nb cell edit`
+> wait roughly that long between status polls, so a notebook that the server finishes in ~1s
+> takes them 25-60s. Neither `fab` nor `nb` exposes a knob to change that interval.
+> For notebook definition changes, strongly prefer [`scripts/deploy_notebook.py`](./scripts/deploy_notebook.py),
+> which polls the LRO every ~0.3s (tunable via `--poll-interval`) and creates in ~1-2s or updates
+> in place in ~1s. Auto-detects create vs update. When you must roll your own for another item
+> type, the rule is the same: poll `updateDefinition` / create at ~0.3s, not the advertised 20s.
+> ```bash
+> python3 scripts/deploy_notebook.py "ws.Workspace/ETL.Notebook" -i ./ETL.Notebook   # create or update in place
+> ```
+
 Every Fabric item has a serializable definition. Move definitions between environments depending on scope:
 
 - Single item:
   - Round-trip locally: `fab export` then `fab import` (always `mkdir -p` the output directory first; `fab export` does not create intermediate directories and fails with `[InvalidPath]`)
   - Same-tenant shortcut, no local hop: `fab cp "dev/Item" "prod.Workspace"`
 - Semantic model as PBIP (TMDL + blank report):
-  - Power BI Desktop and git-ready format: [`scripts/export_semantic_model_as_pbip.py`](./scripts/export_semantic_model_as_pbip.py)
+  - Export the model with `fab export`, create the report with `pbir new report`, then combine
+    them with `pbir report merge-to-thick`; see [import-download-deploy.md](./references/import-download-deploy.md)
 - Full workspace snapshot (items + lakehouse files):
   - Backups, offline analysis, cross-tenant forks: [`scripts/download_workspace.py`](./scripts/download_workspace.py)
 - Promotion between Dev, Test, Prod:
@@ -521,8 +541,28 @@ Check references before deploying:
 - **IMPORTANT:** DON'T try to use `fab ls` on items that aren't data items (.Lakehouse, .Warehouse, etc); use `fab ls` to find workspaces and items, and use `fab get` to look at definitions
 - ALWAYS Use the `-f` flag when using `fab get`, `fab import`, `fab export`, etc. as described above
 - ONLY fallback to `fab api` when a command doesn't exist
+- **Definition changes feel slow but aren't:** `fab import` / `nb create` / `nb cell edit` take 25-60s to push a notebook definition only because they poll the LRO at the server's `Retry-After: 20`. The work is ~1s. Use [`scripts/deploy_notebook.py`](./scripts/deploy_notebook.py) (tight-polls at ~0.3s) for definition changes; the poll interval is the single biggest lever
 
 ## References
+
+**Reference map** (which references cluster together; follow the links between them, not just this list):
+
+```
+etl / notebooks
+  notebooks.md ── run jobs, exit value, scheduling
+    ├─ querying-data.md ── nb exec / Livy, DuckDB/sqlcmd, SQL-endpoint sync
+    └─ lakehouses.md ── attach, table ops, OneLake shortcuts, SQL-endpoint id
+  (cross-plugin) executing-spark, using-duckdb  ── etl plugin: ephemeral Spark, local Delta
+
+data items
+  lakehouses.md · warehouses.md · sql-databases.md · semantic-models.md
+    └─ all feed querying-data.md (route priority) and notebooks.md (load then read)
+
+governance / deploy
+  admin.md · permissions.md · tags.md · folders.md
+  import-download-deploy.md ─ deployment-pipelines.md ─ workspaces.md (git status)
+  (cross-plugin) audit-tenant-settings ── fabric-admin plugin
+```
 
 **Skill references:**
 
@@ -549,6 +589,7 @@ Check references before deploying:
 - [Admin APIs](./references/admin.md) - Cross-workspace search, tenant operations, governance
 - [API Reference](./references/fab-api.md) - Capacities, domains, misc API patterns
 - [Connections](./references/connections.md) - Create, update, list connections programmatically; credential types (WorkspaceIdentity, SPN, Basic); OAuth2 limitations
+- [Service Principals](./references/service-principals.md) - Create an SP with az CLI, grant it workspace access, clear the tenant-setting gate, authenticate `fab` as it (real login vs env-token testing), rotation and teardown
 - [Full Command Reference](./references/reference.md) - All commands detailed
 
 **Scripts** (scripts that you can execute):
@@ -559,8 +600,9 @@ Check references before deploying:
 - [query_lakehouse_duckdb.py](./scripts/query_lakehouse_duckdb.py) ; query lakehouse or warehouse Delta tables via DuckDB against OneLake (reuses `az login`); output as table, csv, or json
 - [query_sql_endpoint.py](./scripts/query_sql_endpoint.py) ; query lakehouse SQL endpoint, warehouse, or SQL database via `sqlcmd` (reuses `az login` through `ActiveDirectoryAzCli`); output as table, csv, or json
 - [create_direct_lake_model.py](./scripts/create_direct_lake_model.py) ; create a Direct Lake semantic model from lakehouse tables
-- [export_semantic_model_as_pbip.py](./scripts/export_semantic_model_as_pbip.py) ; export a semantic model as a PBIP project (TMDL definition + blank report)
 - [download_workspace.py](./scripts/download_workspace.py) ; download a full workspace with all item definitions and lakehouse files
+- [run_notebook_checked.py](./scripts/run_notebook_checked.py) ; run a notebook and check its exit value, exiting non-zero when the notebook's own `{ok:false}` verdict fails despite a `Completed` job status (reads the exit value via the notebook job-instance beta endpoint)
+- [deploy_notebook.py](./scripts/deploy_notebook.py) ; create or update a notebook definition fast (~1-2s) by tight-polling the LRO instead of the CLI's ~20s `Retry-After` cadence; auto-detects create vs update, `--poll-interval` is the performance lever. Strongly prefer this over `fab import` / `nb` for any notebook definition change
 
 See [scripts/README.md](./scripts/README.md) for detailed usage, arguments, and examples. Always search the `scripts/` folder before writing a new helper; a script may already exist for the task.
 

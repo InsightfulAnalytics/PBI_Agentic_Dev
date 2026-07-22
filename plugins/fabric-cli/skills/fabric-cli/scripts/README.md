@@ -108,16 +108,24 @@ Options:
 
 Requires `sqlcmd` (go-sqlcmd >= 1.9; `brew install sqlcmd` or `winget install --id Microsoft.Sqlcmd`) and `az login`.
 
-### export_semantic_model_as_pbip.py
+### get_semantic_model_ai_metadata.py
 
-Export semantic model as PBIP (Power BI Project) format.
+Retrieve semantic model AI instructions and AI schema using `fab get -q definition -f`. The parser understands both documented Copilot sidecars and TMDL culture `linguisticMetadata`.
 
 ```bash
-python3 export_semantic_model_as_pbip.py "ws.Workspace/Model.SemanticModel" -o ./output
-python3 export_semantic_model_as_pbip.py "Sales.Workspace/Sales Model.SemanticModel" -o /tmp/exports
+python3 get_semantic_model_ai_metadata.py "ws.Workspace/Model.SemanticModel"
+python3 get_semantic_model_ai_metadata.py "ws.Workspace/Model.SemanticModel" \
+  --instructions-out instructions.md --schema-out schema.json
+fab get "ws.Workspace/Model.SemanticModel" -q "definition" -f > definition.json
+python3 get_semantic_model_ai_metadata.py --definition-file definition.json
 ```
 
-Creates complete PBIP structure with TMDL definition and blank report.
+Options:
+
+- `--culture` - filter TMDL culture metadata to one culture
+- `--instructions-out` - write the first instruction payload to a Markdown file
+- `--schema-out` - write the first schema payload to a JSON file
+- `--format text` - print only the first instructions payload
 
 ### get_semantic_model_ai_metadata.py
 
@@ -143,6 +151,34 @@ python3 get_semantic_model_ai_metadata.py --definition-file definition.json --fo
 
 The script reads friendly Copilot files and culture `linguisticMetadata`,
 preferring friendly files when both are present.
+
+### run_notebook_checked.py
+
+Run a Fabric notebook and check its **real** outcome, not just the job status. `fab job run` reports `Completed` whenever the notebook process finished -- even when the notebook caught its own exception and returned `notebookutils.notebook.exit(json.dumps({"ok": False, ...}))`. This script starts the run (via `fab job start`, so `-P` param translation is fab's job), polls the GA instance endpoint to a terminal status, then reads `properties.exitValue` from the notebook job-instance beta endpoint and turns the notebook's own verdict into an exit code.
+
+```bash
+# Run and verify
+python3 run_notebook_checked.py "ws.Workspace/ETL.Notebook"
+
+# With parameters, JSON output
+python3 run_notebook_checked.py "ws.Workspace/ETL.Notebook" -P "date:string=2025-01-01" --format json
+
+# Read the exit value of an existing run without starting a new one
+python3 run_notebook_checked.py "ws.Workspace/ETL.Notebook" --run-id <instance-id>
+```
+
+Exit codes: `0` completed and exit-value verdict ok; `2` completed but the notebook's `{ok:false}` verdict failed; `1` job Failed/Cancelled or an operational error; `3` `Deduped` (skipped, did not run).
+
+Options:
+
+- `-P, --params` - Parameters as `name:type=value`, comma-separated (passed to fab)
+- `-C, --config` - Notebook config JSON, inline or path (passed to fab)
+- `--run-id` - Read an existing run's exit value; do not start a new run
+- `--timeout` - Poll timeout in seconds (default: 1800)
+- `--poll-interval` - Poll interval in seconds (default: 5)
+- `--format` - Output format: table (default), json
+
+The `?beta=true` notebook job-instance route is an officially documented but Beta Fabric API (the GA status route does not expose `exitValue`); Microsoft marks it not-for-production and it may change. Requires `fab` and `az login`.
 
 ### download_workspace.py
 

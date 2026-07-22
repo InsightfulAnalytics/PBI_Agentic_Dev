@@ -5,17 +5,60 @@
 # Replace the hostname patterns in the display_host and host-color case blocks
 # with names from your own machines.
 
-ENABLE_HOST_CWD=TRUE
-ENABLE_GIT=TRUE
-ENABLE_MODEL=TRUE
 ENABLE_TIME=TRUE
-ENABLE_METERS=TRUE
+ENABLE_FOLDER=TRUE
+ENABLE_BRANCH=TRUE
+ENABLE_COMMITS=TRUE
+ENABLE_PULLS=TRUE
+ENABLE_LOC_CHANGES=TRUE
+ENABLE_FILE_CHANGES=TRUE
+ENABLE_PR=TRUE
+ENABLE_WORKTREE=TRUE
+ENABLE_MODEL=TRUE
+ENABLE_MODEL_VERSION=TRUE
+ENABLE_EFFORT=TRUE
+ENABLE_CONTEXT=TRUE
+ENABLE_LIMIT_5H=TRUE
+ENABLE_LIMIT_WEEKLY=TRUE
+ENABLE_COST=TRUE
 ENABLE_VERSION=FALSE
 ENABLE_VIM=TRUE
+STATUSLINE_METER_STYLE=steps
+STATUSLINE_CONTEXT_STYLE=percent
+STATUSLINE_CLICKABLE_RESETS=TRUE
+STATUSLINE_CLICK_OPEN_PATHS=TRUE
+STATUSLINE_CLICK_OPEN_LAZYGIT=FALSE
+STATUSLINE_CLICK_BRANCH_COLLAPSE=TRUE
+
+# Back-compatible coarse flags from older copies of this statusline.
+ENABLE_HOST_CWD=TRUE
+ENABLE_GIT=TRUE
+ENABLE_METERS=TRUE
+
+STATUSLINE_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd -P)
+[ -z "$STATUSLINE_ROOT" ] && STATUSLINE_ROOT=$(dirname "${BASH_SOURCE[0]}")
+STATUSLINE_CONFIG="${STATUSLINE_CONFIG:-$STATUSLINE_ROOT/statusline.config.sh}"
+[ -f "$STATUSLINE_CONFIG" ] && . "$STATUSLINE_CONFIG"
+
+[ "$ENABLE_HOST_CWD" = "FALSE" ] && ENABLE_FOLDER=FALSE
+if [ "$ENABLE_GIT" = "FALSE" ]; then
+    ENABLE_BRANCH=FALSE
+    ENABLE_COMMITS=FALSE
+    ENABLE_PULLS=FALSE
+    ENABLE_LOC_CHANGES=FALSE
+    ENABLE_FILE_CHANGES=FALSE
+    ENABLE_PR=FALSE
+    ENABLE_WORKTREE=FALSE
+fi
+if [ "$ENABLE_METERS" = "FALSE" ]; then
+    ENABLE_CONTEXT=FALSE
+    ENABLE_LIMIT_5H=FALSE
+    ENABLE_LIMIT_WEEKLY=FALSE
+fi
 
 # ----------------------------------------------------------------------------
-# Edit the TRUE/FALSE flags above to toggle segments. Each segment lives in
-# scripts/statusline.d/<NN>-<name>.sh and is sourced in numeric order.
+# Edit the TRUE/FALSE flags above, or place overrides in statusline.config.sh.
+# Each segment lives in statusline.d/<NN>-<name>.sh and is sourced in numeric order.
 # ----------------------------------------------------------------------------
 
 # Portable timeout — Linux has `timeout`, macOS has neither unless coreutils is installed (`gtimeout`).
@@ -25,7 +68,45 @@ if command -v timeout >/dev/null 2>&1; then
 elif command -v gtimeout >/dev/null 2>&1; then
     _timeout() { gtimeout "$@"; }
 else
-    _timeout() { shift; "$@"; }
+    # No coreutils timeout/gtimeout (stock macOS): enforce the cap by polling.
+    # The command's stdout goes to a temp file, NOT the inherited pipe, so an
+    # orphaned grandchild (e.g. az's python, which it forks rather than exec's)
+    # can't hold a command-substitution open and stall the render past the cap.
+    # Polling is done with FOREGROUND sleeps so nothing is left backgrounded to
+    # orphan (bash 3.2 has no `wait -n` to race a sleeper against the command).
+    # On timeout we SIGTERM the child tree and emit whatever it wrote.
+    # Input: <secs> <cmd...>. Granularity 0.05s.
+    _timeout() {
+        local secs=$1; shift
+        local tmp
+        tmp=$(mktemp 2>/dev/null) || tmp="${TMPDIR:-/tmp}/sl-to.$$.$RANDOM"
+        "$@" >"$tmp" 2>/dev/null &
+        local cmd_pid=$!
+        local steps=$(( ${secs%.*} * 20 + 1 ))
+        while [ "$steps" -gt 0 ] && kill -0 "$cmd_pid" 2>/dev/null; do
+            sleep 0.05
+            steps=$(( steps - 1 ))
+        done
+        if kill -0 "$cmd_pid" 2>/dev/null; then
+            pkill -TERM -P "$cmd_pid" 2>/dev/null
+            kill -TERM "$cmd_pid" 2>/dev/null
+        fi
+        wait "$cmd_pid" 2>/dev/null
+        local rc=$?
+        cat "$tmp" 2>/dev/null
+        rm -f "$tmp" 2>/dev/null
+        return $rc
+    }
+fi
+
+# Portable mtime in epoch seconds for one or more files. GNU coreutils uses
+# `stat -c %Y`; BSD/macOS uses `stat -f %m`. Probe once via the GNU form: on
+# Linux `stat -f` silently succeeds with filesystem info instead of erroring,
+# so a BSD-first `||` fallback never reaches the GNU branch.
+if stat -c %Y . >/dev/null 2>&1; then
+    _mtime() { stat -c %Y "$@" 2>/dev/null; }
+else
+    _mtime() { stat -f %m "$@" 2>/dev/null; }
 fi
 
 input=$(cat)
@@ -39,7 +120,7 @@ command -v cygpath >/dev/null 2>&1 && cwd=$(cygpath -u "$cwd" 2>/dev/null || pri
 host=$(hostname -s 2>/dev/null)
 host_lower=$(echo "$host" | tr '[:upper:]' '[:lower:]')
 case "$host_lower" in
-    # example-long-host) display_host="short" ;;   # optional: shorten an awkward hostname
+    kurts-macbook-pro) display_host="mac" ;;
     *) display_host="$host" ;;
 esac
 dir=$(echo "$cwd" | sed "s|$HOME|$display_host|")
@@ -52,15 +133,30 @@ rate_5h=$(echo "$input" | jq -r '.rate_limits.five_hour.used_percentage // empty
 rate_7d=$(echo "$input" | jq -r '.rate_limits.seven_day.used_percentage // empty' 2>/dev/null)
 rate_5h_resets=$(echo "$input" | jq -r '.rate_limits.five_hour.resets_at // empty' 2>/dev/null)
 rate_7d_resets=$(echo "$input" | jq -r '.rate_limits.seven_day.resets_at // empty' 2>/dev/null)
+session_cost=$(echo "$input" | jq -r '.cost.total_cost_usd // empty' 2>/dev/null)
+fast_mode=$(echo "$input" | jq -r '.fast_mode // empty' 2>/dev/null)
 vim_mode=$(echo "$input" | jq -r '.vim.mode // empty' 2>/dev/null)
 pr_number=$(echo "$input" | jq -r '.pr.number // empty' 2>/dev/null)
 pr_review=$(echo "$input" | jq -r '.pr.review_state // empty' 2>/dev/null)
 wt_path=$(echo "$input" | jq -r '.worktree.path // empty' 2>/dev/null)
 wt_name=$(echo "$input" | jq -r '.worktree.name // empty' 2>/dev/null)
 wt_branch=$(echo "$input" | jq -r '.worktree.branch // empty' 2>/dev/null)
+
+# Worktree mode is scoped to Claude `--worktree` sessions ONLY: the harness
+# populates .worktree.* and we trust that exclusively. We deliberately do NOT
+# auto-detect arbitrary `git worktree` checkouts -- that produced false positives
+# (sibling trees, idle leftovers, .claude/ subdirs). Opt in via `claude --worktree`.
+wt_active=""
+if [ -n "$wt_path" ]; then
+    wt_active=1
+    [ -z "$wt_name" ] && wt_name=$(basename "$wt_path")
+fi
 session_id=$(echo "$input" | jq -r '.session_id // empty' 2>/dev/null)
 # Filesystem-safe key for the per-session meter reset-reveal toggle markers.
 session_key=$(printf '%s' "$session_id" | tr -c 'A-Za-z0-9_-' '_')
+# Shared namespace for statusline click-toggle markers (meters + branch collapse).
+SL_TOGGLE_DIR="/tmp/claude-sl-toggle"
+SL_LAZYGIT_DIR="/tmp/claude-sl-lazygit"
 
 R="\033[0m"
 DIM="\033[38;5;241m"
@@ -87,23 +183,12 @@ elif echo "$model_full" | grep -qi "sonnet";then model="Sonnet"; model_color="$O
 else model=""; model_color=""; model_icon=""
 fi
 
-# Hide version on the family-latest model (assumed default), show it on older
-# releases (e.g. "Opus 4.6"). Bump LATEST_*_ID when a new model takes over the family.
-LATEST_FABLE_ID="fable-5"
-LATEST_OPUS_ID="opus-4-7"
-LATEST_SONNET_ID="sonnet-4-6"
-LATEST_HAIKU_ID="haiku-4-5"
+# Always show the model version (e.g. "Opus 4.8", "Sonnet 4.6").
 if [ -n "$model" ]; then
-    case "$model_id" in
-        *$LATEST_FABLE_ID*|*$LATEST_OPUS_ID*|*$LATEST_SONNET_ID*|*$LATEST_HAIKU_ID*) : ;;
-        *)
-            # Prefer model_id (always has version, e.g. "claude-opus-4-6") since
-            # display_name is just the family per the docs example.
-            model_version=$(echo "$model_id" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
-            [ -z "$model_version" ] && model_version=$(echo "$model_full" | grep -oE '[0-9]+\.[0-9]+' | head -1)
-            [ -n "$model_version" ] && model="$model $model_version"
-            ;;
-    esac
+    model_version=$(echo "$model_id" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
+    [ -z "$model_version" ] && model_version=$(echo "$model_full" | grep -oE '[0-9]+\.[0-9]+' | head -1)
+    [ -z "$model_version" ] && model_version=$(echo "$model_id" | grep -oE '[0-9]+$' | head -1)
+    [ "$ENABLE_MODEL_VERSION" = "TRUE" ] && [ -n "$model_version" ] && model="$model $model_version"
 fi
 
 # Effort dots, calibrated per model by probing each model's live /effort picker.
@@ -155,7 +240,7 @@ case "$model" in
         fi
         ;;
     Opus*)
-        if _effort_ge "4.7"; then
+        if echo "$model_id $model_full" | grep -qE '4\.[7-9]|4-[7-9]|4\.1[0-9]|4-1[0-9]'; then
             case "$effort_level" in
                 low)       effort_dots="●○○○○" ;;
                 medium)    effort_dots="●●○○○" ;;
@@ -202,10 +287,10 @@ case "$model" in
 esac
 
 case "$host_lower" in
-    hostname1)              host_color="$MINT" ;;
-    hostname2)         host_color="$PINK" ;;
-    hostname3)   host_color="$PASTEL_BLUE" ;;
-    hostname4) host_color="$YELLOW" ;;
+    omen)              host_color="$MINT" ;;
+    asparagus)         host_color="$PINK" ;;
+    asparagus-beast)   host_color="$PASTEL_BLUE" ;;
+    kurts-macbook-pro) host_color="$YELLOW" ;;
     *)                 host_color="$PINK" ;;
 esac
 
@@ -232,7 +317,7 @@ pct_color() {
     fi
 }
 
-STATUSLINE_D="$(dirname "$(readlink -f "${BASH_SOURCE[0]}")")/statusline.d"
+STATUSLINE_D="$STATUSLINE_ROOT/statusline.d"
 
 load_segment() {
     local flag=$1 file=$2
@@ -241,18 +326,37 @@ load_segment() {
     . "$STATUSLINE_D/$file"
 }
 
-# Statusline layout. A third line appears only when a meter bar is clicked
-# open (06-meters.sh sets reset_seg_s / reset_seg_w from the toggle markers).
-#   line 1: time · host/cwd · git
-#   line 2: version · model · meters
+# Statusline layout (a third line appears when a meter bar is clicked open).
+#   line 1: time · folder · git
+#   line 2: version · model/effort · meters · cost
+ENABLE_GIT_SEGMENT=FALSE
+if [ "$ENABLE_BRANCH" = "TRUE" ] || [ "$ENABLE_PULLS" = "TRUE" ] || [ "$ENABLE_COMMITS" = "TRUE" ] || [ "$ENABLE_LOC_CHANGES" = "TRUE" ] || [ "$ENABLE_FILE_CHANGES" = "TRUE" ] || [ "$ENABLE_PR" = "TRUE" ] || [ "$ENABLE_WORKTREE" = "TRUE" ]; then
+    ENABLE_GIT_SEGMENT=TRUE
+fi
+ENABLE_METER_SEGMENT=FALSE
+if [ "$ENABLE_CONTEXT" = "TRUE" ] || [ "$ENABLE_LIMIT_5H" = "TRUE" ] || [ "$ENABLE_LIMIT_WEEKLY" = "TRUE" ]; then
+    ENABLE_METER_SEGMENT=TRUE
+fi
+ENABLE_MODEL_SEGMENT=FALSE
+if [ "$ENABLE_MODEL" = "TRUE" ] || [ "$ENABLE_MODEL_VERSION" = "TRUE" ] || [ "$ENABLE_EFFORT" = "TRUE" ]; then
+    ENABLE_MODEL_SEGMENT=TRUE
+fi
+ENABLE_SECOND_LINE_SEGMENT=FALSE
+if [ "$ENABLE_VERSION" = "TRUE" ] || [ "$ENABLE_VIM" = "TRUE" ] || [ "$ENABLE_MODEL_SEGMENT" = "TRUE" ] || [ "$ENABLE_METER_SEGMENT" = "TRUE" ] || [ "$ENABLE_COST" = "TRUE" ]; then
+    ENABLE_SECOND_LINE_SEGMENT=TRUE
+fi
+
 load_segment "$ENABLE_TIME"           05-time.sh
-load_segment "$ENABLE_HOST_CWD"       02-host-cwd.sh
-load_segment "$ENABLE_GIT"            03-git.sh
-nl
+load_segment "$ENABLE_FOLDER"         02-host-cwd.sh
+load_segment "$ENABLE_GIT_SEGMENT"    03-git.sh
+if [ -n "$out" ] && [ "$ENABLE_SECOND_LINE_SEGMENT" = "TRUE" ]; then
+    nl
+fi
 load_segment "$ENABLE_VERSION"        01-version.sh
 load_segment "$ENABLE_VIM"            04a-vim.sh
-load_segment "$ENABLE_MODEL"          04-model.sh
-load_segment "$ENABLE_METERS"         06-meters.sh
+load_segment "$ENABLE_MODEL_SEGMENT"  04-model.sh
+load_segment "$ENABLE_METER_SEGMENT"  06-meters.sh
+load_segment "$ENABLE_COST"           07-cost.sh
 # Line 3: rate-limit reset reveal, shown only while a meter toggle is open.
 if [ -n "$reset_seg_s" ] || [ -n "$reset_seg_w" ]; then
     nl

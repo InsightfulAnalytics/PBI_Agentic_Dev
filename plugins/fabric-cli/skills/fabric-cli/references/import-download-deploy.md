@@ -74,14 +74,19 @@ python3 scripts/download_workspace.py "Production.Workspace" ./backup
 
 ### Semantic model as PBIP project
 
-`fab export` on a `.SemanticModel` produces a TMDL folder. For a full PBIP project (TMDL + blank report, openable directly in Power BI Desktop and ready for git), use [`export_semantic_model_as_pbip.py`](../scripts/export_semantic_model_as_pbip.py):
+`fab export` on a `.SemanticModel` produces a TMDL folder. Build a complete PBIP project with
+`fab` for the model and `pbir` for the report:
 
 ```bash
-python3 scripts/export_semantic_model_as_pbip.py \
-  "Production.Workspace/Sales.SemanticModel" -o ./sales-pbip
+fab export "Production.Workspace/Sales.SemanticModel" -o ./sales-pbip -f
+pbir new report "./sales-pbip/Sales.Report" \
+  --connection "Production.Workspace/Sales.SemanticModel" --format pbir
+pbir report merge-to-thick "./sales-pbip/Sales.Report" \
+  "./sales-pbip/Sales.SemanticModel" --output ./sales-project
 ```
 
-The resulting project layout matches what Power BI Desktop creates when you save as PBIP. See the [pbip](../../../../pbip/skills/pbip/SKILL.md) skill for structure, rename workflows, and the pbir / tmdl companion skills for editing reports and models inside a PBIP project.
+This keeps report creation inside `pbir`; do not scaffold PBIR JSON manually. See the
+[pbip](../../../../pbip/skills/pbip/SKILL.md) skill for project structure.
 
 ## Upload back to Fabric (import)
 
@@ -96,6 +101,35 @@ fab import "Production.Workspace/Sales.Report" -i /tmp/exports/Sales.Report -f
 ```
 
 **Always pass `-f`** for non-interactive execution. Without it, `fab import` prompts for overwrite confirmation and will hang in scripts, CI, or anywhere stdin is not a terminal.
+
+### Fast definition changes: the poll interval is the biggest lever
+
+`fab import` takes 25-60s to push a notebook definition, and `nb create` / `nb cell edit` are the same or worse. This is not the API being slow. Creating or updating an item definition is a long-running operation (LRO): the request returns `202 Accepted` with a `Retry-After: 20` header, and the CLIs wait roughly that long between status polls. The server actually finishes in about a second. Neither `fab` nor `nb` exposes a flag or env var to shorten that interval.
+
+Polling the operation every ~0.3s instead of every ~20s is the single biggest performance lever for any definition change. Measured on an F2 capacity, pushing the same notebook (a 40KB / ~1000-line cell):
+
+```yaml
+deploy_a_new_notebook:
+  fab import:                 ~29 s     # createItemWithDefinition, ~20s poll cadence
+  nb create:                  ~23 s     # empty notebook + metadata, same cadence
+  raw REST, 0.25s poll:       ~1.6 s    # POST /workspaces/{ws}/notebooks with the definition
+
+update_a_notebook_in_place:   # the edit / iterate loop
+  nb cell edit:               ~44 s     # getDefinition + edit + updateDefinition, two LROs
+  fab import (overwrite):     ~31 s
+  raw REST updateDefinition:  ~0.7 s    # POST /items/{id}/updateDefinition, 0.25s poll
+```
+
+Use [`scripts/deploy_notebook.py`](../scripts/deploy_notebook.py) for notebook definition changes. It auto-detects create vs update, tight-polls the LRO, and exposes `--poll-interval` (default 0.3s):
+
+```bash
+# Create or update in place (auto-detected); input is a fab-export folder or a bare .ipynb
+python3 scripts/deploy_notebook.py "ws.Workspace/ETL.Notebook" -i ./ETL.Notebook
+python3 scripts/deploy_notebook.py "ws.Workspace/ETL.Notebook" -i ./notebook-content.ipynb --update-only
+python3 scripts/deploy_notebook.py "ws.Workspace/ETL.Notebook" -i ./ETL.Notebook --poll-interval 0.2 --format json
+```
+
+The same rule holds for any definition-based item (reports, semantic models, pipelines): if you hand-roll the REST call, poll `updateDefinition` / create-with-definition at ~0.3s, not the advertised 20s. The one caveat is throttling. On a busy or small capacity the API returns `429` with its own `Retry-After`, which you must honor; the script backs off on 429 automatically, so a genuinely throttled deploy can still take longer regardless of the poll interval.
 
 ### Reports imported without their model need rebinding
 
@@ -216,8 +250,9 @@ PBIP is the local source-control format for semantic models and reports. Use PBI
 
 Typical flow:
 
-1. **Export or convert** ; `fab export` a semantic model and its reports into a PBIP folder, or use the `export_semantic_model_as_pbip.py` script for a complete project.
-2. **Edit locally** ; use the pbip / pbir-cli / tmdl skills to manipulate TMDL tables, measures, and PBIR visuals. Report renames cascade through `definition.pbir` and all visual bindings ; the pbip skill handles that.
+1. **Export or convert** ; use `fab export` for service items and `pbir download` or
+   `pbir report convert` for reports.
+2. **Work locally** ; use `te` for semantic models and `pbir` for reports. Never patch report JSON.
 3. **Commit to git** ; PBIP text files are diff-friendly and merge well.
 4. **Publish back** ; either `fab import` each item or, for workspaces connected to git, let the Fabric git integration sync the changes (see [workspaces.md](./workspaces.md#git-integration)).
 
@@ -230,4 +265,3 @@ The pbip, pbir-cli, tmdl, and pbir-format skills are the authoritative reference
 - [semantic-models.md](./semantic-models.md) ; TMDL round-trips, Direct Lake / Import / DirectQuery migration
 - [workspaces.md](./workspaces.md) ; git integration, workspace-level operations
 - [`scripts/download_workspace.py`](../scripts/download_workspace.py) ; full workspace backup including lakehouse files
-- [`scripts/export_semantic_model_as_pbip.py`](../scripts/export_semantic_model_as_pbip.py) ; PBIP project export

@@ -161,7 +161,7 @@ python3 scripts/search_across_workspaces.py --type Model --not-visited-since 202
 python3 scripts/search_across_workspaces.py --type Model --not-refreshed-since 2024-11-01
 
 # Items owned by a user
-python3 scripts/search_across_workspaces.py --type PowerBIReport --owner "kurt"
+python3 scripts/search_across_workspaces.py --type PowerBIReport --owner "data-team"
 
 # Direct Lake only
 python3 scripts/search_across_workspaces.py --type Model --storage-mode directlake
@@ -547,20 +547,15 @@ fab cp "Source.Workspace/Notebook.Notebook" "Target.Workspace"
 - The copy includes the model definition (schema, DAX, partition expressions) but not the data. Trigger a full refresh after copying.
 - **Credentials**: Only shared cloud connections carry over. Personal credentials or gateway-bound credentials do not; re-authenticate via the dataset settings in the Power BI service.
 - **Capacity**: The target workspace must be on a capacity (Fabric, PPU, or Trial) for XMLA endpoints and refresh to work. Assign a capacity before attempting refresh.
-- **Reports**: Copied reports retain their original model binding (pointing to the source workspace). Update the `definition.pbir` connection string to point to the copied model in the target workspace, then re-import.
+- **Reports**: Copied reports retain their original model binding. Rebind them through `fab set` or
+  download them and use `pbir report rebind`; never edit `definition.pbir` directly.
 
 #### Rebinding a copied report
 
 ```bash
-# 1. Export the report
-fab export "Target.Workspace/Report.Report" -o /tmp/report -f
-
-# 2. Edit definition.pbir to update the workspace name and model ID
-# Change: myorg/SourceWorkspace -> myorg/TargetWorkspace
-# Change: semanticmodelid=<old-id> -> semanticmodelid=<new-id>
-
-# 3. Re-import
-fab import "Target.Workspace/Report.Report" -i /tmp/report/Report.Report -f
+# Rebind the copied report to the copied model
+fab set "Target.Workspace/Report.Report" \
+  -q semanticModelId -i "<target-model-id>"
 ```
 
 ## Deleting Workspaces
@@ -722,6 +717,15 @@ fab api -X post "workspaces/$WS_ID/git/initializeConnection" -i '{
   }
 }'
 ```
+
+**Check sync state before deploying.** `git/status` (a long-running operation) tells you whether the workspace matches the remote. The workspace is in sync only when `workspaceHead == remoteCommitHash` **and** the `changes` array is empty; otherwise there are uncommitted workspace edits or unpulled remote commits to reconcile first.
+
+```bash
+# Returns workspaceHead, remoteCommitHash, and a changes[] of items that differ
+fab api "workspaces/$WS_ID/git/status"
+```
+
+Once you know the drift, reconcile it: `fab api -X post "workspaces/$WS_ID/git/commitToGit"` pushes workspace edits, `fab api -X post "workspaces/$WS_ID/git/updateFromGit"` pulls remote commits (both long-running).
 
 ## Advanced Workflows
 

@@ -5,6 +5,9 @@
 //   CustomInstructions -> Copilot/Instructions/instructions.md equivalent
 //   Entities            -> Copilot/schema.json equivalent
 //
+// Experimental utility provided as-is. It is not an official supported Tabular
+// Editor feature or public scripting API.
+//
 // The UI is created through reflection so this script still compiles in the
 // headless te CLI, where System.Windows.Forms is not available on macOS/Linux.
 
@@ -267,14 +270,15 @@ public static class AiMetadataInteractive
     public static void SetInstructions(Culture culture, string instructions)
     {
         var payload = GetPayload(culture, true);
-        payload["CustomInstructions"] = instructions ?? "";
+        payload["CustomInstructions"] = NormalizeInstructions(instructions);
         SavePayload(culture, payload);
     }
 
     public static void DeleteInstructions(Culture culture)
     {
+        if (string.IsNullOrWhiteSpace(culture.Content)) return;
         var payload = GetPayload(culture, false);
-        payload.Remove("CustomInstructions");
+        if (!payload.Remove("CustomInstructions")) return;
         SavePayload(culture, payload);
     }
 
@@ -293,9 +297,15 @@ public static class AiMetadataInteractive
 
     public static void DeleteSchema(Culture culture)
     {
+        if (string.IsNullOrWhiteSpace(culture.Content)) return;
         var payload = GetPayload(culture, false);
-        payload.Remove("Entities");
+        if (!payload.Remove("Entities")) return;
         SavePayload(culture, payload);
+    }
+
+    private static string NormalizeInstructions(string text)
+    {
+        return (text ?? "").Replace("\r\n", "\n").Replace("\r", "\n");
     }
 
     private static JObject GetPayload(Culture culture, bool create)
