@@ -2,6 +2,10 @@
 """
 Retrieve semantic model AI instructions and AI schema with the Fabric CLI.
 
+Experimental utility provided as-is. It parses semantic model definition
+payloads and metadata shapes that can change, and is not an official supported
+Tabular Editor or Microsoft Fabric product feature.
+
 Primary usage:
     python3 get_semantic_model_ai_metadata.py "Workspace.Workspace/Model.SemanticModel"
     python3 get_semantic_model_ai_metadata.py "Workspace.Workspace/Model.SemanticModel" --instructions-out instructions.md --schema-out schema.json
@@ -230,6 +234,16 @@ def parse_metadata(files: dict[str, str], culture_filter: str | None = None) -> 
                     f"{primary['sourcePath']} and {other['sourcePath']}; using {primary['sourcePath']}."
                 )
 
+    if len(result["aiSchemas"]) > 1:
+        primary = result["aiSchemas"][0]
+        primary_schema = canonical_json(primary["schema"])
+        for other in result["aiSchemas"][1:]:
+            if canonical_json(other["schema"]) != primary_schema:
+                result["warnings"].append(
+                    "AI schemas differ between sources "
+                    f"{primary['sourcePath']} and {other['sourcePath']}; using {primary['sourcePath']}."
+                )
+
     if not result["aiInstructions"] and not result["aiSchemas"] and not result["aiSchemaObjects"]:
         result["warnings"].append(NO_METADATA_WARNING)
 
@@ -238,6 +252,10 @@ def parse_metadata(files: dict[str, str], culture_filter: str | None = None) -> 
 
 def source_precedence(entry: dict[str, Any]) -> int:
     return 1 if entry.get("storage") == "linguisticMetadata" else 0
+
+
+def canonical_json(value: Any) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False)
 
 
 def collect_linguistic_metadata(result: dict[str, Any], source_path: str, payload: dict[str, Any], culture: str | None) -> None:
@@ -338,7 +356,11 @@ def culture_from_tmdl(source_path: str, text: str) -> str | None:
         stripped = line.strip()
         if stripped.startswith("cultureInfo "):
             return stripped.removeprefix("cultureInfo ").strip().strip("'\"")
-    name = Path(source_path).stem
+    name = Path(source_path.replace("\\", "/")).name
+    for suffix in (".lsdl.json", ".tmdl", ".lsdl", ".json"):
+        if name.lower().endswith(suffix):
+            name = name[: -len(suffix)]
+            break
     return name or None
 
 
@@ -543,11 +565,10 @@ def is_ai_instruction_path(lower_path: str) -> bool:
 
 
 def is_ai_schema_path(lower_path: str) -> bool:
-    return (
-        "ai-schema" in lower_path
-        or "/ai/schema" in lower_path
-        or "copilot/schema" in lower_path
-    )
+    if lower_path.endswith("copilot/schema.json"):
+        return True
+    tokens = path_tokens(lower_path)
+    return "schema" in tokens and bool(tokens & {"ai", "copilot"})
 
 
 def is_linguistic_metadata_path(lower_path: str) -> bool:

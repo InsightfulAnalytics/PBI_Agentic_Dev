@@ -1,10 +1,15 @@
 // Manage semantic model AI instructions and AI schema from te script.
 //
+// Experimental utility provided as-is. It edits culture linguistic metadata
+// directly and is not an official supported Tabular Editor feature or public
+// scripting API.
+//
 // Non-interactive usage:
-//   TE_AI_ACTION=get TE_AI_TARGET=both te script -S manage-ai-metadata.csx -m ./model --output-format json
-//   TE_AI_ACTION=set TE_AI_TARGET=instructions TE_AI_INPUT_FILE=./instructions.md te script -S manage-ai-metadata.csx -m ./model --save
-//   TE_AI_ACTION=set TE_AI_TARGET=schema TE_AI_INPUT_FILE=./schema.json te script -S manage-ai-metadata.csx -m ./model --save
-//   TE_AI_ACTION=delete TE_AI_TARGET=schema te script -S manage-ai-metadata.csx -m ./model --save
+//   PowerShell:
+//     $env:TE_AI_ACTION="get"; $env:TE_AI_TARGET="both"
+//     te script -s "workspace" -d "model" -S scripts/manage-ai-metadata.csx --output-format json --non-interactive
+//   Bash/zsh:
+//     TE_AI_ACTION=get TE_AI_TARGET=both te script -s "workspace" -d "model" -S scripts/manage-ai-metadata.csx --output-format json --non-interactive
 //
 // Environment variables:
 //   TE_AI_ACTION       list | get | set | delete. Default: get.
@@ -19,6 +24,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -28,6 +34,9 @@ var action = AiMetadata.Env("TE_AI_ACTION", "get").Trim().ToLowerInvariant();
 var target = AiMetadata.Env("TE_AI_TARGET", action == "set" || action == "delete" ? "" : "both").Trim().ToLowerInvariant();
 var cultureName = AiMetadata.Env("TE_AI_CULTURE", "").Trim();
 var outputFile = AiMetadata.Env("TE_AI_OUTPUT_FILE", "").Trim();
+
+try { Console.OutputEncoding = new UTF8Encoding(false); }
+catch { }
 
 // Write a machine-readable error envelope (stdout / TE_AI_OUTPUT_FILE) before
 // reporting the error, so failures never leave a stale success payload behind.
@@ -91,19 +100,20 @@ try
         var input = AiMetadata.ReadInput();
         if (target == "instructions")
         {
-            if (input.Length > AiMetadata.InstructionsLimit && !AiMetadata.AllowOverLimit())
+            var instructions = AiMetadata.NormalizeInstructions(input);
+            if (instructions.Length > AiMetadata.InstructionsLimit && !AiMetadata.AllowOverLimit())
             {
-                Fail("AI instructions are " + input.Length + " characters. Limit is " + AiMetadata.InstructionsLimit + ". Set TE_AI_ALLOW_OVER_LIMIT=true to override.");
+                Fail("AI instructions are " + instructions.Length + " characters. Limit is " + AiMetadata.InstructionsLimit + ". Set TE_AI_ALLOW_OVER_LIMIT=true to override.");
                 return;
             }
-            AiMetadata.SetInstructions(culture, input);
+            AiMetadata.SetInstructions(culture, instructions);
         }
         else if (target == "schema")
         {
             var schema = AiMetadata.ResolveSchemaInput(JObject.Parse(input));
             if (schema == null)
             {
-                Fail("No tables found in input. Expected {\"tables\": [...]} or the get output envelope.");
+                Fail("No non-empty tables collection found in input. Expected {\"tables\": [...]} or the get output envelope.");
                 return;
             }
             AiMetadata.SetSchema(culture, schema);
@@ -155,6 +165,11 @@ public static class AiMetadata
         if (input != null) return input;
 
         throw new InvalidOperationException("Set TE_AI_INPUT_FILE or TE_AI_INPUT for TE_AI_ACTION=set.");
+    }
+
+    public static string NormalizeInstructions(string text)
+    {
+        return (text ?? "").Replace("\r\n", "\n").Replace("\r", "\n");
     }
 
     public static void WriteResult(JToken result, string outputFile)
@@ -245,7 +260,7 @@ public static class AiMetadata
     public static void SetInstructions(Culture culture, string instructions)
     {
         var payload = GetPayload(culture, true);
-        payload["CustomInstructions"] = instructions ?? "";
+        payload["CustomInstructions"] = NormalizeInstructions(instructions);
         SavePayload(culture, payload);
     }
 
@@ -269,7 +284,16 @@ public static class AiMetadata
     {
         // A JSON null value parses to a JValue, not a reference null, so a
         // bare null check would let {"tables": null} through and wipe Entities.
-        return candidate["tables"] is JContainer || candidate["Tables"] is JContainer;
+        // Empty arrays/objects are also rejected; use TE_AI_ACTION=delete when
+        // the intent is to clear the Copilot schema.
+        return HasNonEmptyCollection(candidate["tables"]) || HasNonEmptyCollection(candidate["Tables"]);
+    }
+
+    private static bool HasNonEmptyCollection(JToken value)
+    {
+        if (value is JArray array) return array.Count > 0;
+        if (value is JObject obj) return obj.Properties().Any();
+        return false;
     }
 
     public static void SetSchema(Culture culture, JObject schema)

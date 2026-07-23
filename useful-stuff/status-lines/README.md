@@ -1,6 +1,6 @@
 # Statusline
 
-A Claude Code statusline script laid out over two lines (line 1: time, host + cwd, git; line 2: version, vim mode, model + effort, usage meters). Each segment is a separate file under `statusline.d/` and is sourced in numeric order, so you can edit one without touching the rest. A third line appears on demand when you click one of the usage meters (see [Clickable reset times](#clickable-reset-times)).
+A Claude Code statusline script laid out over two lines (line 1: time, folder, git; line 2: version, vim mode, model + effort, usage meters, marginal cost). Each segment is a separate file under `statusline.d/` and is sourced in numeric order, so you can edit one without touching the rest. A third line appears on demand when you click one of the usage meters (see [Clickable reset times](#clickable-reset-times)).
 
 ## Layout
 
@@ -11,11 +11,12 @@ status-lines/
 ├── statusline.d/
 │   ├── 01-version.sh    # Claude Code version (off by default)
 │   ├── 02-host-cwd.sh   # host-colored cwd with a per-language repo glyph
-│   ├── 03-git.sh        # branch, change count, PR number (GitHub + Azure DevOps), worktree
+│   ├── 03-git.sh        # branch, behind/unpushed count, change count, PR number (GitHub + Azure DevOps), worktree
 │   ├── 04-model.sh      # model name, version, effort dots
 │   ├── 04a-vim.sh       # vim mode indicator (when editorMode is vim)
 │   ├── 05-time.sh       # HH:MM
-│   └── 06-meters.sh     # context %, 5-hour and 7-day rate % (click a bar to reveal its reset)
+│   ├── 06-meters.sh     # context %, 5-hour and 7-day rate % (click a bar to reveal its reset)
+│   └── 07-cost.sh       # marginal $ spend, shown only in rate-limit overage or fast mode
 └── README.md
 ```
 
@@ -25,11 +26,12 @@ status-lines/
 |---|---|
 | version | Claude Code version. Off by default; enable with `ENABLE_VERSION=TRUE` |
 | host-cwd | hostname + current directory, colored per host, with a per-language glyph for git repos. `$HOME` collapses to the hostname so paths read as `host/project/...` |
-| git | `<branch> <+adds> <-deletes>` plus the current PR number, resolved from GitHub (Claude Code provides it) or Azure DevOps (via `az repos pr list`, cached on disk). Worktree-aware. Untracked files count as adds. `not tracking` when not in a repo |
+| git | `<branch> <behind> <unpushed> <+adds> <-deletes>` plus the current PR number, resolved from GitHub (Claude Code provides it) or Azure DevOps (via `az repos pr list`, cached on disk). The behind-count comes from a non-blocking background `git fetch` (TTL-cached); the LOC delta is background-refreshed too, so large trees never stall the render. Worktree-aware. Untracked files count as adds. `not tracking` when not in a repo. Unpushed commits render as a glyph plus count only, matching the incoming-pulls segment. Large file and LOC counts compact to three significant digits |
 | vim | current vim mode (NORMAL / INSERT / VISUAL), colored lualine-style. Empty unless `editorMode` is `vim` |
-| model | NerdFonts icon plus family name (Fable / Opus / Sonnet / Haiku); Fable uses a flame glyph, the others a robot. Older releases keep their version suffix; the family-latest hides it. Effort dots are calibrated per family |
+| model | NerdFonts icon plus family name (Fable / Opus / Sonnet / Haiku); Fable uses a flame glyph, the others a robot. Version suffix is always shown (e.g. `Opus 4.8`). Effort dots are calibrated per family |
 | time | `HH:MM` |
-| meters | Context window %, 5-hour and 7-day rate-limit % with a linear projection to cycle end. Each colored by threshold (dim / yellow / orange / red / maroon). Click the 5-hour (`S`) or 7-day (`W`) bar to reveal/hide a third line with that window's reset time (see [Clickable reset times](#clickable-reset-times)) |
+| meters | Context window %, 5-hour and 7-day rate-limit % with a linear projection to cycle end. Each colored by threshold (dim / yellow / orange / red / maroon). Click the 5-hour (`S`) or 7-day (`W`) bar to reveal/hide a third line with that window's reset time (see [Clickable reset times](#clickable-reset-times)). In overage the bar drops out and the cost segment stands in |
+| cost | Marginal `$` spend for the current billable stint, in gold. Hidden on a subscription until spend actually matters: a rate window over 100% or fast mode on. Meters from the point the stint began, not the inflated cumulative session estimate |
 
 ## Clickable reset times
 
@@ -57,6 +59,10 @@ This needs a little terminal setup and is **not supported in every terminal**. I
 
 Markers are plain files under `/tmp/claude-sl-toggle/`, scoped per session id and cleared on reboot.
 
+When `STATUSLINE_CLICK_OPEN_LAZYGIT=TRUE`, the branch segment links to a marker
+under `/tmp/claude-sl-lazygit/` and `statusline-click.sh` tries to open lazygit
+for that repo. Path links are controlled by `STATUSLINE_CLICK_OPEN_PATHS`.
+
 ## Install
 
 1. Drop the `status-lines/` directory anywhere on disk (commonly `~/.claude/statusline/` or kept under source control).
@@ -76,19 +82,35 @@ Markers are plain files under `/tmp/claude-sl-toggle/`, scoped per session id an
 
 ## Toggle segments
 
-Edit the flags at the top of `statusline.sh`:
+Edit the flags at the top of `statusline.sh`, or put overrides in a sibling
+`statusline.config.sh` file:
 
 ```bash
-ENABLE_HOST_CWD=TRUE
-ENABLE_GIT=TRUE
-ENABLE_MODEL=TRUE
 ENABLE_TIME=TRUE
-ENABLE_METERS=TRUE
-ENABLE_VERSION=FALSE
-ENABLE_VIM=TRUE
+ENABLE_FOLDER=TRUE
+ENABLE_BRANCH=TRUE
+ENABLE_COMMITS=TRUE
+ENABLE_PULLS=TRUE
+ENABLE_FILE_CHANGES=TRUE
+ENABLE_LOC_CHANGES=TRUE
+ENABLE_MODEL=TRUE
+ENABLE_MODEL_VERSION=TRUE
+ENABLE_EFFORT=TRUE
+ENABLE_CONTEXT=TRUE
+ENABLE_LIMIT_5H=TRUE
+ENABLE_LIMIT_WEEKLY=TRUE
+STATUSLINE_METER_STYLE=steps    # label, steps, bar, thin
+STATUSLINE_CONTEXT_STYLE=percent # percent, bar
+STATUSLINE_CLICKABLE_RESETS=TRUE
+STATUSLINE_CLICK_OPEN_PATHS=TRUE
+STATUSLINE_CLICK_OPEN_LAZYGIT=FALSE
 ```
 
-Set any to anything other than `TRUE` and the segment is skipped. Drop new segment files into `statusline.d/` named `<NN>-<name>.sh` and wire a `load_segment` call at the bottom of `statusline.sh` to add your own.
+Set any `ENABLE_*` flag to anything other than `TRUE` and that component is
+skipped. The older coarse flags (`ENABLE_HOST_CWD`, `ENABLE_GIT`,
+`ENABLE_METERS`) still work. Drop new segment files into `statusline.d/` named
+`<NN>-<name>.sh` and wire a `load_segment` call at the bottom of
+`statusline.sh` to add your own.
 
 ## Host colors
 
@@ -115,20 +137,9 @@ case "$host_lower" in
 esac
 ```
 
-## Model-latest pins
-
-The script hides the version suffix on the family-latest model and shows it on older ones. Bump these when a new model takes the family lead:
-
-```bash
-LATEST_FABLE_ID="fable-5"
-LATEST_OPUS_ID="opus-4-7"
-LATEST_SONNET_ID="sonnet-4-6"
-LATEST_HAIKU_ID="haiku-4-5"
-```
-
 ## Effort dots
 
-Effort calibration lives in the model case-statement. Fable 5, Opus 4.7+, and Sonnet 5+ have the full 5 levels (low/medium/high/xhigh/max) plus a separate `ultracode` mode, shown as purple diamonds (◆◆◆◆◆) rather than reusing the xhigh dots. Haiku 4.5+ has the same 5 levels but no ultracode. Older Sonnet (pre-5) and Opus (pre-4.7) collapse high+xhigh into one dot (4 levels) and have no ultracode. Add cases for new models as they ship.
+Effort calibration lives in the model case-statement. Fable and Opus 4.7+ have 5 levels (low/medium/high/xhigh/max), where `ultracode` maps to the xhigh dot pattern; Opus 4.6 and Sonnet 4.6 have 4 (xhigh falls back to high); Haiku has no effort and stays blank. Add cases for new models as they ship.
 
 ## Requirements
 
