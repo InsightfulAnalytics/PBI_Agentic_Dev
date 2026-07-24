@@ -2,7 +2,7 @@
 
 <p align="center">
   A personalized fork of Kurt Buhler's Power BI &amp; Microsoft Fabric skills marketplace <br></br>
-  <i>Teach AI agents like Claude Code or GitHub Copilot to work with Power BI and Microsoft Fabric</i>
+  <i>Teach AI agents like Claude Code, GitHub Copilot, or OpenAI Codex to work with Power BI and Microsoft Fabric</i>
 </p>
 
 <p align="center">
@@ -116,10 +116,22 @@ Inside Copilot CLI:
 
 - **Skills** load identically; Copilot CLI reads `skills/<name>/SKILL.md`.
 - **Agents** use the `*.agent.md` extension required by Copilot CLI's documented convention. Claude Code matches any `*.md` file in `agents/`, so the dual extension works in both tools.
-- **MCP servers** load from `.mcp.json` (plugin root) or `.github/mcp.json`. The plugins in this repo do not currently ship MCP servers.
+- **MCP servers** load from `.mcp.json` (plugin root) or `.github/mcp.json`. Two plugins ship MCP declarations: `fabric-cli` (`microsoft-learn`, HTTP) and `custom-visuals` (`pbiviz`, stdio via `npx`).
 - **Hooks** are registered via `hooks.json` and reference scripts using `${CLAUDE_PLUGIN_ROOT}`. Copilot CLI **≥ 1.0.26** (2026-04-14) sets `CLAUDE_PLUGIN_ROOT` for plugin hooks ([changelog](https://github.com/github/copilot-cli/blob/main/changelog.md)); older builds do not, which causes hook commands to resolve to broken paths. Run `copilot update` if hooks fail to fire. Native Windows bash users may also hit a separate path-format bug tracked upstream at [claude-code#11984](https://github.com/anthropics/claude-code/issues/11984).
 
 </details>
+
+### OpenAI Codex
+
+Codex supports the same open [Agent Skills standard](https://learn.chatgpt.com/docs/build-skills) these plugins use, so the skills work there too — via a small installer instead of a plugin marketplace:
+
+```bash
+git clone https://github.com/InsightfulAnalytics/PBI_Agentic_Dev.git
+cd PBI_Agentic_Dev
+python codex/install.py            # skills -> ~/.agents/skills, adapter -> ~/.codex/AGENTS.md
+```
+
+The installer also handles what Codex does differently: validation hooks become AGENTS.md rules, subagents become inline review checklists, and the three slash commands are ported as skills. Full guide, options (project-scoped installs, junction mode, MCP servers), and troubleshooting: [`codex/README.md`](codex/README.md). Claude Code behavior is unaffected — the `codex/` layer only reads from `plugins/`.
 
 ## Overview
 

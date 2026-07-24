@@ -13,5 +13,6 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   - `custom-visuals/deneb-pbir`
   - `semantic-models/date-table` — bundles third-party community code (see [ATTRIBUTIONS.md](ATTRIBUTIONS.md))
 - Assorted fixes and personalization, documented in [PERSONALIZING.md](PERSONALIZING.md).
+- Added an OpenAI Codex compatibility layer under `codex/` (installer, AGENTS.md adapter, ported command-skills); `plugins/` content is unchanged by it.
 
-Notice dated 2026-07-21.
+Notice dated 2026-07-24.

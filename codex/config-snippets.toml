@@ -1,0 +1,15 @@
+# MCP servers used by the power-bi-agentic-dev skills, in Codex config.toml form.
+# Mirrors plugins/fabric-cli/.mcp.json and plugins/custom-visuals/.mcp.json.
+# Merged into ~/.codex/config.toml by codex/install.py --mcp (between sentinel
+# comments), or paste manually.
+
+# Microsoft Learn docs search (used by the fabric-cli skill as its docs source)
+[mcp_servers.microsoft-learn]
+url = "https://learn.microsoft.com/api/mcp"
+
+# Power BI custom visuals toolchain (used by the powerbi-custom-visuals skill)
+[mcp_servers.pbiviz]
+command = "npx"
+args = ["-y", "powerbi-visuals-tools", "mcp"]
+# Windows: if the handshake times out, raise the budget:
+# startup_timeout_sec = 60
