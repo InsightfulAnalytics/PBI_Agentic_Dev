@@ -46,6 +46,10 @@ Only the plugin you bumped+updated is re-copied; the others are untouched.
 The 10 plugins (and their skill folders) you can personalize:
 `semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`, `fabric-admin`, `paginated-reports`, `etl`.
 
+## Using with OpenAI Codex
+
+The `codex/` directory projects these same skills into OpenAI Codex (which reads the open Agent Skills standard). Run `python codex/install.py` — see [codex/README.md](codex/README.md). Codex reads copies in `~/.agents/skills` plus this clone; Claude Code's marketplace loading above is untouched. After harvesting upstream changes, re-run the installer to refresh the copies (junction-mode installs pick changes up automatically).
+
 ## Back up / publish to GitHub
 
 The maintainer's local clone is wired to this **public** GitHub repo as `origin`:
