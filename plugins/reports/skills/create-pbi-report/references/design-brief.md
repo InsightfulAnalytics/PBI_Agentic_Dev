@@ -39,7 +39,7 @@ design_identity:           # committed once here; propagates to every visual
 
 delivery_target:           # where and how it is consumed
   surface: Fabric workspace app
-  page_size: 1280x720
+  page_size: 1920x1080
   mobile: not required
 ```
 

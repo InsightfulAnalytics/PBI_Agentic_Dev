@@ -36,7 +36,7 @@ When the user's request lacks specific measures, audience context, structural pr
     pbir new report "Name.Report" -c "Workspace/Model.SemanticModel"
     ```
 
-6. Rename the default page (do NOT add a new page unless the report needs multiple pages): `pbir pages rename "Name.Report/Page 1.Page" "Overview"`
+6. Rename the default page (do NOT add a new page unless the report needs multiple pages): `pbir pages rename "Name.Report/Page 1.Page" --to "Overview" -f`
 7. Only if the user requests a custom theme: `pbir theme apply-template "Name.Report" template-name` (the sqlbi theme is already included by default)
 8. Discover model fields: `pbir model "Name.Report" -d`
 9. Query field values for filters or formatting: `pbir model "Name.Report" -q "EVALUATE VALUES('Table'[Column])"`
@@ -112,12 +112,25 @@ sales-dashboard/
   Sales.pbip
 ```
 
+**Immediately set the interaction default in `report.json`:**
+
+```json
+"settings": {
+  "defaultFilterActionIsDataFilter": true
+}
+```
+
+Out of the box, clicking a data point *cross-highlights* other visuals -- it shades the unselected
+part of each bar rather than removing it, and card and table totals do not move. Most people read
+that as a rendering quirk and conclude the click did nothing. `true` makes a click filter the page,
+which is what users expect. Set it on every new report unless the user asks for highlighting.
+
 ### Step 4: Rename Default Page and Add More Pages
 
 The report comes with a default "Page 1" that already has a textbox for the page title. Rename it rather than creating a new page. Only add additional pages if needed.
 
 ```bash
-pbir pages rename "Sales.Report/Page 1.Page" "Overview"          # Rename default page
+pbir pages rename "Sales.Report/Page 1.Page" --to "Overview" -f  # Rename default page
 pbir add page "Sales.Report/Detail.Page" -n "Detail"              # Add extra pages only if needed
 pbir pages active-page "Sales.Report" "Overview"
 ```
@@ -138,19 +151,24 @@ pbir theme set-formatting "Sales.Report" "card.*.border.radius" --value 8
 
 ### Step 6: Add Visuals to Pages
 
-Check actual page dimensions first -- do not assume 1280x720. Use `pbir pages json "Report.Report/Page.Page"` to verify. The object model validates that visuals fit within page bounds.
+**Default page size is 1920x1080 (16:9).** Author every new page at 1920x1080 unless the user
+asks otherwise -- it is the native size of the screens these reports are actually read on, and
+starting smaller then rescaling later means re-deriving every coordinate and font size.
+Still check the ACTUAL dimensions of any page you did not create: `pbir pages json "Report.Report/Page.Page"`.
+The object model validates that visuals fit within page bounds.
 
-Fill the canvas with a purposeful visual hierarchy. Standard composition for a 1280x720 page:
+Fill the canvas with a purposeful visual hierarchy. Standard composition for a 1920x1080 page:
 
-- **Row 1 (y: 20-160): KPI visuals** -- 2-3 `kpi` visuals showing headline metrics with targets and trend lines
-- **Row 2 (y: 180-460): Trend + Breakdown** -- Line/area chart (~60% width) + bar/column chart (~40% width)
-- **Row 3 (y: 480-700): Detail table/matrix** -- Full-width `tableEx` or `matrix` with hierarchies and conditional formatting
+- **Row 1 (y: 30-240): KPI visuals** -- 2-3 `kpi` visuals showing headline metrics with targets and trend lines
+- **Row 2 (y: 270-690): Trend + Breakdown** -- Line/area chart (~60% width) + bar/column chart (~40% width)
+- **Row 3 (y: 720-1050): Detail table/matrix** -- Full-width `tableEx` or `matrix` with hierarchies and conditional formatting
 
 For a complete layout example with exact coordinates, spacing verification, and visual commands, consult **`references/layout-example.md`**.
 
 Key principles:
 
-- **Consistent spacing**: Calculate positions from `(margin, gap, page_width, page_height)`. For 1280x720 with margin=24, gap=16, usable width = 1232. Verify arithmetic before placing visuals.
+- **Consistent spacing**: Calculate positions from `(margin, gap, page_width, page_height)`. For 1920x1080 with margin=36, gap=24, usable width = 1848. Verify arithmetic before placing visuals.
+- **Font sizes scale with the canvas**: a 1920x1080 page needs roughly 1.5x the point sizes of a 1280x720 one (card values ~27pt, category labels ~15pt). `displayOption: FitToPage` scales the canvas to the viewport, so fonts left at 1280-era sizes render about a third too small.
 - **No redundant titles**: Page title = subject ("Order Lines"), visual titles = differentiator ("by Key Account", "Monthly Trend"). Hide subtitles: `pbir visuals subtitle "path" --no-show`
 - **Sorting**: Charts auto-sort descending by first measure. After `pbir visuals bind`, set sort explicitly: `pbir visuals sort "path" -f "Table.Measure" -d Descending`
 
@@ -170,7 +188,11 @@ For Import-mode reports with cheap queries, evaluate whether disabling cross-hig
 
 ### Step 8: Wire Interactions and Navigation
 
-After placing visuals, set cross-filter overrides and build navigation. Default is everything cross-filters everything, so author only the exceptions. For multi-page reports, add a `pageNavigator` visual rather than individual buttons.
+After placing visuals, set cross-filter overrides and build navigation. With
+`defaultFilterActionIsDataFilter: true` (Step 3) everything cross-FILTERS everything, so author only
+the exceptions -- a `NoFilter` pair in `page.json` `visualInteractions` for any visual that should
+stay put. Note the two settings are different things: `defaultFilterActionIsDataFilter` decides
+filter-vs-highlight, while `visualInteractions` decides which pairs interact at all. For multi-page reports, add a `pageNavigator` visual rather than individual buttons.
 
 See **`references/interactivity.md`** (Wiring Interactions and Navigation section) for the step-by-step and pitfalls.
 
@@ -239,14 +261,14 @@ pbir open "Sales.Report"                                               # Open in
 - 1 trend line/area chart (monthly if yearly filter, daily/weekly if monthly)
 - 1-2 breakdown charts (bar/column) by key categories
 - 1 detail table or matrix with hierarchies and conditional formatting
-- Page size: 1280x720 (16:9)
+- Page size: 1920x1080 (16:9)
 
 ### Detailed Analysis
 
 - Slicer bar at top (date range, category filters)
 - Large table or matrix as main content with conditional formatting
 - Supporting KPI cards for context
-- Page size: 1280x720 or 1920x1080
+- Page size: 1920x1080
 
 ### Tooltip Pages
 

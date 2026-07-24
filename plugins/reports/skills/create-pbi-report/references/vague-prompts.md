@@ -47,7 +47,7 @@ Layout:
   default: executive dashboard pattern (KPI row, trend chart, breakdown, detail table)
   reason: most broadly useful; follows 3-30-300
 Page size:
-  default: 1280x720
+  default: 1920x1080
   reason: standard 16:9
 KPI selection:
   default: top measures by business importance from the model

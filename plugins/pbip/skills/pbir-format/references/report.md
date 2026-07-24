@@ -108,11 +108,20 @@ Report-wide behavioral settings. Values are bare (not wrapped in expr).
   "useStylableVisualContainerHeader": true,
   "useEnhancedTooltips": true,
   "defaultDrillFilterOtherVisuals": true,
+  "defaultFilterActionIsDataFilter": true,
   "exportDataMode": "AllowSummarized",
   "allowChangeFilterTypes": true,
   "useDefaultAggregateDisplayName": true
 }
 ```
+
+**Always set `defaultFilterActionIsDataFilter: true` on new reports.** Out of the box, clicking a
+data point on one chart *cross-highlights* the others -- it shades the unselected portion of each
+bar instead of removing it. That reads as a colour artefact rather than a filter, and totals in
+cards and tables do not move, so users routinely misread it. Setting this to `true` makes a click
+behave like a filter, which is what almost everyone expects. It is the equivalent of Desktop's
+*File > Options > Current file > Report settings > "Change default visual interaction from cross
+highlighting to cross filtering"*.
 
 Key settings:
 
@@ -121,6 +130,7 @@ Key settings:
 | `useStylableVisualContainerHeader` | boolean | Enable enhanced visual headers |
 | `useEnhancedTooltips` | boolean | Enable enhanced tooltips |
 | `defaultDrillFilterOtherVisuals` | boolean | Drill actions cross-filter other visuals |
+| `defaultFilterActionIsDataFilter` | boolean | **Set true by default.** Clicking a data point filters other visuals instead of cross-highlighting them |
 | `exportDataMode` | string | `"AllowSummarized"` or `"AllowSummarizedAndUnderlying"` |
 | `allowChangeFilterTypes` | boolean | Allow users to change filter types |
 | `useDefaultAggregateDisplayName` | boolean | Show default aggregate display names |
