@@ -123,15 +123,45 @@ Inside Copilot CLI:
 
 ### OpenAI Codex
 
-Codex supports the same open [Agent Skills standard](https://learn.chatgpt.com/docs/build-skills) these plugins use, so the skills work there too — via a small installer instead of a plugin marketplace:
+Codex supports the same open [Agent Skills standard](https://learn.chatgpt.com/docs/build-skills) these plugins use, so the skills work there too — installed with a small script instead of a plugin marketplace:
 
 ```bash
 git clone https://github.com/InsightfulAnalytics/PBI_Agentic_Dev.git
 cd PBI_Agentic_Dev
+python codex/install.py --check    # dry run: preview what will be installed
 python codex/install.py            # skills -> ~/.agents/skills, adapter -> ~/.codex/AGENTS.md
+python codex/install.py --mcp      # optional: also add the MCP servers to ~/.codex/config.toml
 ```
 
-The installer also handles what Codex does differently: validation hooks become AGENTS.md rules, subagents become inline review checklists, and the three slash commands are ported as skills. Full guide, options (project-scoped installs, junction mode, MCP servers), and troubleshooting: [`codex/README.md`](codex/README.md). Claude Code behavior is unaffected — the `codex/` layer only reads from `plugins/`.
+Keep the clone — it's the runtime store for bundled scripts and validators that the copies in `~/.agents/skills` reference. After a `git pull`, re-run the installer (idempotent) to refresh. The full guide — project-scoped installs, junction mode, uninstall, and troubleshooting — is in [`codex/README.md`](codex/README.md).
+
+<details>
+<summary><strong>Verify installation in Codex</strong></summary>
+
+Inside a Codex session:
+
+```
+/skills                 # list available skills (the Power BI skills should appear)
+$tmdl                   # invoke a skill explicitly by name
+/mcp                    # MCP servers (if installed with --mcp)
+/status                 # loaded AGENTS.md, model, config
+```
+
+</details>
+
+<details>
+<summary><strong>Compatibility notes (Codex)</strong></summary>
+
+- **Skills** load identically — Codex reads `~/.agents/skills/<name>/SKILL.md` and auto-activates from the description, or on `$name`.
+- **Hooks** don't fire on file edits in Codex, so the installer converts the TMDL/PBIR/RDL validation hooks into rules in `~/.codex/AGENTS.md` for the agent to run after edits.
+- **Subagents** aren't spawned; the eight reviewer/validator agents become inline checklists the agent reads from `plugins/*/agents/*.agent.md`.
+- **Slash commands** are ported as skills (`$audit-context`, `$suggest-rule`, `$migrating-fabric-trial-capacities`) since Codex deprecated custom prompts.
+- **MCP servers** are added to `~/.codex/config.toml` with `--mcp` (`microsoft-learn` over HTTP, `pbiviz` over stdio).
+- **`claude-design-handoff`** is excluded — it needs Anthropic's Claude Design API.
+- **Skills kept outside this repo** (e.g. personal skills Claude loads from `~/.claude/skills`) are not touched by the installer — copy any you want Codex to have into `~/.agents/skills` yourself.
+- The `codex/` layer only reads from `plugins/`; **Claude Code behavior is unchanged.**
+
+</details>
 
 ## Overview
 
