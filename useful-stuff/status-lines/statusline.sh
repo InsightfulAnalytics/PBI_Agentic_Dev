@@ -184,10 +184,13 @@ else model=""; model_color=""; model_icon=""
 fi
 
 # Always show the model version (e.g. "Opus 4.8", "Sonnet 4.6").
+# Drop 8-digit date segments first so dated ids (claude-opus-4-20250514,
+# claude-3-opus-20240229) don't read the date as a version number.
+_id_nodate=$(echo "$model_id" | sed -E 's/-[0-9]{8}//g')
 if [ -n "$model" ]; then
-    model_version=$(echo "$model_id" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
+    model_version=$(echo "$_id_nodate" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
     [ -z "$model_version" ] && model_version=$(echo "$model_full" | grep -oE '[0-9]+\.[0-9]+' | head -1)
-    [ -z "$model_version" ] && model_version=$(echo "$model_id" | grep -oE '[0-9]+$' | head -1)
+    [ -z "$model_version" ] && model_version=$(echo "$_id_nodate" | grep -oE '[0-9]+$' | head -1)
     [ "$ENABLE_MODEL_VERSION" = "TRUE" ] && [ -n "$model_version" ] && model="$model $model_version"
 fi
 
@@ -204,9 +207,9 @@ fi
 # tier gating needs the real version even when we're not showing it.
 _effort_model_version() {
     local v
-    v=$(echo "$model_id" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
+    v=$(echo "$_id_nodate" | grep -oE '[0-9]+-[0-9]+' | head -1 | tr '-' '.')
     [ -z "$v" ] && v=$(echo "$model_full" | grep -oE '[0-9]+\.[0-9]+' | head -1)
-    [ -z "$v" ] && v=$(echo "$model_id" | grep -oE '[0-9]+$' | head -1)
+    [ -z "$v" ] && v=$(echo "$_id_nodate" | grep -oE '[0-9]+$' | head -1)
     echo "$v"
 }
 _effort_ge() {
@@ -240,7 +243,7 @@ case "$model" in
         fi
         ;;
     Opus*)
-        if echo "$model_id $model_full" | grep -qE '4\.[7-9]|4-[7-9]|4\.1[0-9]|4-1[0-9]'; then
+        if _effort_ge "4.7"; then
             case "$effort_level" in
                 low)       effort_dots="●○○○○" ;;
                 medium)    effort_dots="●●○○○" ;;

@@ -21,6 +21,10 @@ package.json
 !plugins/custom-visuals/skills/deneb-pbir/renderer/package-lock.json
 plugins/pbi-desktop/hooks/bin/
 plugins/pbi-desktop/skills/connect-pbid/bin/
+# pbir portable builds are fetched on demand; the Windows one is ~180 MB, past GitHub's limit
+plugins/reports/skills/pbir-cli/bin/pbir-portable-*
+!plugins/reports/skills/pbir-cli/bin/README.md
+!plugins/reports/skills/pbir-cli/bin/fetch.sh
 # work notes, not marketplace content
 codexproposal.md
 codexproposal.docx
