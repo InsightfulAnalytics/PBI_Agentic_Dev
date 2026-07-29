@@ -139,7 +139,7 @@ esac
 
 ## Effort dots
 
-Effort calibration lives in the model case-statement. Fable and Opus 4.7+ have 5 levels (low/medium/high/xhigh/max), where `ultracode` maps to the xhigh dot pattern; Opus 4.6 and Sonnet 4.6 have 4 (xhigh falls back to high); Haiku has no effort and stays blank. Add cases for new models as they ship.
+Effort calibration lives in the model case-statement. Fable, Opus 4.7+ (including Opus 5), and Sonnet 5+ have 5 dot levels (low/medium/high/xhigh/max) plus `ultracode`, rendered as five purple diamonds so it reads as its own tier; Haiku 4.5+ has the same 5 dot levels but no ultracode; older Opus/Sonnet collapse high+xhigh into one dot on a 4-dot scale. Version detection strips 8-digit date segments from the model id so dated ids like `claude-opus-4-20250514` gate correctly. Add cases for new models as they ship.
 
 ## Requirements
 

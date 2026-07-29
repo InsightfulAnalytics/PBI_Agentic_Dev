@@ -107,6 +107,27 @@ pbir schema describe clusteredBarChart.error
 
 Available `markerShape` values: `circle`, `square`, `diamond`, `triangle`, `x`, `shortDash`, `longDash`, `plus`, `none`. Available `labelFormat` values: `absolute`, `relativeNumeric`, `relativePercentage`, `range`.
 
+## Drive error bar styling from a measure
+
+Static values cover most cases, but the styling properties also accept a measure, so a whisker can change color or thickness with the data:
+
+```bash
+# Colour the whiskers by a formatting measure
+pbir visuals cf "V.Visual" --measure "error.barColor _Fmt.VarianceColor" \
+  --target-field "Sales.Revenue"
+
+# Rules-driven marker size
+pbir visuals cf "V.Visual" --rules --field "Sales.Variance" \
+  --rule "gt 0 12" --rule "lte 0 6" --on error.markerSize \
+  --target-field "Sales.Revenue"
+```
+
+Colour slots: `barColor`, `barBorderColor`, `labelColor`, `labelBackgroundColor`, `shadeColor`. Numeric slots: `barWidth`, `barBorderSize`, `markerSize`.
+
+`--target-field` names the plotted series being styled, which is separate from the measure driving the format. On a chart binding a single measure it can be inferred; on a combo chart plotting one measure in Y and another in Y2 it cannot, so pass it explicitly. The resulting entry carries the series' query ref in `metadata`, which is the same styling entry `pbir set "V.Visual.error.field(<queryRef>).<property>"` writes to; a measure-driven property and a static one coexist there as long as they are different properties.
+
+Run `pbir schema describe <visualType>.error` to see which properties accept a measure on a given chart type.
+
 ## List error bars
 
 ```bash

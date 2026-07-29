@@ -11,6 +11,17 @@ CLI for exploring, building, managing, formatting Power BI reports. All commands
 
 **IMPORTANT:** FIRST Read and adhere to the mental model in [MENTAL-MODEL.md](important/MENTAL-MODEL.md).
 
+## When `pbir` is missing
+
+Install it with `uv tool install pbir-cli` (or `pip install pbir-cli`). That is the route to
+use in every ordinary case, including when the command is missing entirely.
+
+`bin/fetch.sh` downloads a self-contained portable build instead. Reach for it **only** when
+`pbir` is not installed *and* installing it is not possible: no network access to PyPI, no
+Python, or a locked-down machine that forbids installs. A portable build does not update with
+`uv tool upgrade`, so preferring it when a normal install would have worked leaves the user on
+a stale CLI. If an install failed, fix the install rather than routing around it.
+
 ## Keeping the Fabric CLI current
 
 When publishing to Fabric (`pbir publish`) alongside the `fabric-cli` plugin, check the installed Fabric CLI (`fab`) if publishing reports a compatibility problem. Upgrade with `uv tool upgrade ms-fabric-cli` only when required or requested, and honor any user-pinned version.
@@ -288,10 +299,14 @@ Predicate operators: `=`, `__lt`, `__gt`, `__lte`, `__gte`, `__in=a|b|c`, `__con
 ### Conditional Formatting
 
 ```bash
+# Find out what a container accepts before writing to it
+pbir schema describe barChart.dataPoint          # "Conditional formatting:" line at the bottom
+
 # Create CF (structural; use pbir visuals cf)
 pbir visuals cf "Visual" --measure "labels.color _Fmt.StatusColor"
 pbir visuals cf "Visual" --gradient --field "Table.Field" --min-color bad --max-color good
 pbir visuals cf "Visual" --data-bars --field "Table.Field"
+pbir visuals cf "Visual" --image --field "_SVG.Bullet"          # measure-driven image or SVG
 
 # Read / edit / remove CF (dot-path; use pbir set / pbir get)
 pbir get "Visual.dataPoint.fill.cf"                             # summary
@@ -300,7 +315,23 @@ pbir set "Visual.dataPoint.fill.cf" --remove                    # or --clear
 pbir get "Report.Report/**/*.Visual.**.cf"                       # bulk read
 ```
 
-For gradient/rules/icons/data bars options, copy/remove/convert, and best practices, consult **`references/conditional-formatting.md`**.
+CF reaches well past data point colors: titles, subtitles, borders, tooltips, axis
+bounds, reference-line values, data-label text, and error-bar styling all accept a
+measure. `pbir schema describe <type>.<container>` is the authoritative answer for
+any one container, and a starred property there was confirmed against a rendered
+report rather than inferred from the catalog.
+
+When the field driving the format is not the field being formatted (a grid column
+coloured by a helper measure, a combo chart's secondary series), name the target
+with `--target-field`, otherwise the entry scopes to the driver and Desktop renders
+it on the wrong column:
+
+```bash
+pbir visuals cf "Grid.Visual" --rules --field "Sales.Margin %" --rule "lt 0 bad" \
+  --on values.backColor --target-field "Sales.Revenue"
+```
+
+For gradient/rules/icons/data bars/image options, copy/remove/convert, and best practices, consult **`references/conditional-formatting.md`**.
 
 ### Visual Actions, Bookmarks, Drillthrough
 
