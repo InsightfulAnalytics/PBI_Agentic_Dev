@@ -10,9 +10,10 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   - `reports/pbi-verify-loop`
   - `reports/power-bi-theme`
   - `reports/claude-design-handoff`
+  - `reports/workout-wednesday`
   - `custom-visuals/deneb-pbir`
   - `semantic-models/date-table` — bundles third-party community code (see [ATTRIBUTIONS.md](ATTRIBUTIONS.md))
 - Assorted fixes and personalization, documented in [PERSONALIZING.md](PERSONALIZING.md).
 - Added an OpenAI Codex compatibility layer under `codex/` (installer, AGENTS.md adapter, ported command-skills); `plugins/` content is unchanged by it.
 
-Notice dated 2026-07-24.
+Notice dated 2026-07-29.

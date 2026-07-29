@@ -208,6 +208,7 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 | Skill | [`power-bi-theme`](plugins/reports/skills/power-bi-theme/) | Browse a preset-theme gallery and apply a chosen theme to a report |
 | Skill | [`modifying-theme-json`](plugins/reports/skills/modifying-theme-json/) | Edit, enforce, audit, and re-theme report theme JSON |
 | Skill | [`claude-design-handoff`](plugins/reports/skills/claude-design-handoff/) | Import and implement a Claude Design handoff into a report or Fabric App |
+| Skill | [`workout-wednesday`](plugins/reports/skills/workout-wednesday/) | Turn a [Workout Wednesday](https://www.workout-wednesday.com/) challenge link into a built, verified, published report — see [Try it end-to-end](#try-it-end-to-end) |
 | Skill | [`pbi-report-design`](plugins/reports/skills/pbi-report-design/) *(WIP)* | Power BI report best practices, design, and style |
 | Skill | [`review-report`](plugins/reports/skills/review-report/) *(WIP)* | Review Power BI reports for usage metrics and best practices |
 | Agent | [`deneb-reviewer`](plugins/reports/agents/deneb-reviewer.agent.md) | Review Deneb specs for Vega/Vega-Lite syntax and conventions |
@@ -315,6 +316,20 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 | Skill | [`using-duckdb`](plugins/etl/skills/using-duckdb/) | Query Fabric lakehouse/warehouse Delta data with DuckDB, locally or in a Fabric notebook |
 
 </details>
+
+## Try it end-to-end
+
+If you want to *feel* what agentic Power BI development is actually like, the best starting point is the [`workout-wednesday`](plugins/reports/skills/workout-wednesday/) skill in the `reports` plugin.
+
+[Workout Wednesday](https://www.workout-wednesday.com/) publishes a weekly Power BI challenge: a requirements list, a source dataset, and a screenshot of the target visual. Paste the challenge link and the skill drives the whole pipeline in one go — parse the requirements, download the data, scaffold the PBIP project, author the TMDL model, build the visuals (usually Deneb/Vega), validate, screenshot the live canvas and diff it against the original, then publish to your Fabric workspace.
+
+```
+example promopt:
+Build this week's Workout Wednesday: https://www.workout-wednesday.com/pbi-<challenge-link>/
+Use this directory for the power bi project files (c:\-<filesdirectory>)
+```
+
+It's a genuinely good way to experience Claude building a whole report end-to-end in a single pass, and it exercises most of this marketplace at once — `pbip`, `reports`, `custom-visuals`, and `fabric-cli` all get pulled in along the way. The challenges are small enough to finish in one session and specific enough that you can tell immediately whether the result is right.
 
 ## Useful stuff
 

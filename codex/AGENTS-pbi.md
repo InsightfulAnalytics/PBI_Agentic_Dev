@@ -29,6 +29,7 @@ index. Invoke explicitly with `$<name>` when a match is obvious.
 | Report | `power-bi-theme` | Browse/compare/apply preset themes from the bundled gallery |
 | Report | `modifying-theme-json` | Design, edit, enforce, audit report theme JSON |
 | Report | `review-report` | Review report quality, usage metrics, best practices |
+| Report | `workout-wednesday` | Build/verify/publish a Workout Wednesday challenge from its challenge link |
 | Visuals | `deneb-visuals` | Author Deneb Vega/Vega-Lite specs, interactivity, theme integration |
 | Visuals | `deneb-pbir` | Extract/embed/offline-render a Deneb spec in visual.json |
 | Visuals | `python-visuals` / `r-visuals` / `svg-visuals` | Python (matplotlib), R (ggplot2), or SVG-measure visuals in reports |
