@@ -90,6 +90,11 @@ Both are inside `visual`, not at the root of visual.json:
 
 **Forgetting to override theme defaults:** The theme may set `title.show: true` and `border.show: true` for all visuals via wildcards. If you create a textbox programmatically without explicitly setting `title.show: false` in `visualContainerObjects`, you'll get an unwanted title bar with empty text taking up space.
 
+**Omitting the state selector on state-based visuals:** The modern `shape` visual (and other visuals with default/hover/press/selected states) resolves colours per state. A bare
+`objects.fill[0].properties.fillColor` is ignored and the shape renders in theme colour 1 — bright blue, not your hex. It needs a **second** entry carrying the same colour with `"selector": {"id": "default"}`. Same for `outline.lineColor`. Let pbir write both: `pbir set "<Visual>.fill.default.fillColor" --value "#RRGGBB"`. Note `pbir set` rejects position edits made one axis at a time ("cannot be placed there") — edit the `position` block directly for those.
+
+**Shape drop shadows inset the shape:** `shadow.show: true` makes the shape draw ~8px inside its own bounds to leave room for the shadow, so it no longer lines up with another shape sharing the same rect (e.g. a card and its header band). Use a 1px `outline` instead when two shapes must align.
+
 ## Property Value Patterns
 
 All properties in both sections use the same `expr` wrapper pattern:

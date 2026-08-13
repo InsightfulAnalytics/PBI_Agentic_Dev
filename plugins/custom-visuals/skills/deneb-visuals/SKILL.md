@@ -184,6 +184,9 @@ Key fields: `__row__` (zero-based row index, replaces removed `__identity__`), `
 - **Deneb's native tooltip cannot be styled per-point.** For colored/conditional tooltips, build custom Vega tooltip marks inside the spec.
 - **`jq empty` / `pbir validate` is necessary but not sufficient.** The final check is Desktop/Service rendering — use the `pbi-verify-loop` skill when Desktop is open.
 - **Editing an existing spec: use round-trip tooling, not hand-edits.** The spec is a single-quote-wrapped PBIR literal (embedded `'` doubled). Extract → edit → offline-render → embed via the `deneb-pbir` skill's `deneb_spec.py` + offline renderer; never hand-edit the literal string.
+- **Vega-Lite: the `xOffset`/`yOffset` *encoding channel* re-anchors marks to the start of the band.** Any layer carrying an offset encoding is positioned from the band's edge instead of its centre, so it drifts half a band away from its own axis labels — and away from any layer that lacks the offset. `axis.bandPosition: 0`, `y.band: 0.5` and `"scale": null` on the offset all fail to correct it. Use **`mark.xOffset` / `mark.yOffset` with a datum expression** instead — `{"expr": "(datum.Rank - (datum.N + 1) / 2) * 11"}` — which is a plain pixel shift with no re-anchoring, and is resolution-independent so it survives Deneb's autosize. This is the way to dodge tied points apart so none hides behind another.
+- **Don't put `width`/`height` in a Deneb spec.** With `autosize: fit` in the config, Deneb sizes the view from the container; explicit dimensions fight it and produce a scrollbar inside the visual. Keep the spec size-free and inject dimensions only when rendering offline.
+- **Report-page tooltips: `visualTooltip.type` is `'Canvas'`, not `'ReportPage'`.** See the `pbir-format` skill's `references/page.md`. Deneb honours the Power BI tooltip service, but with the wrong enum value nothing ever appears.
 
 ## Best Practices
 

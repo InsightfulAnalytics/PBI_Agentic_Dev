@@ -28,3 +28,6 @@ plugins/reports/skills/pbir-cli/bin/pbir-portable-*
 # work notes, not marketplace content
 codexproposal.md
 codexproposal.docx
+codex-slides.md
+codex-slides.pptx
+codex-slides-plain.pptx

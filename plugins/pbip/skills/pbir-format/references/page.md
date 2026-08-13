@@ -71,14 +71,17 @@ To make a visual show this tooltip page on hover, set `visualTooltip` in the vis
   "visualTooltip": [{
     "properties": {
       "show": {"expr": {"Literal": {"Value": "true"}}},
-      "type": {"expr": {"Literal": {"Value": "'ReportPage'"}}},
+      "type": {"expr": {"Literal": {"Value": "'Canvas'"}}},
       "section": {"expr": {"Literal": {"Value": "'tooltip_page_id'"}}}
     }
   }]
 }
 ```
 
-- `type: "'ReportPage'"` -- use a report page as tooltip (vs `"'Default'"` for auto/default tooltip)
+- `type` -- the enum is `Default | Canvas`. **`'Canvas'` is the value that means "use a report page"**;
+  `'Default'` is the auto tooltip. There is no `'ReportPage'` -- it is accepted as a plain string and
+  then silently ignored, so the tooltip never appears (verified 2026-08-04, WW W29 project). Check with
+  `pbir schema describe <visualType> visualTooltip --json`.
 - `section` -- the `name` property from the tooltip page's page.json (NOT the displayName)
 
 To disable tooltips on a visual: `"show": {"expr": {"Literal": {"Value": "false"}}}`.
