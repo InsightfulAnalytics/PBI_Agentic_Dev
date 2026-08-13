@@ -195,6 +195,9 @@ pbir set "V.Visual.error.field($QR).labelFormat" --value "range"
 
 ## Notes and caveats
 
+- **`add` writes the entries but does not turn the feature on.** The styling entry starts without `enabled`, and the service renders nothing until `pbir set "V.Visual.error.field(<queryRef>).enabled" --value true`. Always set it right after `add`; an "error bars are invisible" report is this before it is anything else.
+- **The value axis does not stretch to include the bounds.** A bound outside the current axis range clips invisibly and looks like a no-op. Sanity-check the bound measure's magnitude against the plotted values before concluding the entry is broken.
+- **A measure created moments ago fails `--upper`/`--series` validation** with "Field not found" until the model snapshot refreshes; any `pbir model -d` call against the report refreshes the cache.
 - **`error-bars add` is idempotent per series** via the upsert in point 1 above. Retrying a failed add with the same `--series` replaces the existing pair cleanly; no duplication. Retries against different series accumulate as separate pairs, which is the intended behavior.
 - **Glob + shell capture don't mix.** When `visual_path` matches multiple visuals, `add` prints one queryRef per visual to stdout; `QR=$(pbir visuals error-bars add "**/*.Visual" ...)` captures multiple lines. Target one visual at a time when chaining to `pbir set`.
 - **`--series` must be bound first.** `pbir visuals bind --add "Role:Table.Measure" --type Measure` before calling `error-bars add`. The command looks the queryRef up from the visual's `queryState.projections`; if the series is not bound, it raises a clear error pointing at `pbir visuals bind` instead of silently writing invalid JSON. Implicit measures (a column dropped on Y without an explicit Sum/Avg wrapper) are supported through queryRef equality matching.

@@ -210,6 +210,18 @@ pbir visuals cf "Visual.Visual" --measure "valueAxis.start _Fmt.Zero"
 pbir visuals cf "Visual.Visual" --measure "valueAxis.end _Fmt.AxisCeiling"
 ```
 
+### Verify in reading view, and mind error bars
+
+Verify published CF in the service reading view on a fresh load. An open edit-mode canvas renders its session state, not the published definition, and reliably shows stale or missing CF.
+
+Error bars can silently disable per-point `dataPoint.fill` CF on the same visual: bars fall back to the theme default color, and removing the `error` container restores the CF in the same publish cycle. Not every chart is affected (a single-measure bar chart can carry both). After adding error bars to a visual with measure-driven fill, re-check the rendering; where they conflict, choose the target tick or the per-point fill, and carry the measure signal on the data labels instead.
+
+`pbir validate --qa` flags static text colors with poor contrast (`LOW_TEXT_CONTRAST`, WCAG ratio below 3:1) on axis labels, data labels, and titles, and static or theme-default data-point fills with poor contrast (`LOW_FILL_CONTRAST`, same 3:1 threshold) on visuals with a `dataPoint.defaultColor` slot; `--contrast-against visual|page|effective` picks the background layer for both. Measure-driven colors are skipped, so verify CF ink and fill contrast by rendering.
+
+### Category axis labels cannot be colored per category
+
+`categoryAxis.labelColor` accepts a measure, but the renderer evaluates it once at visual scope and paints every category label the same color. The service UI serializes this CF selector-less, and that selector-less entry is the only shape the axis renderer consumes: entries carrying a selector of any kind (`dataViewWildcard` with `matchingOption` 0 or 1, per-category `scopeId` comparisons, `metadata` pointing at the category column or the measure, compound selector plus metadata, with or without a competing selector-less entry) are skipped outright, and the labels fall back to the theme color. Per-category axis label color does not exist in native Power BI visuals. When category items must be highlighted individually, put the measure CF on the data labels (`labels.color`) or the bar fill (`dataPoint.fill`) instead; those containers do resolve per data point.
+
 ### Gradient and Data Bars
 
 ```bash
