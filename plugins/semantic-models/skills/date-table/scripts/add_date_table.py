@@ -233,15 +233,47 @@ def inject_measure(definition: Path, args, changes: list[str]) -> None:
 # ------------------------------------------------------------------- model.tmdl
 
 
+def _ref_table_name(line: str) -> str | None:
+    m = re.match(r"^ref table (?:'(.+)'|(\S+))$", line.strip())
+    return (m.group(1) or m.group(2)) if m else None
+
+
+def ensure_query_groups(lines: list[str], groups: list[str], changes: list[str]) -> list[str]:
+    """The injected assets reference queryGroup 'Model' / 'Others'; TMDL requires the
+    model to declare them or deserialization fails with unresolved QueryGroup links."""
+    declared = []
+    for l in lines:
+        m = re.match(r"^queryGroup (?:'(.+)'|(\S+))$", l)
+        if m:
+            declared.append(m.group(1) or m.group(2))
+    missing = [g for g in groups if g not in declared]
+    if not missing:
+        return lines
+    block: list[str] = []
+    for i, g in enumerate(missing):
+        block += [f"queryGroup {quote(g)}", "", f"\tannotation PBI_QueryGroupOrder = {len(declared) + i}", ""]
+    # Insert after the model header (before the first top-level annotation/ref line).
+    at = next(
+        (i for i, l in enumerate(lines) if l.startswith(("annotation ", "ref ", "queryGroup "))),
+        len(lines),
+    )
+    lines = lines[:at] + block + lines[at:]
+    changes.append("model.tmdl: declared queryGroup " + ", ".join(missing))
+    return lines
+
+
 def patch_model(definition: Path, args, changes: list[str], query_order: list[str]) -> None:
     path = definition / "model.tmdl"
     lines = read(path).rstrip("\n").split("\n")
+
+    lines = ensure_query_groups(lines, ["Model", "Others"], changes)
 
     refs = [args.table_name]
     if not args.no_measure:
         refs.append(args.measure_table)
 
-    missing = [n for n in refs if not any(l.strip() == f"ref table {quote(n)}" for l in lines)]
+    existing_refs = {_ref_table_name(l) for l in lines}
+    missing = [n for n in refs if n not in existing_refs]
     if missing:
         block = [f"ref table {quote(n)}" for n in missing]
         last_ref = max((i for i, l in enumerate(lines) if l.startswith("ref table ")), default=None)
