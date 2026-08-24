@@ -209,7 +209,7 @@ Perform the following checks, categorized by severity:
 
 ## Related Skills
 
-- **[`dax`](../skills/dax/)** — DAX performance optimization
+- **[`dax-optimisation`](../skills/dax-optimisation/)** — DAX performance optimization
 - **[`semantic-model`](../skills/semantic-model/)** — Full model design, build, and quality review
 - **[`standardize-naming-conventions`](../skills/standardize-naming-conventions/)** — Naming remediation
 

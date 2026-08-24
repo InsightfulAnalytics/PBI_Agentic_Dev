@@ -91,7 +91,7 @@ For systematic benchmarking across multiple queries and cache states, consider t
 
 For AI-assisted query optimization, consider the [DAXPerformanceTunerMCPServer](https://github.com/microsoft/fabric-toolbox/tree/main/tools/DAXPerformanceTunerMCPServer) which identifies anti-patterns and suggests optimizations with semantic equivalence checking.
 
-For DAX optimization, use the [`dax` skill](../../dax/).
+For DAX optimization, use the [`dax-optimisation` skill](../../dax-optimisation/).
 
 ## Performance Targets
 

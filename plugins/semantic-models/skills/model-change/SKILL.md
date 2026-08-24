@@ -1,7 +1,7 @@
 ---
 name: model-change
 version: 26.25
-description: The end-to-end pipeline for changing a semantic model in a local PBIP — confirm the field exists, author, land it in TMDL, validate offline, then prove it against real data. Invoke on "change the model", "add a measure", "add a column", "fix the model", "the number is wrong", "this measure is wrong", "add a relationship", "set up RLS", "add a calculation group", "add a date table", "rename a field", "the model won't open", or any request that ends with a .tmdl file changing. Sequences connect-pbid, power-query, date-table, semantic-model, dax-no-calculate, tmdl, dax and refresh-semantic-model, and carries the Desktop-breaking gotchas that a single-skill route misses.
+description: The end-to-end pipeline for changing a semantic model in a local PBIP — confirm the field exists, author, land it in TMDL, validate offline, then prove it against real data. Invoke on "change the model", "add a measure", "add a column", "fix the model", "the number is wrong", "this measure is wrong", "add a relationship", "set up RLS", "add a calculation group", "add a date table", "rename a field", "the model won't open", or any request that ends with a .tmdl file changing. Sequences connect-pbid, power-query, date-table, semantic-model, dax-standard, tmdl, dax-optimisation and refresh-semantic-model, and carries the Desktop-breaking gotchas that a single-skill route misses.
 ---
 
 # Model change pipeline
@@ -38,7 +38,7 @@ Pick the skill that matches the change:
 
 | Change | Skill |
 |---|---|
-| Measure / calculation | `dax-no-calculate` |
+| Measure / calculation | `dax-standard` |
 | Partition M, folding, a new source | `semantic-models:power-query` |
 | Relationships, RLS, calc groups, star-schema fixes, model quality | `semantic-models:semantic-model` |
 | A date/calendar table | `semantic-models:date-table` — don't hand-copy from `Date Table Template` |
@@ -96,7 +96,7 @@ single-quoted here-strings (`@'...'@`).
 
 ## Wrap-up
 
-- Slow measure? *Now* load `semantic-models:dax` — it is for tuning, not authoring.
+- Slow measure? *Now* load `semantic-models:dax-optimisation` — it is for tuning, not authoring.
 - Model-wide audit? `tabular-editor:te-cli` / `bpa-rules`.
 - Needs a refresh? `semantic-models:refresh-semantic-model`. For a hand-authored PBIP whose
   first open shows "incomplete or no data", refresh through TOM

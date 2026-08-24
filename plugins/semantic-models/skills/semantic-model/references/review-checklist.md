@@ -38,7 +38,7 @@ Produce a markdown report: a count-by-severity summary, detailed findings with o
 - Fact history with no date-range filter or incremental refresh (`incremental-refresh.md`)
 - Columns not needed for reporting or calculations; detail grain finer than any report needs; logic better done upstream
 
-### DAX correctness (`dax-authoring.md`; for query tuning use the `dax` skill)
+### DAX correctness (`dax-authoring.md`; for query tuning use the `dax-optimisation` skill)
 - Filtering whole tables instead of columns in CALCULATE; unguarded division (`DIVIDE` vs bare `/`)
 - Context-blind calculated columns using CALCULATE; variable time-shift bugs
 

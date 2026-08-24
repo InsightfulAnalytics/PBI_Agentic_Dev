@@ -1,10 +1,10 @@
 ---
-name: dax
+name: dax-optimisation
 version: 26.25
 description: DAX performance optimization for semantic models. Automatically invoke when the user asks to "optimize DAX", "fix slow DAX", "DAX performance", "tune a measure", "debug a measure", "DAX anti-patterns", or mentions slow queries or server timings. This skill is for DAX tuning and measurement only, not authoring new measures.
 ---
 
-# DAX
+# DAX Optimisation
 
 Skills and references for writing, debugging, and optimizing DAX in semantic models.
 
@@ -28,6 +28,7 @@ Trace capture and performance profiling:
 
 ## Related Skills
 
+- [`dax-standard`](../dax-standard/) — Authoring measures in the house style; the default for any *new* measure (this skill is for tuning existing ones)
 - [`semantic-model`](../semantic-model/) — Model design, build, and auditing including DAX anti-patterns and best practices
 - [`connect-pbid` (pbi-desktop plugin)](../../../pbi-desktop/skills/connect-pbid/) — Trace capture, performance profiling, EVALUATEANDLOG debugging
 - [`lineage-analysis`](../lineage-analysis/) — Impact analysis before model changes

@@ -63,7 +63,7 @@ Design guidance:
 - Back dropdowns with a dedicated small dataset (`ValidValues` -> `DataSetReference`), not a hand-typed list, so choices stay in sync with the data.
 - Keep cascading parameters shallow. Each cascade level is a separate query on every change and is slow in the service (see `references/renderers.md`).
 - Echo the active selection into the page header (`=Parameters!Region.Value`) so a printed copy records what it was filtered to.
-- Author the DAX with the `semantic-models:dax` skill against the live model first; do not hand-roll it. For a semantic model, a single-value parameter via `TREATAS({ @x }, 'Table'[Col])` is the robust, render-proven pattern; multi-select needs the fragile `RSCustomDaxFilter` construct (see `references/data-sources.md`).
+- Author the DAX with the `semantic-models:dax-optimisation` skill against the live model first; do not hand-roll it. For a semantic model, a single-value parameter via `TREATAS({ @x }, 'Table'[Col])` is the robust, render-proven pattern; multi-select needs the fragile `RSCustomDaxFilter` construct (see `references/data-sources.md`).
 - Lay out the prompt pane with `<ReportParametersLayout>` so related parameters group logically; parameters omitted from it are hidden from the user.
 
 ## Working from a mockup or screenshot

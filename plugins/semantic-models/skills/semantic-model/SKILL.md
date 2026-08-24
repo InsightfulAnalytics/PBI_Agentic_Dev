@@ -18,7 +18,8 @@ Guidance for designing, building, refreshing, and reviewing Power BI / Analysis 
 ## When NOT to use
 
 - Editing report visuals, pages, or formatting: use the `pbir-cli` skill (reports plugin)
-- Isolated DAX query performance tuning: use the `dax` skill
+- Writing or rewriting the DAX of a measure: use the `dax-standard` skill
+- Isolated DAX query performance tuning: use the `dax-optimisation` skill
 - TMDL file syntax mechanics: use the `tmdl` skill (this skill routes to it for the file-edit fallback)
 - The `te` command surface itself: the `te-cli` skill (tabular-editor plugin) is the command reference; this skill is the modeling judgment layered on top
 
@@ -51,7 +52,7 @@ Audit against the categories below and produce prioritized findings with file lo
 - **Critical**: bidirectional ambiguity, circular dependencies, missing data types, orphaned tables, fail-open RLS, limited relationships that silently drop rows
 - **Memory & size**: high-cardinality dictionaries, auto attribute hierarchies (`isAvailableInMDX` on hidden / high-cardinality columns), unsplit DateTime, auto date/time tables, wrong data types, calc columns that should be measures, unused objects
 - **Data reduction**: unfiltered fact history (no incremental refresh), unnecessary columns, detail grain not needed for reporting, logic better pushed upstream
-- **DAX correctness**: filtering tables not columns in CALCULATE, unguarded division, context-blind calc columns, variable time-shift bugs (`references/dax-authoring.md`; for query tuning use the `dax` skill)
+- **DAX correctness**: filtering tables not columns in CALCULATE, unguarded division, context-blind calc columns, variable time-shift bugs (`references/dax-authoring.md`; for query tuning use the `dax-optimisation` skill)
 - **Measure hygiene**: implicit measures, report-scoped measures that belong in the model, ambiguous duplicates
 - **Documentation & AI**: missing descriptions (Copilot truncates after 200 characters), missing display folders, missing synonyms, inconsistent naming (use `standardize-naming-conventions`)
 - **Design**: star-schema violations, mis-marked date table, many-to-many without a bridge, dead inactive relationships
@@ -60,7 +61,7 @@ Audit against the categories below and produce prioritized findings with file lo
 ## Related skills
 
 - `tmdl`: TMDL file authoring (the cascade's step-3 fallback)
-- `dax`: DAX query performance optimization
+- `dax-optimisation`: DAX query performance optimization
 - `connect-pbid`: TOM / ADOMD via PowerShell against a live Desktop instance; traces; the TOM / MCP tier
 - `te-cli`: the `te` command reference
 - `c-sharp-scripting`: TOM C# scripts and macros (`te script`) for properties `te` cannot reach

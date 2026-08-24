@@ -180,6 +180,8 @@ Key fields: `__row__` (zero-based row index, replaces removed `__identity__`), `
 
 ## Gotchas (hard-won)
 
+- **Dataset field names are the DISPLAY names from the Values well, and `nativeQueryRef` is not a rename.** To feed a spec expecting `datum['Amount']` from a measure named `NM Amount`, the projection must carry `"nativeQueryRef": "NM Amount", "displayName": "Amount"`. Getting this wrong fails silently: the query runs, the fields arrive under their native names, every spec reference is undefined, and a null-guarded spec renders an intact skeleton with all-blank cells (axes with explicit scale domains draw even with zero rows). Nothing errors. (Verified 2026-08-24, PL Bridge Demo.)
+
 - **Cross-filtering OUT of a Deneb visual does not behave like a native visual.** An in-visual "slicer" built from Vega signals will not filter the rest of the report. For report-level filtering, place a native slicer next to the Deneb visual and treat Deneb selection as internal to the visual unless `enableSelection` is explicitly configured and tested.
 - **Deneb's native tooltip cannot be styled per-point.** For colored/conditional tooltips, build custom Vega tooltip marks inside the spec.
 - **`jq empty` / `pbir validate` is necessary but not sufficient.** The final check is Desktop/Service rendering — use the `pbi-verify-loop` skill when Desktop is open.

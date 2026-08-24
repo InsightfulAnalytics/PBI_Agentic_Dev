@@ -14,7 +14,8 @@ index. Invoke explicitly with `$<name>` when a match is obvious.
 |---|---|---|
 | Model | `semantic-model` | Any semantic model/dataset work: design, build, measures, relationships, RLS, calc groups, review, audit. Drives `te` CLI first, then TOM, then TMDL |
 | Model | `date-table` | Add the standard 58-column DimDate + `Dates Selected` title measure to a PBIP model |
-| Model | `dax` | DAX performance only: slow measures, server timings, anti-patterns (not authoring) |
+| Model | `dax-standard` | Writing or rewriting a measure: the house DAX style, measure formatting, worked recipes |
+| Model | `dax-optimisation` | DAX performance only: slow measures, server timings, anti-patterns (not authoring) |
 | Model | `power-query` | M expressions, partition queries, query folding, testing/previewing partitions |
 | Model | `refresh-semantic-model` | Refresh a model/dataset; schedules, refresh troubleshooting |
 | Model | `lineage-analysis` | Downstream reports, impact analysis, cross-workspace lineage |

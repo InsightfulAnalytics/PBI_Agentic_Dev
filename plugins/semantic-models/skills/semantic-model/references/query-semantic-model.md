@@ -1,6 +1,6 @@
 # Querying a semantic model
 
-Companion to the `semantic-model` skill (SKILL.md). How to read data and metadata out of a model from the terminal with DAX, for validation, review, and probing. For query *performance* tuning, use the `dax` skill.
+Companion to the `semantic-model` skill (SKILL.md). How to read data and metadata out of a model from the terminal with DAX, for validation, review, and probing. For query *performance* tuning, use the `dax-optimisation` skill.
 
 **Working with `te`:** `te query -q "EVALUATE SUMMARIZECOLUMNS(...)"` (inline) or `te query -f query.dax` (from a file); add `--output-format json` for parseable results and `--output-file out.csv` to save. Target a local file with `-m ./model`, a remote model with `-s <workspace> -d <model>`.
 

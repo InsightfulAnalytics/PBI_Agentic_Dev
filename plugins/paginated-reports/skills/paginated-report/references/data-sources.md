@@ -52,7 +52,7 @@ Find the dataset GUID with `fab` (the `fabric-cli` skill): list semantic models 
 - Column field `DataField` = `TableName[ColumnName]` (table name may contain spaces: `IBM - Search Results[Contract Number]`). Forgetting the table prefix on a column is "field not found" at runtime.
 - Measure field `DataField` = `[MeasureName]`, no table prefix. An aliased measure column (`"Sales", [Sales Amount]`) is returned named `[Sales]`, so its `DataField` is `[Sales]`.
 - `rd:TypeName` differs by field kind, and getting it wrong breaks formatting and parameter matching. Columns return their native model type: integer to `System.Int64`, decimal to `System.Decimal`, date to `System.DateTime`, text to `System.String`. Measures always return `System.String` (PBIDATASET hands back the pre-formatted value). So apply numeric `<Format>` and arithmetic directly to numeric columns, but cast a measure with `=CDbl(Fields!X.Value)` before doing math on it. Confirm types with `te`/`dax` tooling when unsure.
-- Author and validate the DAX with the `semantic-models:dax` skill (or `reports:pbir-cli`'s `model -q`) against the live model first, confirming the exact column/measure names, then paste the `EVALUATE` into `<CommandText>` (XML-escaped). Do not hand-roll DAX for a paginated report; generate it where it can be run and checked.
+- Author and validate the DAX with the `semantic-models:dax-optimisation` skill (or `reports:pbir-cli`'s `model -q`) against the live model first, confirming the exact column/measure names, then paste the `EVALUATE` into `<CommandText>` (XML-escaped). Do not hand-roll DAX for a paginated report; generate it where it can be run and checked.
 
 ### DAX query parameters
 
@@ -61,9 +61,9 @@ A report parameter binds to a `<QueryParameter>` whose `<Value>` is `=Parameters
 - **DAX / PBIDATASET**: the `<QueryParameter Name>` has no `@` (e.g. `Name="Category"`); the DAX references it as `@Category`.
 - **SQL / Azure SQL**: the `<QueryParameter Name>` includes the `@` (e.g. `Name="@Category"`); the T-SQL also uses `@Category`.
 
-Author and verify the DAX itself with the `semantic-models:dax` skill (or `reports:pbir-cli`'s `model -q`) before pasting the `EVALUATE` into `<CommandText>` (XML-escaped) so the query is known-good against the model.
+Author and verify the DAX itself with the `semantic-models:dax-optimisation` skill (or `reports:pbir-cli`'s `model -q`) before pasting the `EVALUATE` into `<CommandText>` (XML-escaped) so the query is known-good against the model.
 
-**Robust default: single-value parameter via `TREATAS`.** This is plain, valid DAX that renders reliably and is what the `dax` skill produces. The `semantic-model-starter.rdl` asset wires exactly this end to end (and it is render-proven against a live model):
+**Robust default: single-value parameter via `TREATAS`.** This is plain, valid DAX that renders reliably and is what the `dax-optimisation` skill produces. The `semantic-model-starter.rdl` asset wires exactly this end to end (and it is render-proven against a live model):
 
 ```xml
 <QueryParameters>
