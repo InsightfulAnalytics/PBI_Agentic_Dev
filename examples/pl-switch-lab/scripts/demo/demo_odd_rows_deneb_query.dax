@@ -1,0 +1,57 @@
+// demo_odd_rows_deneb_query.dax -- candidate G: the minimal dataset a DENEB visual needs
+// to render the whole 13 x 14 Odd Rows P&L.
+//
+// Two reductions, both justified by the measured scaling law (see PL-BRIDGE-DEMO.md):
+//
+//  1. ROWS. Cost collapses when the statement lines sit on a GROUPED column instead of
+//     being 13 independent filtered expressions: the storage engine does one scan
+//     grouped by Line rather than one scan per cell. Only 5 of the 13 statement rows
+//     are irreducible; the other 8 are arithmetic on those 5 (plus two counts), so
+//     Vega derives them client-side for free.
+//
+//  2. COLUMNS. Of the 14 column variants, only 6 are base facts -- Actual, LY, Budget
+//     and their YTD forms. The other 8 (vs LY, vs LY %, Var to Budget, Var to Budget %
+//     and the YTD four) are differences and ratios of those 6, so Vega derives them too.
+//
+// Result: 5 lines x 6 base items = 30 rows carrying 3 measures, from which the spec
+// reconstructs all 182 cells. Compare demo_odd_rows_query.dax (page 6, 182 engine cells).
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+    VAR __Lines =
+        TREATAS (
+            {
+                "Total Income",
+                "Total Cost of Sales",
+                "Gross Profit",
+                "Total Operating Expenses",
+                "Net Profit"
+            },
+            'P&L Lines'[Line]
+        )
+
+    VAR __BaseItems =
+        TREATAS (
+            { "Actual", "LY", "Budget", "YTD Actual", "YTD LY", "YTD Budget" },
+            'P&L View'[P&L View]
+        )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Lines'[Line],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    __Lines,
+    __BaseItems,
+    "Amount", [NM Amount],
+    // These two are NOT per statement line. The shipped row measures carry no bridge
+    // filter, so they must ignore the grouped Line filter -- [NM Stores All Lines] and
+    // [NM Products All Lines] wrap them in REMOVEFILTERS ( 'P&L Lines' ). Without that
+    // they would count only the stores/products that transacted on that line and every
+    // per-unit row derived from them would be silently wrong.
+    "Trading Stores",  [NM Stores All Lines],
+    "Active Products", [NM Products All Lines]
+)
+ORDER BY 'P&L View'[Ordinal], 'P&L Lines'[Line]

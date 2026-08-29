@@ -1,0 +1,64 @@
+table 'P&L Lines'
+	lineageTag: 6fd1fbeb-21f6-4fb1-ada1-31ee4272ad2b
+
+	column LineKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: b750c1b1-e241-41cd-88ea-a4f047eedc85
+		summarizeBy: none
+		sourceColumn: LineKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Line
+		dataType: string
+		lineageTag: 2fce2f8d-1fb7-4a60-a01f-70d491902200
+		summarizeBy: none
+		sourceColumn: Line
+		sortByColumn: LineKey
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column LineClass
+		dataType: string
+		lineageTag: a1a63159-e4cc-403f-b491-93a6e7b13b4e
+		summarizeBy: none
+		sourceColumn: LineClass
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 798dda54-d159-43f7-83f8-3e63b0f9e25a
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Account
+		dataType: string
+		lineageTag: 1966ba8a-a828-4053-8eb2-476d41a50f41
+		summarizeBy: none
+		sourceColumn: Account
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'P&L Lines-edda3e36-fc18-4238-b4ce-2d4b3054e1d1' = m
+		mode: import
+		source =
+				let
+				    Source = Csv.Document(File.Contents(DataFolder & "\pl_lines.csv"), [Delimiter = ",", Columns = 5, Encoding = 65001, QuoteStyle = QuoteStyle.Csv]),
+				    Promoted = Table.PromoteHeaders(Source, [PromoteAllScalars = true]),
+				    Typed = Table.TransformColumnTypes(Promoted, {{"LineKey", Int64.Type}, {"Line", type text}, {"LineClass", type text}, {"AccountKey", Int64.Type}, {"Account", type text}})
+				in
+				    Typed
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

@@ -1,0 +1,1947 @@
+cultureInfo en-US
+
+	linguisticMetadata =
+			{
+			  "Version": "2.0.0",
+			  "Language": "en-US",
+			  "Entities": {
+			    "pl_rows.line": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "P&L Rows",
+			          "ConceptualProperty": "Line"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "P&L Line": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_actual_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Actual Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_budget_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Budget Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_var_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Var Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_var__value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Var % Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_ly_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow LY Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_vs_ly_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow vs LY Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_actual": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Actual"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Budget"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_var": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Var"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_vs_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L vs LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.demo_actual": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Demo Actual"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.demo_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Demo Budget"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "pl_lines.line": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "P&L Lines",
+			          "ConceptualProperty": "Line"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "P&L Line": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_vs_ly__value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow vs LY % Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_actual_ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Actual YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_budget_ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Budget YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_var_ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Var YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_var__ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow Var % YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_ly_ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow LY YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_vs_ly_ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow vs LY YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_vs_ly__ytd_value": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow vs LY % YTD Value"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_vs_ly_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L vs LY %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_actual_ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Actual YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_budget_ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Budget YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_var_ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Var YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_var__ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L Var % YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_ly_ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L LY YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_vs_ly_ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L vs LY YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.pl_vs_ly__ytd": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "P&L vs LY % YTD"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.total_income_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Total Income $"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.line_total_cost_of_sales": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Line Total Cost of Sales"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.gross_profit_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Gross Profit $"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.line_total_operating_expenses": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Line Total Operating Expenses"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.net_profit_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Net Profit $"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.gross_margin_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Gross Margin %"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.hybrid_income_per_store": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Hybrid Income per Store"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_total_income": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Total Income"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_total_cost_of_sales": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Total Cost of Sales"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_gross_profit": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Gross Profit"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_total_operating_expenses": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Total Operating Expenses"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_net_profit": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Net Profit"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_gross_margin_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Gross Margin %"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_net_margin_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Net Margin %"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_cogs__of_income": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM COGS % of Income"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_opex__of_income": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Opex % of Income"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_income_per_trading_store": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Income per Trading Store"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_net_profit_per_trading_store": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Net Profit per Trading Store"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_income_per_active_product": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Income per Active Product"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.nm_trading_stores": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Trading Stores"
+			        }
+			      },
+			      "State": "Generated"
+			    },
+			    "table00_measures.slow_nm_actual": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM Actual"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_vs_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM vs LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_vs_ly_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM vs LY %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM Budget"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_var_to_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM Var to Budget"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var to Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_var_to_budget_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM Var to Budget %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Var to Budget %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_actual": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD Actual"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Actual": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_vs_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD vs LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_vs_ly_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD vs LY %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD vs LY %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD Budget"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_var_to_budget": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD Var to Budget"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var to Budget": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.slow_nm_ytd_var_to_budget_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "Slow NM YTD Var to Budget %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "YTD Var to Budget %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "pl_odd_rows.line": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "P&L Odd Rows",
+			          "ConceptualProperty": "Line"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "P&L Line": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.nm_amount": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Amount"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Amount": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.nm_stores_all_lines": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Stores All Lines"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Trading Stores": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.nm_products_all_lines": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "NM Products All Lines"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Active Products": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_income": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Income"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Income": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_income_act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Income Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Income Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "IncAct": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_income_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Income LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Income LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "IncLY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_income_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Income Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Income Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_cost_of_sales": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Cost of Sales"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Cost of Sales": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_cogs_act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP COGS Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "COGS Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "CogAct": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_cogs_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP COGS LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "COGS LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "CogLY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_cogs_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP COGS Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "COGS Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_gross_profit": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Gross Profit"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gross Profit": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gp_act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GP Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GP Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "GPAct": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gp_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GP LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GP LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "GPLY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gp_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GP Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GP Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_gross_margin": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Gross Margin"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Gross Margin": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gm__act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GM % Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GM % Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gm__ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GM % LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GM % LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_gm__var_bps": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP GM % Var bps"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "GM Var bps": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_operating_expenses": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Operating Expenses"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Operating Expenses": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex_act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "OpxAct": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "OpxLY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_cost_ratio": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Cost Ratio"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Cost Ratio": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex__act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex % Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex % Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex__ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex % LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex % LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_opex__var_bps": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Opex % Var bps"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Opex % Var bps": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_sec_net_profit": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP Sec Net Profit"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Net Profit": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_np_act": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP NP Act"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "NP Act": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "NPAct": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_np_ly": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP NP LY"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "NP LY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        },
+			        {
+			          "NPLY": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "table00_measures.mp_np_var_": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "00_Measures",
+			          "ConceptualProperty": "MP NP Var %"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "NP Var %": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dimdate.year": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "DimDate",
+			          "ConceptualProperty": "Year"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Year": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    },
+			    "dimdate.monthofyear": {
+			      "Definition": {
+			        "Binding": {
+			          "ConceptualEntity": "DimDate",
+			          "ConceptualProperty": "MonthOfYear"
+			        }
+			      },
+			      "State": "Generated",
+			      "Terms": [
+			        {
+			          "Month": {
+			            "State": "Suggested",
+			            "Source": {
+			              "Type": "External",
+			              "Agent": "PowerBI.VisualColumnRename"
+			            },
+			            "Weight": 0.9
+			          }
+			        }
+			      ]
+			    }
+			  }
+			}
+		contentType: json
+

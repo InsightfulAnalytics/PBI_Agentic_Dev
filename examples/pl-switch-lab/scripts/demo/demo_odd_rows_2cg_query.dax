@@ -1,0 +1,36 @@
+// demo_odd_rows_2cg_query.dax -- candidate E: the Odd Rows P&L with NO SWITCH and NO
+// field parameter. Rows come from a second calculation group 'P&L Row' (13 items,
+// precedence 5), columns from 'P&L View' (14 items, precedence 10), and the Values well
+// holds ONE measure, [NM Amount].
+//
+// 'P&L View' must keep the HIGHER precedence so it stays the OUTER wrapper: the row items
+// for ratios and DISTINCTCOUNT rows rely on being substituted INTO the column item's
+// CALCULATE. See gen_row_calcgroup.py for the full argument.
+//
+// This is the query a matrix with rows = 'P&L Row', columns = 'P&L View' would send.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_odd_rows_2cg_query.dax"
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Row'[P&L Row],
+    'P&L Row'[Ordinal],
+    __Yr,
+    "Actual", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "Actual" ),
+    "LY", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "LY" ),
+    "vs LY", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "vs LY" ),
+    "vs LY %", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "vs LY %" ),
+    "Budget", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "Budget" ),
+    "Var to Budget", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "Var to Budget" ),
+    "Var to Budget %", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "Var to Budget %" ),
+    "YTD Actual", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD Actual" ),
+    "YTD LY", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD LY" ),
+    "YTD vs LY", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD vs LY" ),
+    "YTD vs LY %", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD vs LY %" ),
+    "YTD Budget", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD Budget" ),
+    "YTD Var to Budget", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD Var to Budget" ),
+    "YTD Var to Budget %", CALCULATE ( [NM CG Value], 'P&L View'[P&L View] = "YTD Var to Budget %" )
+)
+ORDER BY 'P&L Row'[Ordinal]

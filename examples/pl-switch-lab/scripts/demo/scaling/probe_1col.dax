@@ -1,0 +1,14 @@
+// SCRATCH probe. ONE bridge-filtering column x the 14-item calc-group axis. vs _probe_depth1 (13 identical
+// such columns) this says whether cost scales per COLUMN or is paid once per expression shape.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "c1", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" )
+)
+ORDER BY 'P&L View'[Ordinal]

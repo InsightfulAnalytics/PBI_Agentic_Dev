@@ -1,0 +1,29 @@
+// demo_odd_rows_query.dax -- exactly what the "Odd Rows P&L" matrix plans:
+// 13 row measures x the 14 calculation items on 'P&L View' = 182 cells.
+// Rows come from a field parameter (dispatch at query build), columns from a
+// calculation group (filter-context rewrite). Neither axis is a SWITCH.
+// Pin matches the page filter: Year 2026.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_odd_rows_query.dax"
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "Total Income", [NM Total Income],
+    "Total Cost of Sales", [NM Total Cost of Sales],
+    "Gross Profit", [NM Gross Profit],
+    "Total Operating Expenses", [NM Total Operating Expenses],
+    "Net Profit", [NM Net Profit],
+    "Gross Margin %", [NM Gross Margin %],
+    "Net Margin %", [NM Net Margin %],
+    "COGS % of Income", [NM COGS % of Income],
+    "Opex % of Income", [NM Opex % of Income],
+    "Income per Trading Store", [NM Income per Trading Store],
+    "Net Profit per Trading Store", [NM Net Profit per Trading Store],
+    "Income per Active Product", [NM Income per Active Product],
+    "Trading Stores", [NM Trading Stores]
+)
+ORDER BY 'P&L View'[Ordinal]

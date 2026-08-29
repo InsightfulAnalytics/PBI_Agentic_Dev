@@ -1,0 +1,63 @@
+table 'P&L Rows'
+	lineageTag: d5768189-3ae1-45ca-b719-56d5e1fa230d
+
+	column Line
+		dataType: string
+		lineageTag: 2f44b3fe-de98-4725-a9c9-d22be1027f64
+		summarizeBy: none
+		sourceColumn: Line
+		sortByColumn: Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		dataType: int64
+		formatString: 0
+		lineageTag: bb62bcff-c55b-430e-b8ed-0ff2b467820b
+		summarizeBy: none
+		sourceColumn: Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'P&L Rows-ec5e8e29-ad8a-4aee-84fd-d55873ec3323' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({
+				        {"    Retail Sales", 10},
+				        {"    Wholesale Sales", 20},
+				        {"    Online Sales", 30},
+				        {"    Delivery & Freight Income", 40},
+				        {"Total Income", 50},
+				        {"    Cost of Goods - Retail", 60},
+				        {"    Cost of Goods - Wholesale", 70},
+				        {"    Cost of Goods - Online", 80},
+				        {"    Freight Inwards", 90},
+				        {"    Stock Adjustments", 100},
+				        {"Total Cost of Sales", 110},
+				        {"Gross Profit", 120},
+				        {"    Salaries & Wages - Stores", 130},
+				        {"    Salaries & Wages - Warehouse", 140},
+				        {"    Superannuation", 150},
+				        {"    Rent & Outgoings", 160},
+				        {"    Utilities", 170},
+				        {"    Marketing & Advertising", 180},
+				        {"    Insurance", 190},
+				        {"    Vehicle & Delivery Costs", 200},
+				        {"    Repairs & Maintenance", 210},
+				        {"    IT & Software", 220},
+				        {"    Merchant & Bank Fees", 230},
+				        {"    Depreciation", 240},
+				        {"    Other Expenses", 250},
+				        {"Total Operating Expenses", 260},
+				        {"Net Profit", 270}
+				    }, type table [Line = Text.Type, Sort = Int64.Type])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

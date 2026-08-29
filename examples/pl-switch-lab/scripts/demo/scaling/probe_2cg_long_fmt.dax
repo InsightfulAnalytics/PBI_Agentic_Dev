@@ -1,0 +1,24 @@
+// SCRATCH: same 182 cells PLUS the dynamic format string the visual must evaluate per
+// cell. 'P&L View' (higher precedence) owns the format: Fmt.PL ( SELECTEDMEASURE(), ... )
+// -- and SELECTEDMEASURE() under two calc groups is the FULL rewritten cell expression,
+// so every money cell is computed twice. This is what a DAX benchmark never sees.
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Row'[P&L Row],
+    'P&L Row'[Ordinal],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "v", [NM CG Value],
+    "fmt",
+        VAR __Row = SELECTEDVALUE ( 'P&L Row'[P&L Row] )
+        RETURN
+            SWITCH (
+                TRUE ( ),
+                __Row IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)",
+                __Row IN { "Trading Stores" }, "#,##0;(#,##0)",
+                Fmt.Money ( [NM CG Value] )
+            )
+)

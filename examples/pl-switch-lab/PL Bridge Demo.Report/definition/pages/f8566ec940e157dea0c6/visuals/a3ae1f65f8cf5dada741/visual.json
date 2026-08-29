@@ -1,0 +1,511 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "a3ae1f65f8cf5dada741",
+  "position": {
+    "x": 336,
+    "y": 132,
+    "z": 1000,
+    "width": 1608,
+    "height": 740,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "pivotTable",
+    "query": {
+      "queryState": {
+        "Columns": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "Period View"
+                    }
+                  },
+                  "Property": "Period View"
+                }
+              },
+              "queryRef": "Period View.Period View",
+              "nativeQueryRef": "Period View",
+              "active": true
+            }
+          ]
+        },
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Income"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Income",
+              "nativeQueryRef": "MP Sec Income",
+              "displayName": "Income"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Income Act"
+                }
+              },
+              "queryRef": "00_Measures.MP Income Act",
+              "nativeQueryRef": "MP Income Act",
+              "displayName": "Income Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Income LY"
+                }
+              },
+              "queryRef": "00_Measures.MP Income LY",
+              "nativeQueryRef": "MP Income LY",
+              "displayName": "Income LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Income Var %"
+                }
+              },
+              "queryRef": "00_Measures.MP Income Var %",
+              "nativeQueryRef": "MP Income Var %",
+              "displayName": "Income Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Cost of Sales"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Cost of Sales",
+              "nativeQueryRef": "MP Sec Cost of Sales",
+              "displayName": "Cost of Sales"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP COGS Act"
+                }
+              },
+              "queryRef": "00_Measures.MP COGS Act",
+              "nativeQueryRef": "MP COGS Act",
+              "displayName": "COGS Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP COGS LY"
+                }
+              },
+              "queryRef": "00_Measures.MP COGS LY",
+              "nativeQueryRef": "MP COGS LY",
+              "displayName": "COGS LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP COGS Var %"
+                }
+              },
+              "queryRef": "00_Measures.MP COGS Var %",
+              "nativeQueryRef": "MP COGS Var %",
+              "displayName": "COGS Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Gross Profit"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Gross Profit",
+              "nativeQueryRef": "MP Sec Gross Profit",
+              "displayName": "Gross Profit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GP Act"
+                }
+              },
+              "queryRef": "00_Measures.MP GP Act",
+              "nativeQueryRef": "MP GP Act",
+              "displayName": "GP Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GP LY"
+                }
+              },
+              "queryRef": "00_Measures.MP GP LY",
+              "nativeQueryRef": "MP GP LY",
+              "displayName": "GP LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GP Var %"
+                }
+              },
+              "queryRef": "00_Measures.MP GP Var %",
+              "nativeQueryRef": "MP GP Var %",
+              "displayName": "GP Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Gross Margin"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Gross Margin",
+              "nativeQueryRef": "MP Sec Gross Margin",
+              "displayName": "Gross Margin"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GM % Act"
+                }
+              },
+              "queryRef": "00_Measures.MP GM % Act",
+              "nativeQueryRef": "MP GM % Act",
+              "displayName": "GM % Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GM % LY"
+                }
+              },
+              "queryRef": "00_Measures.MP GM % LY",
+              "nativeQueryRef": "MP GM % LY",
+              "displayName": "GM % LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GM % Var bps"
+                }
+              },
+              "queryRef": "00_Measures.MP GM % Var bps",
+              "nativeQueryRef": "MP GM % Var bps",
+              "displayName": "GM Var bps"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Operating Expenses"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Operating Expenses",
+              "nativeQueryRef": "MP Sec Operating Expenses",
+              "displayName": "Operating Expenses"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex Act"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex Act",
+              "nativeQueryRef": "MP Opex Act",
+              "displayName": "Opex Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex LY"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex LY",
+              "nativeQueryRef": "MP Opex LY",
+              "displayName": "Opex LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex Var %"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex Var %",
+              "nativeQueryRef": "MP Opex Var %",
+              "displayName": "Opex Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Cost Ratio"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Cost Ratio",
+              "nativeQueryRef": "MP Sec Cost Ratio",
+              "displayName": "Cost Ratio"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex % Act"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex % Act",
+              "nativeQueryRef": "MP Opex % Act",
+              "displayName": "Opex % Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex % LY"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex % LY",
+              "nativeQueryRef": "MP Opex % LY",
+              "displayName": "Opex % LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex % Var bps"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex % Var bps",
+              "nativeQueryRef": "MP Opex % Var bps",
+              "displayName": "Opex % Var bps"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Sec Net Profit"
+                }
+              },
+              "queryRef": "00_Measures.MP Sec Net Profit",
+              "nativeQueryRef": "MP Sec Net Profit",
+              "displayName": "Net Profit"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP NP Act"
+                }
+              },
+              "queryRef": "00_Measures.MP NP Act",
+              "nativeQueryRef": "MP NP Act",
+              "displayName": "NP Act"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP NP LY"
+                }
+              },
+              "queryRef": "00_Measures.MP NP LY",
+              "nativeQueryRef": "MP NP LY",
+              "displayName": "NP LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP NP Var %"
+                }
+              },
+              "queryRef": "00_Measures.MP NP Var %",
+              "nativeQueryRef": "MP NP Var %",
+              "displayName": "NP Var %"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "subTotals": [
+        {
+          "properties": {
+            "rowSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "columnSubtotals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "values": [
+        {
+          "properties": {
+            "valuesOnRow": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

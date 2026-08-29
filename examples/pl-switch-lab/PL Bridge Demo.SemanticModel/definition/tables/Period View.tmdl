@@ -1,0 +1,155 @@
+table 'Period View'
+	lineageTag: b619ea4b-156a-5f36-9adb-ffabd122c2a0
+
+	calculationGroup
+		precedence: 20
+
+		calculationItem Jan =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 1
+				)
+
+		calculationItem Feb =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 2
+				)
+
+		calculationItem Mar =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 3
+				)
+
+		calculationItem Apr =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 4
+				)
+
+		calculationItem May =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 5
+				)
+
+		calculationItem Jun =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 6
+				)
+
+		calculationItem Jul =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 7
+				)
+
+		calculationItem Aug =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 8
+				)
+
+		calculationItem Sep =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 9
+				)
+
+		calculationItem Oct =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 10
+				)
+
+		calculationItem Nov =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 11
+				)
+
+		calculationItem Dec =
+				
+				CALCULATE (
+					SELECTEDMEASURE ( ),
+					ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+					'DimDate'[MonthOfYear] = 12
+				)
+
+		calculationItem YTD =
+				
+				VAR __CurP =
+					CALCULATE (
+						MAX ( 'DimDate'[MonthOfYear] ),
+						REMOVEFILTERS ( 'DimDate' ),
+						'DimDate'[MonthOffset] = 0
+					)
+				RETURN
+					CALCULATE (
+						SELECTEDMEASURE ( ),
+						ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+						'DimDate'[MonthOfYear] <= __CurP
+					)
+
+		calculationItem YTG =
+				
+				VAR __CurP =
+					CALCULATE (
+						MAX ( 'DimDate'[MonthOfYear] ),
+						REMOVEFILTERS ( 'DimDate' ),
+						'DimDate'[MonthOffset] = 0
+					)
+				RETURN
+					CALCULATE (
+						SELECTEDMEASURE ( ),
+						ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ),
+						'DimDate'[MonthOfYear] > __CurP
+					)
+
+		calculationItem 'Full Year' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), ALLEXCEPT ( 'DimDate', 'DimDate'[Year] ) )
+
+	column 'Period View'
+		dataType: string
+		lineageTag: c3269684-8edc-55f3-8573-0f715d3d7555
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 18dc4015-7136-5e7d-af7e-b6f96281a464
+		summarizeBy: none
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

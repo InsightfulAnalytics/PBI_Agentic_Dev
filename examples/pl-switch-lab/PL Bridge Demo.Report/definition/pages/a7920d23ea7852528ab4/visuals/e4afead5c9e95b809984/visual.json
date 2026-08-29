@@ -1,0 +1,70 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "e4afead5c9e95b809984",
+  "position": {
+    "x": 1148,
+    "y": 682,
+    "z": 3000,
+    "height": 270,
+    "width": 796,
+    "tabOrder": 5000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "What it costs you",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI Semibold', wf_segoe-ui_semibold, helvetica, arial, sans-serif",
+                      "fontSize": "14pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "The spec has to reimplement what the matrix and the calculation group gave for free: column headers, row order, subtotal emphasis, and all the number formatting: the $M/$K auto-scaling, the percent rows, the count row, and the rule that a '%' COLUMN overrides its row's own format.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "It also drops the dynamic format string, and that is not a small thing. Measured separately: evaluating [NM Row Value]'s formatStringDefinition costs as much again as the value itself (622 -> 1,270 ms warm), because it calls Fmt.Money ( [NM Row Value] ) and re-runs the whole SWITCH per cell. A DAX query benchmark never sees that; the visual pays it.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "No cross-filtering out of the visual, and no prior art: the Deneb community corpus has financial charts but no statement table.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

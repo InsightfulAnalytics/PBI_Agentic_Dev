@@ -1,0 +1,18 @@
+DEFINE
+    VAR __ScA = TREATAS({"Actual"}, 'Scenario A Switch'[Scenario A])
+    VAR __ScB = TREATAS({"Outlook"}, 'Scenario B Switch'[Scenario B])
+    VAR __TP = TREATAS({"FYTD"}, 'Time Period Switch'[Time Period Switch])
+    VAR __Yr = TREATAS({2026}, 'Dates'[Year])
+EVALUATE
+SUMMARIZECOLUMNS(
+    'P&L Account Switch'[P&L Account Name],
+    'P&L Account Switch'[Sort],
+    __ScA, __ScB, __TP, __Yr,
+    "Actual", [P&L A Value],
+    "Outlook", [P&L B Value],
+    "Vs", [P&L Vs Value],
+    "V", [P&L Vol Value],
+    "R", [P&L Rate Value],
+    "M", [P&L Mix Value]
+)
+ORDER BY 'P&L Account Switch'[Sort]

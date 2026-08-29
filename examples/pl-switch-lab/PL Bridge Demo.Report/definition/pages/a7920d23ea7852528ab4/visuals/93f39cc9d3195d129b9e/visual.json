@@ -1,0 +1,376 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "93f39cc9d3195d129b9e",
+  "position": {
+    "x": 336,
+    "y": 132,
+    "z": 1000,
+    "height": 530,
+    "width": 1608,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "P&L Lines"
+                    }
+                  },
+                  "Property": "Line"
+                }
+              },
+              "queryRef": "P&L Lines.Line",
+              "nativeQueryRef": "Line"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "P&L View"
+                    }
+                  },
+                  "Property": "P&L View"
+                }
+              },
+              "queryRef": "P&L View.P&L View",
+              "nativeQueryRef": "P&L View"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "NM Amount"
+                }
+              },
+              "queryRef": "00_Measures.NM Amount",
+              "nativeQueryRef": "NM Amount",
+              "displayName": "Amount"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "NM Stores All Lines"
+                }
+              },
+              "queryRef": "00_Measures.NM Stores All Lines",
+              "nativeQueryRef": "NM Stores All Lines",
+              "displayName": "Trading Stores"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "NM Products All Lines"
+                }
+              },
+              "queryRef": "00_Measures.NM Products All Lines",
+              "nativeQueryRef": "NM Products All Lines",
+              "displayName": "Active Products"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vegaLite'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"$schema\":\"https://vega.github.io/schema/vega-lite/v6.json\",\"data\":{\"name\":\"dataset\"},\"padding\":{\"left\":4,\"top\":10,\"right\":16,\"bottom\":14},\"transform\":[{\"pivot\":\"Line\",\"value\":\"Amount\",\"op\":\"max\",\"groupby\":[\"P&L View\",\"Trading Stores\",\"Active Products\"]},{\"calculate\":\"datum[''Gross Profit''] / datum[''Total Income'']\",\"as\":\"Gross Margin %\"},{\"calculate\":\"datum[''Net Profit''] / datum[''Total Income'']\",\"as\":\"Net Margin %\"},{\"calculate\":\"-datum[''Total Cost of Sales''] / datum[''Total Income'']\",\"as\":\"COGS % of Income\"},{\"calculate\":\"-datum[''Total Operating Expenses''] / datum[''Total Income'']\",\"as\":\"Opex % of Income\"},{\"calculate\":\"datum[''Total Income''] / datum[''Trading Stores'']\",\"as\":\"Income per Trading Store\"},{\"calculate\":\"datum[''Net Profit''] / datum[''Trading Stores'']\",\"as\":\"Net Profit per Trading Store\"},{\"calculate\":\"datum[''Total Income''] / datum[''Active Products'']\",\"as\":\"Income per Active Product\"},{\"fold\":[\"Total Income\",\"Total Cost of Sales\",\"Gross Profit\",\"Total Operating Expenses\",\"Net Profit\",\"Gross Margin %\",\"Net Margin %\",\"COGS % of Income\",\"Opex % of Income\",\"Income per Trading Store\",\"Net Profit per Trading Store\",\"Income per Active Product\",\"Trading Stores\"],\"as\":[\"metric\",\"baseValue\"]},{\"pivot\":\"P&L View\",\"value\":\"baseValue\",\"op\":\"max\",\"groupby\":[\"metric\"]},{\"calculate\":\"datum[''Actual''] - datum[''LY'']\",\"as\":\"vs LY\"},{\"calculate\":\"(datum[''Actual''] - datum[''LY'']) / datum[''LY'']\",\"as\":\"vs LY %\"},{\"calculate\":\"datum[''Actual''] - datum[''Budget'']\",\"as\":\"Var to Budget\"},{\"calculate\":\"(datum[''Actual''] - datum[''Budget'']) / datum[''Budget'']\",\"as\":\"Var to Budget %\"},{\"calculate\":\"datum[''YTD Actual''] - datum[''YTD LY'']\",\"as\":\"YTD vs LY\"},{\"calculate\":\"(datum[''YTD Actual''] - datum[''YTD LY'']) / datum[''YTD LY'']\",\"as\":\"YTD vs LY %\"},{\"calculate\":\"datum[''YTD Actual''] - datum[''YTD Budget'']\",\"as\":\"YTD Var to Budget\"},{\"calculate\":\"(datum[''YTD Actual''] - datum[''YTD Budget'']) / datum[''YTD Budget'']\",\"as\":\"YTD Var to Budget %\"},{\"fold\":[\"Actual\",\"LY\",\"vs LY\",\"vs LY %\",\"Budget\",\"Var to Budget\",\"Var to Budget %\",\"YTD Actual\",\"YTD LY\",\"YTD vs LY\",\"YTD vs LY %\",\"YTD Budget\",\"YTD Var to Budget\",\"YTD Var to Budget %\"],\"as\":[\"column\",\"value\"]},{\"calculate\":\"indexof(datum.column, ''%'') >= 0\",\"as\":\"isPctCol\"},{\"calculate\":\"indexof([''vs LY'',''vs LY %'',''Var to Budget'',''Var to Budget %'',''YTD vs LY'',''YTD vs LY %'',''YTD Var to Budget'',''YTD Var to Budget %''], datum.column) >= 0\",\"as\":\"isVarCol\"},{\"calculate\":\"datum.isPctCol || indexof([''Gross Margin %'',''Net Margin %'',''COGS % of Income'',''Opex % of Income''], datum.metric) >= 0\",\"as\":\"isPct\"},{\"calculate\":\"indexof([''Gross Profit'',''Net Profit''], datum.metric) >= 0\",\"as\":\"isSubtotal\"},{\"calculate\":\"indexof([''Total Income'',''Total Cost of Sales'',''Gross Profit'',''Total Operating Expenses'',''Net Profit'',''Gross Margin %'',''Net Margin %'',''COGS % of Income'',''Opex % of Income'',''Income per Trading Store'',''Net Profit per Trading Store'',''Income per Active Product'',''Trading Stores''], datum.metric)\",\"as\":\"rowIdx\"},{\"calculate\":\"indexof([''Actual'',''LY'',''vs LY'',''vs LY %'',''Budget'',''Var to Budget'',''Var to Budget %'',''YTD Actual'',''YTD LY'',''YTD vs LY'',''YTD vs LY %'',''YTD Budget'',''YTD Var to Budget'',''YTD Var to Budget %''], datum.column)\",\"as\":\"colIdx\"},{\"calculate\":\"datum.rowIdx + 0.5\",\"as\":\"rowMid\"},{\"calculate\":\"datum.rowIdx + 1\",\"as\":\"rowEnd\"},{\"calculate\":\"datum.colIdx + 1\",\"as\":\"colEnd\"},{\"calculate\":\"abs(datum.value)\",\"as\":\"absValue\"},{\"calculate\":\"datum.isPct ? format(datum.absValue, ''.1%'') : (datum.metric === ''Trading Stores'' ? format(datum.absValue, '',.0f'') : (datum.absValue >= 999950 ? ''$'' + format(datum.absValue / 1000000, '',.1f'') + ''M'' : (datum.absValue >= 999.5 ? ''$'' + format(datum.absValue / 1000, '',.1f'') + ''K'' : ''$'' + format(datum.absValue, '',.0f''))))\",\"as\":\"body\"},{\"calculate\":\"(!isValid(datum.value) || !isFinite(datum.value)) ? '''' : (datum.value < 0 ? ''('' + datum.body + '')'' : datum.body)\",\"as\":\"cell\"},{\"calculate\":\"-0.11\",\"as\":\"headerRuleY\"}],\"layer\":[{\"description\":\"zebra banding on odd rows, spanning the label gutter and the grid\",\"transform\":[{\"filter\":\"datum.column === ''Actual'' && datum.rowIdx % 2 === 1\"}],\"mark\":{\"type\":\"rect\",\"fill\":\"#161C24\",\"fillOpacity\":0.045,\"x\":-280,\"x2\":\"width\"},\"encoding\":{\"y\":{\"field\":\"rowIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"y2\":{\"field\":\"rowEnd\"}}},{\"description\":\"accent rule under the column headers\",\"transform\":[{\"filter\":\"datum.column === ''Actual'' && datum.metric === ''Total Income''\"}],\"mark\":{\"type\":\"rule\",\"stroke\":{\"expr\":\"pbiColor(0)\"},\"strokeWidth\":1.5,\"opacity\":0.9,\"x\":-280,\"x2\":\"width\",\"fontSize\":12},\"encoding\":{\"y\":{\"field\":\"headerRuleY\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null}}},{\"description\":\"vertical dividers: end of the label gutter, and the period / YTD split\",\"transform\":[{\"filter\":\"datum.metric === ''Total Income'' && (datum.column === ''Actual'' || datum.column === ''YTD Actual'')\"}],\"mark\":{\"type\":\"rule\",\"stroke\":\"#D3D8DF\",\"y\":-46},\"encoding\":{\"x\":{\"field\":\"colIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[0,14],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"strokeWidth\":{\"condition\":{\"test\":\"datum.column === ''YTD Actual''\",\"value\":1.5},\"value\":1}}},{\"description\":\"rule above each subtotal line and above the ratio block\",\"transform\":[{\"filter\":\"datum.column === ''Actual'' && (datum.isSubtotal || datum.metric === ''Gross Margin %'')\"}],\"mark\":{\"type\":\"rule\",\"stroke\":\"#9AA3AF\",\"strokeWidth\":1,\"opacity\":0.8,\"x\":-280,\"x2\":\"width\"},\"encoding\":{\"y\":{\"field\":\"rowIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null}}},{\"description\":\"closing rule under the last row\",\"transform\":[{\"filter\":\"datum.column === ''Actual'' && datum.metric === ''Trading Stores''\"}],\"mark\":{\"type\":\"rule\",\"stroke\":\"#9AA3AF\",\"strokeWidth\":1,\"opacity\":0.8,\"x\":-280,\"x2\":\"width\"},\"encoding\":{\"y\":{\"field\":\"rowEnd\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null}}},{\"description\":\"half captions\",\"transform\":[{\"filter\":\"datum.metric === ''Total Income'' && (datum.column === ''Actual'' || datum.column === ''YTD Actual'')\"},{\"calculate\":\"datum.column === ''Actual'' ? ''CURRENT PERIOD'' : ''YEAR TO DATE''\",\"as\":\"groupLabel\"}],\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"middle\",\"fontSize\":11.5,\"fontWeight\":700,\"fill\":{\"expr\":\"pbiColor(0)\"},\"opacity\":0.95,\"y\":-38,\"xOffset\":4},\"encoding\":{\"x\":{\"field\":\"colIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[0,14],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"text\":{\"field\":\"groupLabel\",\"type\":\"nominal\"}}},{\"description\":\"row-label gutter caption\",\"transform\":[{\"filter\":\"datum.metric === ''Total Income'' && datum.column === ''Actual''\"}],\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"middle\",\"fontSize\":11.5,\"fontWeight\":700,\"fill\":\"#4A5361\",\"y\":-38,\"x\":-276,\"text\":\"STATEMENT LINE\"},\"encoding\":{}},{\"description\":\"column headers (''YTD '' stripped, the half caption already says it)\",\"transform\":[{\"filter\":\"datum.metric === ''Total Income''\"},{\"calculate\":\"indexof(datum.column, ''YTD '') === 0 ? slice(datum.column, 4) : datum.column\",\"as\":\"headerBase\"},{\"calculate\":\"indexof(datum.headerBase, ''Var to '') === 0 ? [''Var to'', slice(datum.headerBase, 7)] : datum.headerBase\",\"as\":\"headerText\"}],\"mark\":{\"type\":\"text\",\"align\":\"right\",\"baseline\":\"middle\",\"fontSize\":12,\"y\":-22,\"xOffset\":-11,\"fontWeight\":{\"expr\":\"(datum.column === ''Actual'' || datum.column === ''YTD Actual'') ? 700 : 600\"},\"lineHeight\":11},\"encoding\":{\"x\":{\"field\":\"colEnd\",\"type\":\"quantitative\",\"scale\":{\"domain\":[0,14],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"text\":{\"field\":\"headerText\",\"type\":\"nominal\"},\"fill\":{\"condition\":{\"test\":\"datum.column === ''Actual'' || datum.column === ''YTD Actual''\",\"value\":\"#000000\"},\"value\":\"#4A5361\"}}},{\"description\":\"row labels in the left gutter\",\"transform\":[{\"filter\":\"datum.column === ''Actual''\"}],\"mark\":{\"type\":\"text\",\"align\":\"left\",\"baseline\":\"middle\",\"fontSize\":14,\"x\":-276,\"limit\":300,\"fontWeight\":{\"expr\":\"datum.isSubtotal ? 700 : 400\"}},\"encoding\":{\"y\":{\"field\":\"rowMid\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"text\":{\"field\":\"metric\",\"type\":\"nominal\"},\"fill\":{\"condition\":{\"test\":\"datum.isSubtotal\",\"value\":\"#000000\"},\"value\":\"#1F252D\"}}},{\"description\":\"the 182 numbers\",\"mark\":{\"type\":\"text\",\"align\":\"right\",\"baseline\":\"middle\",\"fontSize\":14,\"xOffset\":-11,\"fontWeight\":{\"expr\":\"datum.isSubtotal ? 700 : 400\"}},\"encoding\":{\"x\":{\"field\":\"colEnd\",\"type\":\"quantitative\",\"scale\":{\"domain\":[0,14],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"y\":{\"field\":\"rowMid\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"text\":{\"field\":\"cell\",\"type\":\"nominal\"},\"fill\":{\"condition\":[{\"test\":\"datum.isVarCol && datum.value < 0\",\"value\":\"#B42318\"},{\"test\":\"datum.isSubtotal\",\"value\":\"#000000\"},{\"test\":\"datum.column === ''Actual'' || datum.column === ''YTD Actual''\",\"value\":\"#05070A\"}],\"value\":\"#1F252D\"}}},{\"description\":\"invisible full-cell rects so every cell is hoverable, blanks included\",\"mark\":{\"type\":\"rect\",\"fill\":\"#161C24\",\"fillOpacity\":0},\"encoding\":{\"x\":{\"field\":\"colIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[0,14],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"x2\":{\"field\":\"colEnd\"},\"y\":{\"field\":\"rowIdx\",\"type\":\"quantitative\",\"scale\":{\"domain\":[13,0],\"nice\":false,\"zero\":false,\"clamp\":false},\"axis\":null,\"title\":null},\"y2\":{\"field\":\"rowEnd\"},\"tooltip\":[{\"field\":\"metric\",\"type\":\"nominal\",\"title\":\"Line\"},{\"field\":\"column\",\"type\":\"nominal\",\"title\":\"Column\"},{\"field\":\"cell\",\"type\":\"nominal\",\"title\":\"Value\"},{\"field\":\"value\",\"type\":\"quantitative\",\"title\":\"Raw\",\"format\":\",.4f\"}]}}]}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"autosize\":{\"type\":\"fit\",\"contains\":\"padding\",\"resize\":true},\"background\":\"transparent\",\"view\":{\"stroke\":null},\"text\":{\"font\":\"Segoe UI, Segoe UI Web (West European), -apple-system, Helvetica Neue, sans-serif\",\"fill\":\"#4C5563\"},\"rect\":{\"stroke\":null},\"rule\":{\"strokeCap\":\"butt\"}}'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableContextMenu": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "enableSelection": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "enableHighlight": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            },
+            "logLevel": {
+              "expr": {
+                "Literal": {
+                  "Value": "3D"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'6.4.1'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stateManagement": [
+        {
+          "properties": {
+            "viewportHeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "500D"
+                }
+              }
+            },
+            "viewportWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "1578D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "developer": [
+        {
+          "properties": {
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'1.9.1.0'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  },
+  "filterConfig": {
+    "filters": [
+      {
+        "name": "186150b06baf5e858446",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "P&L Lines"
+              }
+            },
+            "Property": "Line"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "pl",
+              "Entity": "P&L Lines",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "pl"
+                          }
+                        },
+                        "Property": "Line"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Total Income'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Total Cost of Sales'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Gross Profit'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Total Operating Expenses'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Net Profit'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      },
+      {
+        "name": "157664f1ae0f532e80ef",
+        "field": {
+          "Column": {
+            "Expression": {
+              "SourceRef": {
+                "Entity": "P&L View"
+              }
+            },
+            "Property": "P&L View"
+          }
+        },
+        "type": "Categorical",
+        "filter": {
+          "Version": 2,
+          "From": [
+            {
+              "Name": "pv",
+              "Entity": "P&L View",
+              "Type": 0
+            }
+          ],
+          "Where": [
+            {
+              "Condition": {
+                "In": {
+                  "Expressions": [
+                    {
+                      "Column": {
+                        "Expression": {
+                          "SourceRef": {
+                            "Source": "pv"
+                          }
+                        },
+                        "Property": "P&L View"
+                      }
+                    }
+                  ],
+                  "Values": [
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Actual'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'LY'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'Budget'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'YTD Actual'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'YTD LY'"
+                        }
+                      }
+                    ],
+                    [
+                      {
+                        "Literal": {
+                          "Value": "'YTD Budget'"
+                        }
+                      }
+                    ]
+                  ]
+                }
+              }
+            }
+          ]
+        },
+        "howCreated": "User"
+      }
+    ]
+  }
+}

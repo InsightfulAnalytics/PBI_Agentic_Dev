@@ -1,0 +1,76 @@
+// bridge_minimal.dax -- the smallest honest version of the E6 "fast bridge".
+// Six P&L lines, one measure, zero SWITCH branches. Run against the lab model.
+// Column 'Bridge' is the pattern; column 'E6' is the full production measure, for tie-out.
+
+DEFINE
+    // Pin the disconnected switch tables so the query is deterministic.
+    VAR __ScA = TREATAS ( { "Actual" }, 'Scenario A Switch'[Scenario A] )
+    VAR __TP  = TREATAS ( { "FYTD" },   'Time Period Switch'[Time Period Switch] )
+    VAR __Yr  = TREATAS ( { 2026 },     'Dates'[Year] )
+
+    MEASURE '00_Measures'[Bridge Value] =
+        // 1. Which report line is this cell on?
+        VAR __Line = SELECTEDVALUE ( 'P&L Account Switch'[P&L Account Name] )
+
+        // 2. The bridge: one row per (report line, account) pair.
+        //    A subtotal line is just a line with more rows -- no addition, no branch.
+        //    In production this is a real 2-column table in the model, not a DATATABLE.
+        VAR __Bridge =
+            DATATABLE (
+                "Line", STRING, "Account", STRING,
+                {
+                    { "Gross Sales inc Excise ($)", "Gross Sales inc Excise" },
+                    { "Excise ($)",                 "Excise" },
+
+                    { "Gross Sales ($)",            "Gross Sales inc Excise" },
+                    { "Gross Sales ($)",            "Excise" },
+
+                    { "Revenue ($)",                "Gross Sales inc Excise" },
+                    { "Revenue ($)",                "Excise" },
+                    { "Revenue ($)",                "Product Disc: Std" },
+                    { "Revenue ($)",                "Product Disc: Promo" },
+                    { "Revenue ($)",                "Trading Terms" },
+                    { "Revenue ($)",                "Pourage Rights" },
+
+                    { "Cost of Sales - Stan ($)",   "Cost of Sales - Stan" },
+
+                    { "Gross Margin (std)($)",      "Gross Sales inc Excise" },
+                    { "Gross Margin (std)($)",      "Excise" },
+                    { "Gross Margin (std)($)",      "Product Disc: Std" },
+                    { "Gross Margin (std)($)",      "Product Disc: Promo" },
+                    { "Gross Margin (std)($)",      "Trading Terms" },
+                    { "Gross Margin (std)($)",      "Pourage Rights" },
+                    { "Gross Margin (std)($)",      "Cost of Sales - Stan" }
+                }
+            )
+
+        // 3. Turn this line's account list into a filter on the real dimension.
+        //    SELECTCOLUMNS strips lineage; TREATAS grafts on the lineage of the
+        //    real column, so CALCULATE accepts it as a filter argument.
+        VAR __Accounts =
+            TREATAS (
+                SELECTCOLUMNS ( FILTER ( __Bridge, [Line] = __Line ), "@a", [Account] ),
+                'Account Mapping'[Account Name]
+            )
+
+        // 4. One aggregation. Same shape for every line in the statement.
+        RETURN
+            DIVIDE (
+                CALCULATE ( SUM ( 'Financials'[Value] ), 'Financials'[Scenario] = "Actual", __Accounts ),
+                1000000
+            )
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'P&L Account Switch'[P&L Account Name],
+        'P&L Account Switch'[Sort],
+        __ScA, __TP, __Yr,
+        "Bridge", [Bridge Value],
+        "E6", [E6 P&L A Value]
+    ),
+    'P&L Account Switch'[P&L Account Name]
+        IN { "Gross Sales inc Excise ($)", "Excise ($)", "Gross Sales ($)",
+             "Revenue ($)", "Cost of Sales - Stan ($)", "Gross Margin (std)($)" }
+)
+ORDER BY 'P&L Account Switch'[Sort]

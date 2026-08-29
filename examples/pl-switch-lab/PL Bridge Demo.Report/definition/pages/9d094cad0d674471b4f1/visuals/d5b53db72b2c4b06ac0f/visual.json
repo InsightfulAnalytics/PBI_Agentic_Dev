@@ -1,0 +1,124 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "d5b53db72b2c4b06ac0f",
+  "position": {
+    "x": 1148,
+    "y": 682,
+    "z": 3000,
+    "height": 270,
+    "width": 796
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "The hidden second switch",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI Semibold', wf_segoe-ui_semibold, helvetica, arial, sans-serif",
+                      "fontSize": "13pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "One SWITCH measure spans money rows, percent rows and a count row, so it cannot carry a single static format. It has to branch again inside its own format string:",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "formatStringDefinition =",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "SWITCH ( TRUE ( ),",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "  SELECTEDVALUE ( 'P&L Odd Rows'[Line] )",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "      IN { \"Gross Margin %\", … }, \"0.0%;(0.0%)\",",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "  SELECTEDVALUE ( … ) IN { \"Trading Stores\" }, \"#,##0\",",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "  Fmt.Money ( [Slow NM Actual] ) )",
+                    "textStyle": {
+                      "fontFamily": "Consolas",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "The calculation group gets this for free: SELECTEDMEASUREFORMATSTRING() already knows what kind of row it is on. Here the knowledge has to be restated, per measure.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "11pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

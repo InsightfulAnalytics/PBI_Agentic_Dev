@@ -1,0 +1,33 @@
+/// Money format string, auto-scaled: >=1M shows $x.xM, >=1K shows $x.xK.
+/// @param {NUMERIC} val - the value being formatted
+/// @returns a VBA-style format string
+function 'Fmt.Money' =
+		
+		(val: NUMERIC) =>
+		    // thresholds sit just under the round number so a value that would
+		    // render as "1,000.0K" tips into the M branch instead
+		    SWITCH (
+		        TRUE ( ),
+		        ABS ( val ) >= 999950, "$#,##0,,.0""M"";($#,##0,,.0""M"")",
+		        ABS ( val ) >= 999.5, "$#,##0,.0""K"";($#,##0,.0""K"")",
+		        "$#,##0;($#,##0)"
+		    )
+	lineageTag: f29593ff-bed2-40cb-a766-d562864faa24
+
+/// The one format rule for the whole P&L: percent rows stay percent, money rows
+/// auto-scale, anything else keeps the measure's own format. Called from every
+/// calculation item instead of repeating the logic 14 times.
+/// @param {NUMERIC} val - the value being formatted
+/// @param baseFormat - the row measure's own format string
+/// @returns a VBA-style format string
+function 'Fmt.PL' =
+		
+		(val: NUMERIC, baseFormat) =>
+		    SWITCH (
+		        TRUE ( ),
+		        CONTAINSSTRING ( baseFormat, "%" ), "0.0%;(0.0%)",
+		        CONTAINSSTRING ( baseFormat, "$" ), Fmt.Money ( val ),
+		        baseFormat
+		    )
+	lineageTag: c8171d6a-2ecb-4918-a996-582e35ffadd5
+

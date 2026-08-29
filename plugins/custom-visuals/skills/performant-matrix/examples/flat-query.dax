@@ -1,0 +1,115 @@
+// ============================================================================
+// flat-query.dax : the measure floor probe
+// ============================================================================
+//
+// WHAT IT PROVES
+//   This runs the SAME base measures that the matrix's dispatch measure
+//   switches to, one measure per column, with NO dispatch axis on rows. The
+//   elapsed time is the floor. No visual technique goes below it: a bridge
+//   table, a native restructure and a Deneb grid all still have to evaluate
+//   these measures.
+//
+//   Timed against the dispatch query under the SAME pinned filters, it gives
+//   you the only two numbers that decide the fix:
+//
+//     dispatch overhead = dispatch query - flat query   what a structural fix can win
+//     measure floor     = flat query                    what no fix can win
+//
+//   If the flat query is already most of the dispatch query, STOP optimising
+//   the visual. Go optimise the measures, or put fewer of them on screen.
+//   Worked example from the field: 1,997 ms warm dispatch against a 1,500 ms
+//   warm flat query is roughly 500 ms of dispatch sitting on a 1,500 ms
+//   measure floor, so a structural fix alone was never going to make that
+//   visual fast.
+//
+//   Second reading, free: run it at least twice. Warm close to cold means
+//   formula-engine bound (plan construction, not scanning). Warm much faster
+//   than cold means the scans are real and caching helps. Supporting signal
+//   only. Warm close to cold confirms dispatch; warm much faster than cold
+//   does NOT rule it out. Only the flat-versus-dispatch comparison settles it.
+//
+// TWO WAYS TO GET THIS WRONG
+//   1. Not pinning the slicers. An unpinned query runs against a wider or
+//      emptier filter context and gives you a number with no relationship to
+//      the visual you are trying to explain. Every filter below is mandatory.
+//   2. Dropping the totals. If the matrix shows a total column or subtotal
+//      rows, the flat query needs the matching ALLSELECTED total measures or
+//      you have timed a different visual. On the field model, deleting the 36
+//      total columns took 1,580 ms to 819 ms cold: half the columns, roughly
+//      half the time, and a meaningless comparison.
+//
+// ============================================================================
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+
+        // ---------------------------------------------------------------
+        // GROUP BY: every axis the matrix has EXCEPT the dispatch column.
+        // 'Statement Rows'[Items] (or whatever the SWITCH reads with
+        // SELECTEDVALUE) must NOT appear here. Removing it is the point.
+        // ---------------------------------------------------------------
+        'Dim Business Unit'[Business Unit],
+
+        // ---------------------------------------------------------------
+        // THE BASE MEASURES the dispatch measure switches to. One column
+        // each, in the same order as the matrix rows. Do not write new
+        // measures for this: the whole value of the probe is that it uses
+        // the measures that are already there.
+        // ---------------------------------------------------------------
+        "Revenue",              [Revenue],
+        "Cost of Sales",        [Cost of Sales],
+        "Gross Profit",         [Gross Profit],
+
+        // The comparison slot, if the matrix has one (Var LY, Budget, ...).
+        "Revenue PY",           [Revenue PY],
+        "Cost of Sales PY",     [Cost of Sales PY],
+        "Gross Profit PY",      [Gross Profit PY],
+
+        // ---------------------------------------------------------------
+        // THE TOTALS. Include these whenever the matrix shows a total
+        // column or a subtotal row. One per base measure above.
+        // ---------------------------------------------------------------
+        "Revenue Total",        CALCULATE ( [Revenue],        ALLSELECTED ( 'Dim Business Unit' ) ),
+        "Cost of Sales Total",  CALCULATE ( [Cost of Sales],  ALLSELECTED ( 'Dim Business Unit' ) ),
+        "Gross Profit Total",   CALCULATE ( [Gross Profit],   ALLSELECTED ( 'Dim Business Unit' ) )
+    ),
+
+    // -------------------------------------------------------------------
+    // PINNED CONTEXT: one line per slicer that is set on the page, matching
+    // the screenshot you are trying to explain. The dispatch query you
+    // compare against must carry these same filters, unchanged.
+    //
+    // If the engine refuses SUMMARIZECOLUMNS inside CALCULATETABLE (older
+    // builds do), pass these as filter-table arguments to SUMMARIZECOLUMNS
+    // instead. That is what Performance Analyzer's Copy query emits anyway.
+    // -------------------------------------------------------------------
+    'Dim Calendar'[Fiscal Year] = 2025,
+    'Dim Scenario'[Scenario]    = "Actual"
+)
+
+// ============================================================================
+// ADAPTING THIS
+//   1. Open the dispatch measure. List every measure its SWITCH returns.
+//      Those are your columns. Section-header branches that return a literal
+//      0 contribute nothing and can be left out.
+//   2. Replace the group-by column with the matrix's non-dispatch axis. If
+//      the matrix has no other axis, drop the group-by entirely and return a
+//      single row: SUMMARIZECOLUMNS ( "Revenue", [Revenue], ... ).
+//   3. Copy the pinned filters verbatim from the dispatch query.
+//   4. Save the dispatch query beside this one and time BOTH:
+//        run_dax.ps1 -QueryFile .\dispatch.dax -Runs 2 -Rows 0
+//        run_dax.ps1 -QueryFile .\flat-query.dax -Runs 2 -Rows 0
+//      Same session, same slicer state, back to back.
+//   5. Optional narrowing: cut the column list to the handful of additive
+//      base measures and re-time. On the field model the 7 additive measures
+//      cost 192 ms cold / 61 ms warm against 819 ms / 838 ms for all 36, so
+//      777 ms warm was traceable to the non-additive columns. That tells you
+//      WHICH measures are the floor, not just that the floor exists.
+//
+// WHAT THIS DOES NOT MEASURE
+//   The per-cell tax. An EVALUATE never evaluates formatStringDefinition and
+//   never runs a conditional-formatting colour measure, so this query is
+//   structurally blind to both. That gap is what Performance Analyzer sees
+//   and this does not. See references/per-cell-tax.md.
+// ============================================================================

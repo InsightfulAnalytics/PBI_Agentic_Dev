@@ -1,0 +1,16 @@
+// SCRATCH G3: amounts only on the grouped axis. The two DISTINCTCOUNTs do not vary by
+// statement line, so they belong in a separate 14-row request, not repeated per line.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+    VAR __Lines = TREATAS ( { "Total Income", "Total Cost of Sales", "Gross Profit", "Total Operating Expenses", "Net Profit" }, 'P&L Lines'[Line] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Lines'[Line],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr, __Lines,
+    "Amount", [NM Amount]
+)
+ORDER BY 'P&L View'[Ordinal], 'P&L Lines'[Line]

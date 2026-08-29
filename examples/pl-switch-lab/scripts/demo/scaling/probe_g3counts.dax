@@ -1,0 +1,14 @@
+// SCRATCH G3b: the counts alone, 14 rows (one per calc item). Companion to _probe_g3.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "Trading Stores",  [NM Trading Stores],
+    "Active Products", CALCULATE ( DISTINCTCOUNT ( 'Financials'[ProductKey] ), 'Financials'[ProductKey] <> 0 )
+)
+ORDER BY 'P&L View'[Ordinal]

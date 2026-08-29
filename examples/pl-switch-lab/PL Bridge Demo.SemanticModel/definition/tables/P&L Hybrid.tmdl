@@ -1,0 +1,57 @@
+table 'P&L Hybrid'
+	lineageTag: 44083e28-34dc-4f48-bfaf-7c7767db5699
+
+	column 'Hybrid Line'
+		dataType: string
+		lineageTag: 4f8487fb-1a17-4d28-965a-aaab18f25baf
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Hybrid Line Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Hybrid Line Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hybrid Line Fields'
+		dataType: string
+		isHidden
+		lineageTag: 6eeed989-d486-43a7-8428-bbd207965ec8
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Hybrid Line Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Hybrid Line Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 6fa141c5-7cae-4ef0-b482-b62fb51f35e4
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'P&L Hybrid' = calculated
+		source =
+				{
+				    ("Total Income", NAMEOF('00_Measures'[Total Income $]), 0),
+				    ("Total Cost of Sales", NAMEOF('00_Measures'[Line Total Cost of Sales]), 1),
+				    ("Gross Profit", NAMEOF('00_Measures'[Gross Profit $]), 2),
+				    ("Total Operating Expenses", NAMEOF('00_Measures'[Line Total Operating Expenses]), 3),
+				    ("Net Profit", NAMEOF('00_Measures'[Net Profit $]), 4),
+				    ("Gross Margin %", NAMEOF('00_Measures'[Gross Margin %]), 5),
+				    ("Income per Store", NAMEOF('00_Measures'[Hybrid Income per Store]), 6)
+				}
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

@@ -1,0 +1,43 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	discourageImplicitMeasures
+	sourceQueryCulture: en-AU
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup Model
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup Others
+
+	annotation PBI_QueryGroupOrder = 1
+
+annotation __PBI_TimeIntelligenceEnabled = 0
+
+annotation PBI_ProTooling = ["DevMode"]
+
+annotation __TEdtr = 1
+
+annotation PBI_QueryOrder = ["00_Measures","Financials","Products","Stores","Accounts","P&L Lines","P&L Rows","Time Period","DimDate","P&L Odd Rows","FunctionDateTable"]
+
+ref table 00_Measures
+ref table Financials
+ref table Products
+ref table Stores
+ref table Accounts
+ref table 'P&L Lines'
+ref table 'P&L Rows'
+ref table 'Time Period'
+ref table DimDate
+ref table 'P&L Hybrid'
+ref table 'P&L View'
+ref table 'P&L Odd Rows Fields'
+ref table 'P&L Odd Rows'
+ref table 'P&L Row'
+ref table 'Period View'
+
+ref cultureInfo en-US
+

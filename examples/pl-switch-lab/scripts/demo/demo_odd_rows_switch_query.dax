@@ -1,0 +1,30 @@
+// demo_odd_rows_switch_query.dax -- page 7 "Odd Rows P&L - SWITCH" as the visual plans it:
+// 13 rows x 14 SHIPPED SWITCH measures = 182 cells. Compare against demo_odd_rows_query.dax
+// (page 6: field parameter rows x calculation group columns), which produces the same 182
+// cells from the same leaf measures. The only variable is dispatch.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_odd_rows_switch_query.dax"
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    __Yr,
+    "Actual",             [Slow NM Actual],
+    "LY",                 [Slow NM LY],
+    "vs LY",              [Slow NM vs LY],
+    "vs LY %",            [Slow NM vs LY %],
+    "Budget",             [Slow NM Budget],
+    "Var to Budget",      [Slow NM Var to Budget],
+    "Var to Budget %",    [Slow NM Var to Budget %],
+    "YTD Actual",         [Slow NM YTD Actual],
+    "YTD LY",             [Slow NM YTD LY],
+    "YTD vs LY",          [Slow NM YTD vs LY],
+    "YTD vs LY %",        [Slow NM YTD vs LY %],
+    "YTD Budget",         [Slow NM YTD Budget],
+    "YTD Var to Budget",  [Slow NM YTD Var to Budget],
+    "YTD Var to Budget %",[Slow NM YTD Var to Budget %]
+)
+ORDER BY 'P&L Odd Rows'[Sort]

@@ -1,0 +1,36 @@
+# --- Power BI Desktop local state -------------------------------------------
+# The first two are Microsoft's auto-generated PBIP default.
+**/.pbi/localSettings.json
+**/.pbi/cache.abf
+# Microsoft deliberately does NOT ignore the next one (editorSettings is
+# "saved as part of the semantic model definition for use across users and
+# environments"). Ignored here anyway: in this repo it is one machine's prefs.
+**/.pbi/editorSettings.json
+**/.pbi/unappliedChanges.json
+**/DAXQueries/.pbi/daxQueries.json
+
+# --- Generated data ----------------------------------------------------------
+# Rebuild: python scripts/demo/generate_demo_data.py   (~29 s, ~314 MB)
+/data/
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.pyc
+
+# --- Machine-local measurement output ----------------------------------------
+scripts/experiments/results/
+scripts/demo/pa_results.csv
+
+# --- Render output (rebuild from the design/ and deneb/ scripts) -------------
+scripts/demo/deneb/*.png
+design/side_panel_top_preview.png
+design/logo_review.html
+design/*.dc.html
+design/canvas.json
+
+# Published Claude Design canvas bundle: 2.35 MB, and nothing in this repo rebuilds it.
+# The .dc.html artboard sources it embeds are ignored just above, so neither ships.
+design/pl-bridge-side-panel.html
+
+# --- Editor ------------------------------------------------------------------
+.vscode/

@@ -1,0 +1,14 @@
+// SCRATCH: the LONG shape a matrix with a calc group on columns actually sends --
+// 13 rows x 14 calc items = 182 rows, one value column. Format strings NOT evaluated
+// (an ADOMD query returns raw values; formatStringDefinition is a VISUAL-layer concern).
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "v", [NM Row Value]
+)

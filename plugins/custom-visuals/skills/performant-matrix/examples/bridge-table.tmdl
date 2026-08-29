@@ -1,0 +1,81 @@
+/// One row per (statement line, account) pair. A subtotal line is simply a line with
+/// more rows, so there is no addition and no SWITCH branch anywhere in the statement.
+table 'Statement Rows'
+
+	column LineKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: LineKey
+
+	/// Put this column on the matrix rows. The four leading characters on detail lines are
+	/// U+00A0 non-breaking spaces: visuals trim leading ASCII spaces and render them flush left.
+	column Line
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Line
+		sortByColumn: LineKey
+
+	/// Detail / Subtotal / Header. Drives conditional formatting, not the numbers.
+	column LineClass
+		dataType: string
+		summarizeBy: none
+		sourceColumn: LineClass
+
+	/// The join key. Match on the key, never on the display label: a renamed account
+	/// silently blanks that line if you join on the label.
+	column AccountKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+	column Account
+		dataType: string
+		summarizeBy: none
+		sourceColumn: Account
+
+	/// The only bridge measure. No dispatch: the row context IS the account filter,
+	/// propagated Statement Rows to Dim Account to Financials by the relationship below.
+	measure 'Row Amount' =
+			CALCULATE (
+			    SUM ( 'Financials'[Amount] ),
+			    'Financials'[Scenario] = "Actual"
+			)
+		formatString: #,0;(#,0);#,0
+
+	partition 'Statement Rows' = m
+		mode: import
+		source =
+				let
+				    // Production loads this from a CSV in the repo: it diffs, and a colleague
+				    // can edit it. Inline here only so the example needs no external file.
+				    // Costs are stored negative, so every subtotal is a plain sum.
+				    Source = #table(
+				        type table [LineKey = Int64.Type, Line = text, LineClass = text, AccountKey = Int64.Type, Account = text],
+				        {
+				            {10, "    Product Revenue", "Detail", 1, "Product Revenue"},
+				            {20, "    Service Revenue", "Detail", 2, "Service Revenue"},
+				            {30, "Revenue", "Subtotal", 1, "Product Revenue"},
+				            {30, "Revenue", "Subtotal", 2, "Service Revenue"},
+				            {40, "    Direct Materials", "Detail", 3, "Direct Materials"},
+				            {50, "    Direct Labour", "Detail", 4, "Direct Labour"},
+				            {60, "Cost of Sales", "Subtotal", 3, "Direct Materials"},
+				            {60, "Cost of Sales", "Subtotal", 4, "Direct Labour"},
+				            {70, "Gross Profit", "Subtotal", 1, "Product Revenue"},
+				            {70, "Gross Profit", "Subtotal", 2, "Service Revenue"},
+				            {70, "Gross Profit", "Subtotal", 3, "Direct Materials"},
+				            {70, "Gross Profit", "Subtotal", 4, "Direct Labour"}
+				        }
+				    )
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+relationship StatementRows_DimAccount
+	crossFilteringBehavior: bothDirections
+	fromColumn: 'Statement Rows'.AccountKey
+	toColumn: 'Dim Account'.AccountKey

@@ -1,0 +1,8 @@
+// SCRATCH probe. ONE bridge-filtering column, NO calculation group. Isolates the bridge FILTER cost
+// from the calc-group interaction.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+ROW ( "c1", CALCULATE ( CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ), __Yr ) )

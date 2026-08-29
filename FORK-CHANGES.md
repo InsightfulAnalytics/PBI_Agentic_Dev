@@ -12,8 +12,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   - `reports/claude-design-handoff`
   - `reports/workout-wednesday`
   - `custom-visuals/deneb-pbir`
+  - `custom-visuals/performant-matrix`
   - `semantic-models/date-table` — bundles third-party community code (see [ATTRIBUTIONS.md](ATTRIBUTIONS.md))
   - `semantic-models/dax-standard`
+- Added `examples/pl-switch-lab/`, an original sample Power BI project: one financial statement
+  built nine ways and measured. Not derived from upstream, and licensed MIT rather than GPL-3.0
+  (see its own LICENSE). Its semantic model redistributes two pieces of community code with
+  attribution kept inline; see [ATTRIBUTIONS.md](ATTRIBUTIONS.md).
 - Assorted fixes and personalization, documented in [PERSONALIZING.md](PERSONALIZING.md).
 - Added an OpenAI Codex compatibility layer under `codex/` (installer, AGENTS.md adapter, ported command-skills); `plugins/` content is unchanged by it.
 

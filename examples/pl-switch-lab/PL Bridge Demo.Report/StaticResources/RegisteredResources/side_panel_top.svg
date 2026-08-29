@@ -1,0 +1,52 @@
+<svg width="2000" height="1000" viewBox="0 0 2000 1000" xmlns="http://www.w3.org/2000/svg" overflow="hidden">
+<defs>
+  <linearGradient id="rail" x1="0" y1="1" x2="0.55" y2="0">
+    <stop offset="0" stop-color="#071A38"/>
+    <stop offset="0.45" stop-color="#0B2C5B"/>
+    <stop offset="1" stop-color="#164080"/>
+  </linearGradient>
+  <linearGradient id="railSheen" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.05"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </linearGradient>
+  <linearGradient id="strip" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#164080"/>
+    <stop offset="1" stop-color="#0B2C5B"/>
+  </linearGradient>
+  <linearGradient id="stripSheen" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.06"/>
+    <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+  </linearGradient>
+</defs>
+<!-- page -->
+<rect x="0" y="0" width="2000" height="1000" fill="#FFFFFF"/>
+<!-- canvas card -->
+<rect x="16" y="16" width="1968" height="968" rx="24" fill="#F7F9FC" stroke="#FFFFFF" stroke-width="3"/>
+<!-- rail: left slice of the card, rounded only on the left -->
+<path d="M 40 16
+         L 296 16
+         L 296 984
+         L 40 984
+         Q 16 984 16 960
+         L 16 40
+         Q 16 16 40 16 Z"
+      fill="url(#rail)"/>
+<!-- faint vertical sheen so the rail reads as a surface, not a flat fill -->
+<rect x="16" y="16" width="72" height="968" fill="url(#railSheen)"/>
+<!-- top strip: right of the rail, rounded only at the card's top-right corner -->
+<path d="M 296 16
+         L 1960 16
+         Q 1984 16 1984 40
+         L 1984 120
+         L 296 120 Z"
+      fill="url(#strip)"/>
+<rect x="296" y="16" width="1688" height="40" fill="url(#stripSheen)"/>
+<!-- gold accent rules: brand rule on the rail + strip rule, one datum line -->
+<line x1="40" y1="120" x2="272" y2="120"
+      stroke="#FFB703" stroke-width="3" stroke-linecap="round"/>
+<line x1="320" y1="120" x2="1960" y2="120"
+      stroke="#FFB703" stroke-width="3" stroke-linecap="round"/>
+<!-- hairline seam where rail meets strip and canvas -->
+<line x1="296" y1="16" x2="296" y2="984"
+      stroke="#FFFFFF" stroke-width="2" stroke-opacity="0.85"/>
+</svg>

@@ -1,0 +1,11 @@
+# Everything the two data generators need.
+#   python scripts/demo/generate_demo_data.py   (the demo set the model reads)
+#   python scripts/generate_data.py             (the superseded lab set)
+# Verified on Python 3.14.6. Byte-identical output depends on NumPy's PCG64
+# stream stability, so the pins are exact rather than a lower bound.
+numpy==2.4.6
+pyarrow==25.0.0
+
+# Not a generator dependency. design/build_logo_review.py needs it; the data
+# generators do not, so install it only if you are rebuilding the logo review.
+# pillow==12.2.0

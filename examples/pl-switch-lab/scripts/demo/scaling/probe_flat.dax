@@ -1,0 +1,28 @@
+// SCRATCH probe. Same 14-item calc-group axis as page 6, but the 13 measure columns
+// are replaced by 13 copies of the trivial base [NM Amount]. Isolates WHY page 6 costs ~1,020 ms warm when the
+// bare calc-group axis costs 29 ms: is it the CELL COUNT (182 independent evaluations)
+// or the EXPRESSION DEPTH of the 13 NM measures?
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "c1", [NM Amount],
+    "c2", [NM Amount],
+    "c3", [NM Amount],
+    "c4", [NM Amount],
+    "c5", [NM Amount],
+    "c6", [NM Amount],
+    "c7", [NM Amount],
+    "c8", [NM Amount],
+    "c9", [NM Amount],
+    "c10", [NM Amount],
+    "c11", [NM Amount],
+    "c12", [NM Amount],
+    "c13", [NM Amount]
+)
+ORDER BY 'P&L View'[Ordinal]

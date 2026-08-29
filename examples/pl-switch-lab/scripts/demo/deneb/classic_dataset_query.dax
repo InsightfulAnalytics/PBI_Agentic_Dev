@@ -1,0 +1,19 @@
+// The dataset the page-10 Deneb visual asks for: 27 bridge lines (grouped) x the 6 base
+// fast measures, pinned exactly as the page filters pin it (Year 2026, Selected Period).
+DEFINE
+    VAR __TP = TREATAS ( { "Selected Period" }, 'Time Period'[Time Period] )
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Lines'[Line],
+    'P&L Lines'[LineKey],
+    'P&L Lines'[LineClass],
+    __TP, __Yr,
+    "Actual",     [P&L Actual],
+    "Budget",     [P&L Budget],
+    "LY",         [P&L LY],
+    "YTD Actual", [P&L Actual YTD],
+    "YTD Budget", [P&L Budget YTD],
+    "YTD LY",     [P&L LY YTD]
+)
+ORDER BY 'P&L Lines'[LineKey]

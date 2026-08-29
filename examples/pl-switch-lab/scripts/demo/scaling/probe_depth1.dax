@@ -1,0 +1,28 @@
+// SCRATCH probe. Same 14-item calc-group axis as page 6, but the 13 measure columns
+// are replaced by 13 identical depth-1 bridge filters. Isolates WHY page 6 costs ~1,020 ms warm when the
+// bare calc-group axis costs 29 ms: is it the CELL COUNT (182 independent evaluations)
+// or the EXPRESSION DEPTH of the 13 NM measures?
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "c1", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c2", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c3", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c4", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c5", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c6", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c7", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c8", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c9", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c10", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c11", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c12", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" ),
+    "c13", CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" )
+)
+ORDER BY 'P&L View'[Ordinal]

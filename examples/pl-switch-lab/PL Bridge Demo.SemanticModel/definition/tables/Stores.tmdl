@@ -1,0 +1,48 @@
+table Stores
+	lineageTag: c880216a-ef72-4ea2-99d6-455ced55570f
+
+	column StoreKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 4d201abe-cf9d-4ff4-94ac-7806f8d2a497
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Store
+		dataType: string
+		lineageTag: 2da0c6ea-12f3-44ea-ad53-afe859256710
+		summarizeBy: none
+		sourceColumn: Store
+
+		annotation SummarizationSetBy = Automatic
+
+	column State
+		dataType: string
+		lineageTag: 66e8fade-cde7-4116-a5dd-a73f6491b8d6
+		summarizeBy: none
+		sourceColumn: State
+
+		annotation SummarizationSetBy = Automatic
+
+	column Channel
+		dataType: string
+		lineageTag: e8934faf-4044-4d39-8b46-d26bd7afc04b
+		summarizeBy: none
+		sourceColumn: Channel
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Stores-642482c6-8272-4948-be22-3e090477a5f2 = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(DataFolder & "\stores.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

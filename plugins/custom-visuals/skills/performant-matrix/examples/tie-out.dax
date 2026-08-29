@@ -1,0 +1,51 @@
+// Tie-out: the old dispatch measures and the new bridge measures in ONE query, over the
+// SAME grouping, counting mismatches. The gate is BADDIFF = 0.
+//
+// Drive the grid from the BRIDGE, then push the matching line onto the old disconnected
+// table by hand and strip the bridge's own filter off the old side, or the two agree by
+// construction. Add one Old/New pair, and one clause in the FILTER, per statement column.
+//
+// The "+ 0" is load bearing: COUNTROWS over an empty filter returns BLANK, not 0, so a
+// clean tie-out would otherwise be indistinguishable from a query that never ran.
+
+EVALUATE
+VAR __Grid =
+    ADDCOLUMNS (
+        SUMMARIZE ( 'Statement Rows', 'Statement Rows'[LineKey], 'Statement Rows'[Line] ),
+        "Old",                                          -- SWITCH version
+            VAR __L = 'Statement Rows'[Line]
+            RETURN
+                CALCULATE (
+                    [Slow Row Value],
+                    REMOVEFILTERS ( 'Statement Rows' ),
+                    'Legacy Rows'[Line] = __L
+                ),
+        "New", [Row Amount],                            -- bridge version
+        "OldYTD",
+            VAR __L = 'Statement Rows'[Line]
+            RETURN
+                CALCULATE (
+                    [Slow Row Value YTD],
+                    REMOVEFILTERS ( 'Statement Rows' ),
+                    'Legacy Rows'[Line] = __L
+                ),
+        "NewYTD", [Row Amount YTD]
+    )
+RETURN
+    ROW (
+        "BADDIFF",
+        COUNTROWS (
+            FILTER ( __Grid,
+                ROUND ( [Old] - [New], 2 ) <> 0 || ROUND ( [OldYTD] - [NewYTD], 2 ) <> 0 )
+        ) + 0
+    )
+
+// When BADDIFF is not 0, swap the RETURN above for this one to see which lines disagree:
+//
+// RETURN
+//     FILTER ( __Grid,
+//         ROUND ( [Old] - [New], 2 ) <> 0 || ROUND ( [OldYTD] - [NewYTD], 2 ) <> 0 )
+//
+// Then re-run under every slicer state that matters and at least one non-default
+// year / channel / entity selection. A missing (line, account) pair produces a SMALLER
+// number, not an error, so this diff is the only thing that catches it.

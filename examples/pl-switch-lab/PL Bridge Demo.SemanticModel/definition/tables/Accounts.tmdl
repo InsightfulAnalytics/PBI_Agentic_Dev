@@ -1,0 +1,40 @@
+table Accounts
+	lineageTag: 8a25eec0-5de3-42b1-a22a-cd983fac17a9
+
+	column AccountKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 054f3e73-5df1-44ff-931d-851e4d49538f
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Account
+		dataType: string
+		lineageTag: 2f72287e-25e4-4485-88b6-942f38ebab81
+		summarizeBy: none
+		sourceColumn: Account
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountClass
+		dataType: string
+		lineageTag: 736bd1f3-3b4b-4c36-bf7e-fd435a28c8f6
+		summarizeBy: none
+		sourceColumn: AccountClass
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Accounts-82a9d5d1-82c0-42e9-85e1-65c8155e8d00 = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(DataFolder & "\accounts.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

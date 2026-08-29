@@ -1,0 +1,37 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "e83d0a4c18d55ad18eb8",
+  "position": {
+    "x": 336,
+    "y": 892,
+    "z": 2000,
+    "height": 40,
+    "width": 1608,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Engine query: 27 bridge lines (grouped) x 6 base measures, ~15 ms warm: the Classic SWITCH page computes the identical grid in ~2,400 ms warm / ~2,900 ms cold. The 8 variance columns are derived in the Vega spec, and formatting is client-side, so there is no dynamic-format-string tax either.",
+                    "textStyle": {
+                      "fontFamily": "Segoe UI",
+                      "fontSize": "9pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

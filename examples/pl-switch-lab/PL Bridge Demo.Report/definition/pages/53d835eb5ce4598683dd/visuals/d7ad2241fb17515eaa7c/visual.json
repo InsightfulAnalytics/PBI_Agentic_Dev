@@ -1,0 +1,80 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "d7ad2241fb17515eaa7c",
+  "position": {
+    "x": 1148,
+    "y": 682,
+    "z": 3000,
+    "height": 270,
+    "width": 796
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "And it is still not the fastest",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI Semibold', wf_segoe-ui_semibold, helvetica, arial, sans-serif",
+                      "fontSize": "14pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Removing SWITCH entirely does NOT win:",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "13 measures via field parameter   1,269 ms cold /  812 ms warm\n14 SWITCH measures (page 7)       1,125 ms cold /  724 ms warm\ntwo calculation groups (here)     1,030 ms cold /  641 ms warm\none 13-branch SWITCH (page 6)       981 ms cold /  597 ms warm\nDeneb, grouped axis (page 9)        224 ms cold /   27 ms warm",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "13 calculation items x 14 calculation items is still 182 independent expressions. Cost is instantiation count, not branch count: a shallow SWITCH evaluated once beats a calculation group evaluated per row. The only thing that changes the order of magnitude is putting the rows on a GROUPED column, which is what page 9 does.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "What THIS matrix actually pays: its query is the long shape (862 ms warm), and the dynamic format string (Fmt.Money over SELECTEDMEASURE, which under two calculation groups is the full rewritten cell expression) doubles it to 1,820 ms warm / 2,331 cold before rendering. Auto-scaled $M/$K formatting is not free.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

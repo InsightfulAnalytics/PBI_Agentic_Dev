@@ -1,0 +1,21 @@
+relationship 7aa24361-c0b1-4044-b88a-9d2ab5f4499b
+	fromColumn: Financials.ProductKey
+	toColumn: Products.ProductKey
+
+relationship 71e1f0d4-4f0a-4882-a79a-d4c41d0b7c5e
+	fromColumn: Financials.StoreKey
+	toColumn: Stores.StoreKey
+
+relationship 809ffbaa-3a9b-4654-a17e-04d1e8616d10
+	fromColumn: Financials.Date
+	toColumn: DimDate.Date
+
+relationship 772459af-0895-4b17-8f29-83e8a8f0db5d
+	fromColumn: Financials.AccountKey
+	toColumn: Accounts.AccountKey
+
+relationship 193237ff-b6bf-4c93-9e9b-41d95ae72c6b
+	crossFilteringBehavior: bothDirections
+	fromColumn: 'P&L Lines'.AccountKey
+	toColumn: Accounts.AccountKey
+

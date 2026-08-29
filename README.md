@@ -226,6 +226,7 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 |------|------|-------------|
 | Skill | [`deneb-visuals`](plugins/custom-visuals/skills/deneb-visuals/) | Author Deneb visuals with Vega and Vega-Lite specs |
 | Skill | [`deneb-pbir`](plugins/custom-visuals/skills/deneb-pbir/) | Round-trip tooling: extract/embed a Deneb spec in visual.json and offline-render it |
+| Skill | [`performant-matrix`](plugins/custom-visuals/skills/performant-matrix/) | Diagnose a slow financial matrix, then choose between a bridge model fix, a native restructure, or a Deneb grid |
 | Skill | [`python-visuals`](plugins/custom-visuals/skills/python-visuals/) | Custom Python visuals (matplotlib/seaborn) in Power BI reports |
 | Skill | [`r-visuals`](plugins/custom-visuals/skills/r-visuals/) | Custom R visuals (ggplot2) in Power BI reports |
 | Skill | [`svg-visuals`](plugins/custom-visuals/skills/svg-visuals/) | SVG visuals via DAX measures in Power BI reports |
@@ -339,6 +340,11 @@ General-purpose agent resources that don't fit into a plugin: defensive hooks, p
 ## Use or re-use of these skills
 
 These plugins are licensed **GPL-3.0** and intended for free community use.
+
+The one exception is [`examples/pl-switch-lab/`](examples/pl-switch-lab/), a sample Power BI
+project that is original work and is licensed **MIT** so you can lift its patterns into your own
+reports without copyleft. Its own [LICENSE](examples/pl-switch-lab/LICENSE) governs that
+directory; everything else here is GPL-3.0.
 
 This is a fork; the original work is Kurt Buhler's. If you copy these skills — manually or by using an agent to rewrite them — you must retain attribution and a link to the [original project](https://github.com/data-goblin/power-bi-agentic-development), per the license. Modifications relative to upstream are listed in [FORK-CHANGES.md](FORK-CHANGES.md).
 

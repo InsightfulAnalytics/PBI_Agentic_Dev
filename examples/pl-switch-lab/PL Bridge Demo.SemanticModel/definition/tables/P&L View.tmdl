@@ -1,0 +1,167 @@
+table 'P&L View'
+	lineageTag: 2033718c-78ab-5349-8fdc-557fb750d507
+
+	calculationGroup
+		precedence: 10
+
+		calculationItem Actual =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" )
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem LY =
+				
+				CALCULATE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" ),
+				    DATEADD ( 'DimDate'[Date], -1, YEAR )
+				)
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'vs LY' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" )
+				VAR __B =
+				    CALCULATE (
+				        CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" ),
+				        DATEADD ( 'DimDate'[Date], -1, YEAR )
+				    )
+				RETURN
+				    __A - __B
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'vs LY %' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" )
+				VAR __B =
+				    CALCULATE (
+				        CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" ),
+				        DATEADD ( 'DimDate'[Date], -1, YEAR )
+				    )
+				RETURN
+				    DIVIDE ( __A - __B, __B )
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem Budget =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget" )
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'Var to Budget' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" )
+				VAR __B =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget" )
+				RETURN
+				    __A - __B
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'Var to Budget %' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual" )
+				VAR __B =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget" )
+				RETURN
+				    DIVIDE ( __A - __B, __B )
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'YTD Actual' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'YTD LY' =
+				
+				CALCULATE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+				    DATEADD ( 'DimDate'[Date], -1, YEAR )
+				)
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'YTD vs LY' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+				VAR __B =
+				    CALCULATE (
+				        CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+				        DATEADD ( 'DimDate'[Date], -1, YEAR )
+				    )
+				RETURN
+				    __A - __B
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'YTD vs LY %' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+				VAR __B =
+				    CALCULATE (
+				        CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+				        DATEADD ( 'DimDate'[Date], -1, YEAR )
+				    )
+				RETURN
+				    DIVIDE ( __A - __B, __B )
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'YTD Budget' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) )
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'YTD Var to Budget' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+				VAR __B =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) )
+				RETURN
+				    __A - __B
+
+			formatStringDefinition = Fmt.PL ( SELECTEDMEASURE ( ), SELECTEDMEASUREFORMATSTRING ( ) )
+
+		calculationItem 'YTD Var to Budget %' =
+				
+				VAR __A =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+				VAR __B =
+				    CALCULATE ( SELECTEDMEASURE ( ), 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) )
+				RETURN
+				    DIVIDE ( __A - __B, __B )
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+	column 'P&L View'
+		dataType: string
+		lineageTag: 9ab1ebb3-e486-5684-bd10-8345738c5ac2
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 060bf485-a94b-540b-98a0-2fbac6906c7e
+		summarizeBy: none
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

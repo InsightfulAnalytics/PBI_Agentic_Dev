@@ -1,0 +1,11 @@
+// SCRATCH probe. The bridge column GROUPED (not filtered), no calc group. The cheap path.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Lines'[Line],
+    __Yr,
+    "Amount", [NM Amount]
+)

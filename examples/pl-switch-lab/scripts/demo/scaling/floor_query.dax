@@ -1,0 +1,30 @@
+// FLOOR probe (scratch, not a shipped benchmark).
+// 13 rows x 14 calc-group columns with NO row dispatch at all -- every row gets the same
+// [NM Amount]. This is the theoretical best case for candidate E (rows = a second
+// calculation group): E can never be faster than this, because E adds real per-row
+// filter work on top. If this floor is already slower than D (~680 ms warm), E cannot win.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    __Yr,
+    "Actual", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "Actual" ),
+    "LY", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "LY" ),
+    "vs LY", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "vs LY" ),
+    "vs LY %", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "vs LY %" ),
+    "Budget", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "Budget" ),
+    "Var to Budget", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "Var to Budget" ),
+    "Var to Budget %", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "Var to Budget %" ),
+    "YTD Actual", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD Actual" ),
+    "YTD LY", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD LY" ),
+    "YTD vs LY", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD vs LY" ),
+    "YTD vs LY %", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD vs LY %" ),
+    "YTD Budget", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD Budget" ),
+    "YTD Var to Budget", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD Var to Budget" ),
+    "YTD Var to Budget %", CALCULATE ( [NM Amount], 'P&L View'[P&L View] = "YTD Var to Budget %" )
+)
+ORDER BY 'P&L Odd Rows'[Sort]

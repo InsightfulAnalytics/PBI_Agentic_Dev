@@ -1,0 +1,13 @@
+// SCRATCH: page 8's matrix as the VISUAL actually plans it -- both calculation groups
+// GROUPED, one measure, LONG shape (182 rows). Values only, no format strings.
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Row'[P&L Row],
+    'P&L Row'[Ordinal],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "v", [NM CG Value]
+)

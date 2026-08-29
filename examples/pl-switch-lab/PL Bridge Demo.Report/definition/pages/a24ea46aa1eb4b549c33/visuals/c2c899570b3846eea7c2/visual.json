@@ -1,0 +1,293 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "c2c899570b3846eea7c2",
+  "position": {
+    "x": 336,
+    "y": 132,
+    "z": 1000,
+    "height": 740,
+    "width": 1608
+  },
+  "visual": {
+    "visualType": "tableEx",
+    "query": {
+      "queryState": {
+        "Values": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "P&L Rows"
+                    }
+                  },
+                  "Property": "Line"
+                }
+              },
+              "queryRef": "P&L Rows.Line",
+              "nativeQueryRef": "Line",
+              "displayName": "P&L Line"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Actual Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Actual Value",
+              "nativeQueryRef": "Slow Actual Value",
+              "displayName": "Actual"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Budget Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Budget Value",
+              "nativeQueryRef": "Slow Budget Value",
+              "displayName": "Budget"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Var Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Var Value",
+              "nativeQueryRef": "Slow Var Value",
+              "displayName": "Var"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Var % Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Var % Value",
+              "nativeQueryRef": "Slow Var % Value",
+              "displayName": "Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow LY Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow LY Value",
+              "nativeQueryRef": "Slow LY Value",
+              "displayName": "LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow vs LY Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow vs LY Value",
+              "nativeQueryRef": "Slow vs LY Value",
+              "displayName": "vs LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow vs LY % Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow vs LY % Value",
+              "nativeQueryRef": "Slow vs LY % Value",
+              "displayName": "vs LY %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Actual YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Actual YTD Value",
+              "nativeQueryRef": "Slow Actual YTD Value",
+              "displayName": "YTD Actual"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Budget YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Budget YTD Value",
+              "nativeQueryRef": "Slow Budget YTD Value",
+              "displayName": "YTD Budget"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Var YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Var YTD Value",
+              "nativeQueryRef": "Slow Var YTD Value",
+              "displayName": "YTD Var"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow Var % YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow Var % YTD Value",
+              "nativeQueryRef": "Slow Var % YTD Value",
+              "displayName": "YTD Var %"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow LY YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow LY YTD Value",
+              "nativeQueryRef": "Slow LY YTD Value",
+              "displayName": "YTD LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow vs LY YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow vs LY YTD Value",
+              "nativeQueryRef": "Slow vs LY YTD Value",
+              "displayName": "YTD vs LY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "Slow vs LY % YTD Value"
+                }
+              },
+              "queryRef": "00_Measures.Slow vs LY % YTD Value",
+              "nativeQueryRef": "Slow vs LY % YTD Value",
+              "displayName": "YTD vs LY %"
+            }
+          ]
+        }
+      },
+      "sortDefinition": {
+        "sort": [
+          {
+            "field": {
+              "Column": {
+                "Expression": {
+                  "SourceRef": {
+                    "Entity": "P&L Rows"
+                  }
+                },
+                "Property": "Line"
+              }
+            },
+            "direction": "Ascending"
+          }
+        ]
+      }
+    },
+    "objects": {
+      "total": [
+        {
+          "properties": {
+            "totals": {
+              "expr": {
+                "Literal": {
+                  "Value": "false"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "columnHeaders": [
+        {
+          "properties": {
+            "autoSizeColumnWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

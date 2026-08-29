@@ -1,0 +1,156 @@
+{
+  "version": "1.1.0",
+  "diagrams": [
+    {
+      "ordinal": 0,
+      "scrollPosition": {
+        "x": 0,
+        "y": 0
+      },
+      "nodes": [
+        {
+          "location": {
+            "x": 1641.8986603526155,
+            "y": 0
+          },
+          "nodeIndex": "00_Measures",
+          "nodeLineageTag": "e9b66958-26a6-46aa-845e-4077eea73423",
+          "size": {
+            "height": 72,
+            "width": 234
+          },
+          "zIndex": 1,
+          "expandedHeight": 300
+        },
+        {
+          "location": {
+            "x": 340.08244845543544,
+            "y": 529.58442621404754
+          },
+          "nodeIndex": "Accounts",
+          "nodeLineageTag": "8a25eec0-5de3-42b1-a22a-cd983fac17a9",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 2
+        },
+        {
+          "location": {
+            "x": 629.80712163903729,
+            "y": -50
+          },
+          "nodeIndex": "DimDate",
+          "nodeLineageTag": "07bbad7e-8680-4bf9-816f-ab8e67566bef",
+          "size": {
+            "height": 300,
+            "width": 234
+          },
+          "zIndex": 3
+        },
+        {
+          "location": {
+            "x": 339.91883329856671,
+            "y": 250.93878022045345
+          },
+          "nodeIndex": "Financials",
+          "nodeLineageTag": "d8ce3eec-ec22-4891-ac36-ec2fb6333fab",
+          "size": {
+            "height": 224,
+            "width": 234
+          },
+          "zIndex": 4
+        },
+        {
+          "location": {
+            "x": 340.42759129269632,
+            "y": 732.37995609062045
+          },
+          "nodeIndex": "P&L Lines",
+          "nodeLineageTag": "6fd1fbeb-21f6-4fb1-ada1-31ee4272ad2b",
+          "size": {
+            "height": 200,
+            "width": 234
+          },
+          "zIndex": 9
+        },
+        {
+          "location": {
+            "x": 1626.5464401270742,
+            "y": 311.68508323108745
+          },
+          "nodeIndex": "P&L Rows",
+          "nodeLineageTag": "d5768189-3ae1-45ca-b719-56d5e1fa230d",
+          "size": {
+            "height": 72,
+            "width": 234
+          },
+          "zIndex": 5,
+          "expandedHeight": 128
+        },
+        {
+          "location": {
+            "x": 50,
+            "y": 380.419419112493
+          },
+          "nodeIndex": "Products",
+          "nodeLineageTag": "d26b0d01-35e1-454a-b4e3-e84162618a6a",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 6
+        },
+        {
+          "location": {
+            "x": 200.07729131506278,
+            "y": 19.702499963987293
+          },
+          "nodeIndex": "Stores",
+          "nodeLineageTag": "c880216a-ef72-4ea2-99d6-455ced55570f",
+          "size": {
+            "height": 176,
+            "width": 234
+          },
+          "zIndex": 7
+        },
+        {
+          "location": {
+            "x": 1632.4964378202051,
+            "y": 109.56618498797309
+          },
+          "nodeIndex": "Time Period",
+          "nodeLineageTag": "1eb0bdc5-301a-43f8-82e9-332fab4abaa8",
+          "size": {
+            "height": 72,
+            "width": 234
+          },
+          "zIndex": 8,
+          "expandedHeight": 104
+        },
+        {
+          "location": {
+            "x": 1632.1720407148193,
+            "y": 208.89481504343939
+          },
+          "nodeIndex": "P&L Hybrid",
+          "nodeLineageTag": "44083e28-34dc-4f48-bfaf-7c7767db5699",
+          "size": {
+            "height": 72,
+            "width": 234
+          },
+          "zIndex": 0,
+          "expandedHeight": 152
+        }
+      ],
+      "name": "All tables",
+      "zoomValue": 89.192590520569482,
+      "pinKeyFieldsToTop": false,
+      "showExtraHeaderInfo": false,
+      "hideKeyFieldsWhenCollapsed": false,
+      "tablesLocked": false
+    }
+  ],
+  "selectedDiagram": "All tables",
+  "defaultDiagram": "All tables"
+}

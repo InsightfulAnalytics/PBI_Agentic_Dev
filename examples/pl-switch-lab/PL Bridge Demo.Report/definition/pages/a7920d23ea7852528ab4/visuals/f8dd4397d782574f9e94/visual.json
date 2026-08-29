@@ -1,0 +1,70 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "f8dd4397d782574f9e94",
+  "position": {
+    "x": 336,
+    "y": 682,
+    "z": 2000,
+    "height": 270,
+    "width": 796,
+    "tabOrder": 4000
+  },
+  "visual": {
+    "visualType": "textbox",
+    "objects": {
+      "general": [
+        {
+          "properties": {
+            "paragraphs": [
+              {
+                "textRuns": [
+                  {
+                    "value": "Why this is 20x faster",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI Semibold', wf_segoe-ui_semibold, helvetica, arial, sans-serif",
+                      "fontSize": "14pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Measured on this model: cost tracks the number of INDEPENDENT fact-table scans. A measure column costs one scan per calculation item. If the rows are dispatched by an expression (SWITCH, field parameter or calculation group) it is one scan per row per item. If the rows sit on a GROUPED column the engine buckets them in a single scan and the row count becomes free.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "Only 5 of the 13 rows are irreducible; the other 8 are arithmetic on those 5 plus two counts. Only 6 of the 14 columns are base facts; the other 8 are differences and ratios. Deneb is the only visual that lets that arithmetic leave the engine.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              },
+              {
+                "textRuns": [
+                  {
+                    "value": "224 ms cold / 27 ms warm, against 1,269 / 812 for the original page 6.",
+                    "textStyle": {
+                      "fontFamily": "'Segoe UI', wf_segoe-ui_normal, helvetica, arial, sans-serif",
+                      "fontSize": "10pt"
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

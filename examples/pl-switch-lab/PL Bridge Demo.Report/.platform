@@ -1,0 +1,11 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/gitIntegration/platformProperties/2.0.0/schema.json",
+  "metadata": {
+    "type": "Report",
+    "displayName": "PL Bridge Demo"
+  },
+  "config": {
+    "version": "2.0",
+    "logicalId": "339c810b-0b94-4ab3-851a-9f48c929f319"
+  }
+}

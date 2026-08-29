@@ -1,0 +1,76 @@
+// demo_tieout.dax -- build gate: slow SWITCH vs fast bridge, per line, all FOURTEEN columns.
+// Returns all 27 statement lines with a BadDiff flag; EXPECTED: every BadDiff = 0.
+// Line labels are byte-identical in 'P&L Rows' and 'P&L Lines', so TREATAS maps the
+// slow axis onto the bridge 1:1. The four % columns are text in the slow stack (its
+// faithful FORMAT sin), so the fast values are FORMATted the same way and compared as text.
+// Pins match the statement pages' filterConfig: Year 2026, Selected Period.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_tieout.dax"
+
+DEFINE
+    VAR __TP = TREATAS ( { "Selected Period" }, 'Time Period'[Time Period] )
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+VAR __Rows =
+    SUMMARIZECOLUMNS (
+        'P&L Rows'[Line],
+        'P&L Rows'[Sort],
+        __TP, __Yr,
+        // slow side: the fourteen SWITCH measures, on their own rows table
+        "SlowActual",    [Slow Actual Value],
+        "SlowBudget",    [Slow Budget Value],
+        "SlowVar",       [Slow Var Value],
+        "SlowVarPct",    [Slow Var % Value],
+        "SlowLY",        [Slow LY Value],
+        "SlowVsLY",      [Slow vs LY Value],
+        "SlowVsLYPct",   [Slow vs LY % Value],
+        "SlowActualY",   [Slow Actual YTD Value],
+        "SlowBudgetY",   [Slow Budget YTD Value],
+        "SlowVarY",      [Slow Var YTD Value],
+        "SlowVarPctY",   [Slow Var % YTD Value],
+        "SlowLYY",       [Slow LY YTD Value],
+        "SlowVsLYY",     [Slow vs LY YTD Value],
+        "SlowVsLYPctY",  [Slow vs LY % YTD Value],
+        // fast side: pin the same label onto the bridge table; the bidirectional
+        // Lines -> Accounts relationship does the rest
+        "FastActual",    CALCULATE ( [P&L Actual],        TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastBudget",    CALCULATE ( [P&L Budget],        TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVar",       CALCULATE ( [P&L Var],           TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVarPct",    CALCULATE ( [P&L Var %],         TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastLY",        CALCULATE ( [P&L LY],            TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVsLY",      CALCULATE ( [P&L vs LY],         TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVsLYPct",   CALCULATE ( [P&L vs LY %],       TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastActualY",   CALCULATE ( [P&L Actual YTD],    TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastBudgetY",   CALCULATE ( [P&L Budget YTD],    TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVarY",      CALCULATE ( [P&L Var YTD],       TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVarPctY",   CALCULATE ( [P&L Var % YTD],     TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastLYY",       CALCULATE ( [P&L LY YTD],        TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVsLYY",     CALCULATE ( [P&L vs LY YTD],     TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) ),
+        "FastVsLYPctY",  CALCULATE ( [P&L vs LY % YTD],   TREATAS ( VALUES ( 'P&L Rows'[Line] ), 'P&L Lines'[Line] ) )
+    )
+VAR __Result =
+    ADDCOLUMNS (
+        __Rows,
+        "BadDiff",
+            IF (
+                ABS ( [SlowActual]  - [FastActual]  ) > 0.005
+                    || ABS ( [SlowBudget]  - [FastBudget]  ) > 0.005
+                    || ABS ( [SlowVar]     - [FastVar]     ) > 0.005
+                    || ABS ( [SlowLY]      - [FastLY]      ) > 0.005
+                    || ABS ( [SlowVsLY]    - [FastVsLY]    ) > 0.005
+                    || ABS ( [SlowActualY] - [FastActualY] ) > 0.005
+                    || ABS ( [SlowBudgetY] - [FastBudgetY] ) > 0.005
+                    || ABS ( [SlowVarY]    - [FastVarY]    ) > 0.005
+                    || ABS ( [SlowLYY]     - [FastLYY]     ) > 0.005
+                    || ABS ( [SlowVsLYY]   - [FastVsLYY]   ) > 0.005
+                    || ( [SlowVarPct]   & "" ) <> ( FORMAT ( [FastVarPct],   "0.0%" ) & "" )
+                    || ( [SlowVsLYPct]  & "" ) <> ( FORMAT ( [FastVsLYPct],  "0.0%" ) & "" )
+                    || ( [SlowVarPctY]  & "" ) <> ( FORMAT ( [FastVarPctY],  "0.0%" ) & "" )
+                    || ( [SlowVsLYPctY] & "" ) <> ( FORMAT ( [FastVsLYPctY], "0.0%" ) & "" ),
+                1,
+                0
+            )
+    )
+RETURN
+    __Result
+ORDER BY 'P&L Rows'[Sort]

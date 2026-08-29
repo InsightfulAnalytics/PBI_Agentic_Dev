@@ -1,0 +1,21 @@
+{
+  "autosize": {
+    "type": "fit",
+    "contains": "padding",
+    "resize": true
+  },
+  "background": "transparent",
+  "view": {
+    "stroke": null
+  },
+  "text": {
+    "font": "Segoe UI, Segoe UI Web (West European), -apple-system, Helvetica Neue, sans-serif",
+    "fill": "#4C5563"
+  },
+  "rect": {
+    "stroke": null
+  },
+  "rule": {
+    "strokeCap": "butt"
+  }
+}

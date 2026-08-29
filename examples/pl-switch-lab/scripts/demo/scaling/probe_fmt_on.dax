@@ -1,0 +1,25 @@
+// SCRATCH: identical, PLUS a column that computes the dynamic format string the visual
+// must evaluate for every cell. [NM Row Value]'s formatStringDefinition calls
+// Fmt.Money ( [NM Row Value] ) -- i.e. it RE-EVALUATES the whole 13-branch SWITCH a second
+// time per cell -- and the calculation group then wraps that in Fmt.PL.
+// The delta against probe_fmt_off is the cost a DAX-query benchmark cannot see.
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "v", [NM Row Value],
+    "fmt",
+        VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+        RETURN
+            SWITCH (
+                TRUE ( ),
+                __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)",
+                __Line IN { "Trading Stores" }, "#,##0;(#,##0)",
+                Fmt.Money ( [NM Row Value] )
+            )
+)

@@ -1,0 +1,212 @@
+[
+ {
+  "Line": "Gross Profit",
+  "P&L View": "Actual",
+  "Amount": 3807592818.73,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "Actual",
+  "Amount": 798533400.310001,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "Actual",
+  "Amount": -5983190885.48,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "Actual",
+  "Amount": 9790783704.21,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "Actual",
+  "Amount": -3009059418.42,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Gross Profit",
+  "P&L View": "LY",
+  "Amount": 3664855221.3,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "LY",
+  "Amount": 772883566.959999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "LY",
+  "Amount": -5752019518.39,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "LY",
+  "Amount": 9416874739.69,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "LY",
+  "Amount": -2891971654.34,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Gross Profit",
+  "P&L View": "Budget",
+  "Amount": 3732643985.81999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "Budget",
+  "Amount": 786042513.419995,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "Budget",
+  "Amount": -5863272330.1,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "Budget",
+  "Amount": 9595916315.91999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "Budget",
+  "Amount": -2946601472.4,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Gross Profit",
+  "P&L View": "YTD Actual",
+  "Amount": 3807592818.73,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "YTD Actual",
+  "Amount": 798533400.310001,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "YTD Actual",
+  "Amount": -5983190885.48,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "YTD Actual",
+  "Amount": 9790783704.21,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "YTD Actual",
+  "Amount": -3009059418.42,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Gross Profit",
+  "P&L View": "YTD LY",
+  "Amount": 3664855221.3,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "YTD LY",
+  "Amount": 772883566.959999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "YTD LY",
+  "Amount": -5752019518.39,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "YTD LY",
+  "Amount": 9416874739.69,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "YTD LY",
+  "Amount": -2891971654.34,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Gross Profit",
+  "P&L View": "YTD Budget",
+  "Amount": 3732643985.81999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Net Profit",
+  "P&L View": "YTD Budget",
+  "Amount": 786042513.419995,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Cost of Sales",
+  "P&L View": "YTD Budget",
+  "Amount": -5863272330.1,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Income",
+  "P&L View": "YTD Budget",
+  "Amount": 9595916315.91999,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ },
+ {
+  "Line": "Total Operating Expenses",
+  "P&L View": "YTD Budget",
+  "Amount": -2946601472.4,
+  "Trading Stores": 28.0,
+  "Active Products": 2500.0
+ }
+]

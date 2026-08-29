@@ -1,0 +1,127 @@
+table 'P&L Row'
+	lineageTag: 44592b47-9ec3-5d9d-861f-84fdaa40d61b
+
+	calculationGroup
+		precedence: 5
+
+		calculationItem 'Total Income' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" )
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Total Cost of Sales' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Cost of Sales" )
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Gross Profit' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Gross Profit" )
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Total Operating Expenses' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Operating Expenses" )
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Net Profit' =
+				
+				CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Net Profit" )
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Gross Margin %' =
+				
+				DIVIDE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Gross Profit" ),
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" )
+				)
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'Net Margin %' =
+				
+				DIVIDE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Net Profit" ),
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" )
+				)
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'COGS % of Income' =
+				
+				DIVIDE (
+				    - CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Cost of Sales" ),
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" )
+				)
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'Opex % of Income' =
+				
+				DIVIDE (
+				    - CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Operating Expenses" ),
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" )
+				)
+
+			formatStringDefinition = "0.0%;(0.0%)"
+
+		calculationItem 'Income per Trading Store' =
+				
+				DIVIDE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" ),
+				    DISTINCTCOUNT ( 'Financials'[StoreKey] )
+				)
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Net Profit per Trading Store' =
+				
+				DIVIDE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Net Profit" ),
+				    DISTINCTCOUNT ( 'Financials'[StoreKey] )
+				)
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Income per Active Product' =
+				
+				DIVIDE (
+				    CALCULATE ( SELECTEDMEASURE ( ), 'P&L Lines'[Line] = "Total Income" ),
+				    CALCULATE (
+				    DISTINCTCOUNT ( 'Financials'[ProductKey] ),
+				    'Financials'[ProductKey] <> 0
+				)
+				)
+
+			formatStringDefinition = Fmt.Money ( SELECTEDMEASURE ( ) )
+
+		calculationItem 'Trading Stores' =
+				
+				DISTINCTCOUNT ( 'Financials'[StoreKey] )
+
+			formatStringDefinition = "#,##0;(#,##0)"
+
+	column 'P&L Row'
+		dataType: string
+		lineageTag: 9b215e28-11a5-553d-81f5-c3aa3ac38f6c
+		summarizeBy: none
+		sourceColumn: Name
+		sortByColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+
+	column Ordinal
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 005ce30c-4640-5276-8a36-5850d7193e46
+		summarizeBy: none
+		sourceColumn: Ordinal
+
+		annotation SummarizationSetBy = Automatic
+

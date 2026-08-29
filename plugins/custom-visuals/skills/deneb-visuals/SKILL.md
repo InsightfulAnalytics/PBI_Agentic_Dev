@@ -235,6 +235,7 @@ To retrieve current Power BI custom visual docs, use `microsoft_docs_search` + `
 
 ## Related Skills
 
+- **`performant-matrix`** -- diagnose a slow matrix before assuming Deneb; the bridge/native/Deneb decision
 - **`deneb-pbir`** -- round-trip tooling for editing an existing spec: extract/embed the spec in visual.json (`deneb_spec.py`) + offline Vega→PNG/SVG render to verify without Power BI
 - **`pbir-format`** (pbip plugin) -- PBIR JSON format reference
 - **`pbi-report-design`** -- Layout and design best practices

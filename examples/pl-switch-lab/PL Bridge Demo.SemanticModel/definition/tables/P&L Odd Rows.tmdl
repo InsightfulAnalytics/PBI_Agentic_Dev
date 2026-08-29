@@ -1,0 +1,48 @@
+table 'P&L Odd Rows'
+	lineageTag: ca1341f3-0e79-5ba5-8c2e-fac81eefc583
+
+	column Line
+		dataType: string
+		lineageTag: 95011d15-d5a9-54e1-abf0-e2597ddbb851
+		summarizeBy: none
+		sourceColumn: Line
+		sortByColumn: Sort
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Sort
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 95df094e-37a8-5cd0-a7ac-0b61bafb99af
+		summarizeBy: none
+		sourceColumn: Sort
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'P&L Odd Rows' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({
+				        {"Total Income", 0},
+				        {"Total Cost of Sales", 1},
+				        {"Gross Profit", 2},
+				        {"Total Operating Expenses", 3},
+				        {"Net Profit", 4},
+				        {"Gross Margin %", 5},
+				        {"Net Margin %", 6},
+				        {"COGS % of Income", 7},
+				        {"Opex % of Income", 8},
+				        {"Income per Trading Store", 9},
+				        {"Net Profit per Trading Store", 10},
+				        {"Income per Active Product", 11},
+				        {"Trading Stores", 12}
+				    }, type table [Line = Text.Type, Sort = Int64.Type])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+

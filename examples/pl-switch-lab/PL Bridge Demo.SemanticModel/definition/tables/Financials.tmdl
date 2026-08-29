@@ -1,0 +1,72 @@
+table Financials
+	lineageTag: d8ce3eec-ec22-4891-ac36-ec2fb6333fab
+
+	column ProductKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 2b32c717-f3e4-4b6c-b98b-0fc4bebcae9a
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column StoreKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: c4eddd70-e9be-4e1a-8d7a-0556c83c591c
+		summarizeBy: none
+		sourceColumn: StoreKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Date
+		dataType: dateTime
+		isHidden
+		lineageTag: 5b7d6a3e-0fc5-4b9b-9f01-7e52cf748b96
+		summarizeBy: none
+		sourceColumn: Date
+
+		annotation SummarizationSetBy = Automatic
+
+	column Scenario
+		dataType: string
+		isHidden
+		lineageTag: 076beb65-b92b-43eb-a780-fac67460aef4
+		summarizeBy: none
+		sourceColumn: Scenario
+
+		annotation SummarizationSetBy = Automatic
+
+	column AccountKey
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: bdf13188-24dc-46df-bdc2-87ecfeef083c
+		summarizeBy: none
+		sourceColumn: AccountKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Amount
+		dataType: double
+		isHidden
+		lineageTag: 2c45e42c-f5c2-450e-b129-c0b8c4cc931d
+		summarizeBy: sum
+		sourceColumn: Amount
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Financials-6d69a4b6-c76c-4a9d-a2fb-632cb152f00e = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(DataFolder & "\financials.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

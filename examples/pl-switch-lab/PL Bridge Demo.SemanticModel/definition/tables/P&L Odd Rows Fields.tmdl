@@ -1,0 +1,61 @@
+table 'P&L Odd Rows Fields'
+	lineageTag: 05650ca3-a6f4-5b3e-bef0-d4b5d83726d1
+
+	column 'Odd Rows Line'
+		dataType: string
+		lineageTag: a6468b73-c149-5076-b221-a1a0e7ee3e4b
+		summarizeBy: none
+		sourceColumn: [Value1]
+		sortByColumn: 'Odd Rows Line Order'
+
+		relatedColumnDetails
+			groupByColumn: 'Odd Rows Line Fields'
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Odd Rows Line Fields'
+		dataType: string
+		isHidden
+		lineageTag: 0445daf8-4a71-5a62-ab8c-667c820612b2
+		summarizeBy: none
+		sourceColumn: [Value2]
+		sortByColumn: 'Odd Rows Line Order'
+
+		extendedProperty ParameterMetadata =
+				{
+				  "version": 3,
+				  "kind": 2
+				}
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Odd Rows Line Order'
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: aa449164-19e9-5726-aab7-0f329499e440
+		summarizeBy: none
+		sourceColumn: [Value3]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'P&L Odd Rows Fields' = calculated
+		source =
+				{
+				    ("Total Income", NAMEOF('00_Measures'[NM Total Income]), 0),
+				    ("Total Cost of Sales", NAMEOF('00_Measures'[NM Total Cost of Sales]), 1),
+				    ("Gross Profit", NAMEOF('00_Measures'[NM Gross Profit]), 2),
+				    ("Total Operating Expenses", NAMEOF('00_Measures'[NM Total Operating Expenses]), 3),
+				    ("Net Profit", NAMEOF('00_Measures'[NM Net Profit]), 4),
+				    ("Gross Margin %", NAMEOF('00_Measures'[NM Gross Margin %]), 5),
+				    ("Net Margin %", NAMEOF('00_Measures'[NM Net Margin %]), 6),
+				    ("COGS % of Income", NAMEOF('00_Measures'[NM COGS % of Income]), 7),
+				    ("Opex % of Income", NAMEOF('00_Measures'[NM Opex % of Income]), 8),
+				    ("Income per Trading Store", NAMEOF('00_Measures'[NM Income per Trading Store]), 9),
+				    ("Net Profit per Trading Store", NAMEOF('00_Measures'[NM Net Profit per Trading Store]), 10),
+				    ("Income per Active Product", NAMEOF('00_Measures'[NM Income per Active Product]), 11),
+				    ("Trading Stores", NAMEOF('00_Measures'[NM Trading Stores]), 12)
+				}
+
+	annotation PBI_ResultType = Table
+

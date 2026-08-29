@@ -1,0 +1,42 @@
+// demo_odd_rows_long_query.dax -- the query shape a DENEB visual is forced to send.
+// Deneb has ONE 'dataset' data role, so rows AND columns land in the same well and the
+// result is LONG format: 13 row-lines x 14 calc items = 182 rows, ONE value column.
+// Contrast:
+//   page 6 (demo_odd_rows_query.dax)        13 measures x 14-item calc-group axis
+//   page 7 (demo_odd_rows_switch_query.dax) 14 SWITCH measures x 13-row axis
+//   this                                     1 SWITCH measure x 182-row axis
+// Same 182 cells, same leaf measures. The only variable is the SHAPE of the request.
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+    MEASURE '00_Measures'[NM Row Value] =
+        VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+        RETURN
+        SWITCH (
+            __Line,
+            "Total Income",                 [NM Total Income],
+            "Total Cost of Sales",          [NM Total Cost of Sales],
+            "Gross Profit",                 [NM Gross Profit],
+            "Total Operating Expenses",     [NM Total Operating Expenses],
+            "Net Profit",                   [NM Net Profit],
+            "Gross Margin %",               [NM Gross Margin %],
+            "Net Margin %",                 [NM Net Margin %],
+            "COGS % of Income",             [NM COGS % of Income],
+            "Opex % of Income",             [NM Opex % of Income],
+            "Income per Trading Store",     [NM Income per Trading Store],
+            "Net Profit per Trading Store", [NM Net Profit per Trading Store],
+            "Income per Active Product",    [NM Income per Active Product],
+            "Trading Stores",               [NM Trading Stores]
+        )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    'P&L View'[P&L View],
+    'P&L View'[Ordinal],
+    __Yr,
+    "Value", [NM Row Value]
+)
+ORDER BY 'P&L Odd Rows'[Sort], 'P&L View'[Ordinal]

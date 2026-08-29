@@ -1,0 +1,307 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
+  "name": "94f8244ca3a450859a46",
+  "position": {
+    "x": 336,
+    "y": 132,
+    "z": 1000,
+    "height": 740,
+    "width": 1608,
+    "tabOrder": 3000
+  },
+  "visual": {
+    "visualType": "deneb7E15AEF80B9E4D4F8E12924291ECE89A",
+    "query": {
+      "queryState": {
+        "dataset": {
+          "projections": [
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DimDate"
+                    }
+                  },
+                  "Property": "Year"
+                }
+              },
+              "queryRef": "DimDate.Year",
+              "nativeQueryRef": "Year",
+              "displayName": "Year"
+            },
+            {
+              "field": {
+                "Column": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "DimDate"
+                    }
+                  },
+                  "Property": "MonthOfYear"
+                }
+              },
+              "queryRef": "DimDate.MonthOfYear",
+              "nativeQueryRef": "MonthOfYear",
+              "displayName": "Month"
+            },
+            {
+              "field": {
+                "Aggregation": {
+                  "Expression": {
+                    "Column": {
+                      "Expression": {
+                        "SourceRef": {
+                          "Entity": "DimDate"
+                        }
+                      },
+                      "Property": "MonthOffset"
+                    }
+                  },
+                  "Function": 3
+                }
+              },
+              "queryRef": "Min(DimDate.MonthOffset)",
+              "nativeQueryRef": "Min of MonthOffset",
+              "displayName": "MonthOffset"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Income Act"
+                }
+              },
+              "queryRef": "00_Measures.MP Income Act",
+              "nativeQueryRef": "MP Income Act",
+              "displayName": "IncAct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Income LY"
+                }
+              },
+              "queryRef": "00_Measures.MP Income LY",
+              "nativeQueryRef": "MP Income LY",
+              "displayName": "IncLY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP COGS Act"
+                }
+              },
+              "queryRef": "00_Measures.MP COGS Act",
+              "nativeQueryRef": "MP COGS Act",
+              "displayName": "CogAct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP COGS LY"
+                }
+              },
+              "queryRef": "00_Measures.MP COGS LY",
+              "nativeQueryRef": "MP COGS LY",
+              "displayName": "CogLY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GP Act"
+                }
+              },
+              "queryRef": "00_Measures.MP GP Act",
+              "nativeQueryRef": "MP GP Act",
+              "displayName": "GPAct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP GP LY"
+                }
+              },
+              "queryRef": "00_Measures.MP GP LY",
+              "nativeQueryRef": "MP GP LY",
+              "displayName": "GPLY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex Act"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex Act",
+              "nativeQueryRef": "MP Opex Act",
+              "displayName": "OpxAct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP Opex LY"
+                }
+              },
+              "queryRef": "00_Measures.MP Opex LY",
+              "nativeQueryRef": "MP Opex LY",
+              "displayName": "OpxLY"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP NP Act"
+                }
+              },
+              "queryRef": "00_Measures.MP NP Act",
+              "nativeQueryRef": "MP NP Act",
+              "displayName": "NPAct"
+            },
+            {
+              "field": {
+                "Measure": {
+                  "Expression": {
+                    "SourceRef": {
+                      "Entity": "00_Measures"
+                    }
+                  },
+                  "Property": "MP NP LY"
+                }
+              },
+              "queryRef": "00_Measures.MP NP LY",
+              "nativeQueryRef": "MP NP LY",
+              "displayName": "NPLY"
+            }
+          ]
+        }
+      }
+    },
+    "objects": {
+      "vega": [
+        {
+          "properties": {
+            "provider": {
+              "expr": {
+                "Literal": {
+                  "Value": "'vega'"
+                }
+              }
+            },
+            "jsonSpec": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\r\n  \"$schema\": \"https://vega.github.io/schema/vega/v6.json\",\r\n  \"description\": \"Monthly P&L grid - one flat query, calculation group replaced by spec-side derivation\",\r\n  \"background\": \"#FFFFFF\",\r\n  \"padding\": 0,\r\n  \"autosize\": {\r\n    \"type\": \"none\",\r\n    \"resize\": true\r\n  },\r\n  \"width\": {\r\n    \"signal\": \"pbiContainerWidth - (pbiContainerHeight < 622 ? 12 : 0)\"\r\n  },\r\n  \"height\": {\r\n    \"signal\": \"max(pbiContainerHeight, 622)\"\r\n  },\r\n  \"signals\": [\r\n    {\r\n      \"name\": \"headerHeight\",\r\n      \"value\": 34\r\n    },\r\n    {\r\n      \"name\": \"labelWidth\",\r\n      \"value\": 160\r\n    },\r\n    {\r\n      \"name\": \"colWidth\",\r\n      \"update\": \"(width - labelWidth) / 15\"\r\n    },\r\n    {\r\n      \"name\": \"rowHeight\",\r\n      \"update\": \"(height - headerHeight) / 28\"\r\n    }\r\n  ],\r\n  \"data\": [\r\n    {\r\n      \"name\": \"dataset\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"todayIdx\",\r\n          \"expr\": \"isValid(datum.MonthOffset) && isValid(datum.Year) && isValid(datum.Month) ? 12 * datum.Year + datum.Month - datum.MonthOffset : null\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"rowsReg\",\r\n      \"values\": [\r\n        {\r\n          \"key\": \"t_inc\",\r\n          \"rowIdx\": 0,\r\n          \"label\": \"Income\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"inc_act\",\r\n          \"rowIdx\": 1,\r\n          \"label\": \"Income Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"inc_ly\",\r\n          \"rowIdx\": 2,\r\n          \"label\": \"Income LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"inc_var\",\r\n          \"rowIdx\": 3,\r\n          \"label\": \"Income Var %\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_cogs\",\r\n          \"rowIdx\": 4,\r\n          \"label\": \"Cost of Sales\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"cog_act\",\r\n          \"rowIdx\": 5,\r\n          \"label\": \"COGS Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"cog_ly\",\r\n          \"rowIdx\": 6,\r\n          \"label\": \"COGS LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"cog_var\",\r\n          \"rowIdx\": 7,\r\n          \"label\": \"COGS Var %\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_gp\",\r\n          \"rowIdx\": 8,\r\n          \"label\": \"Gross Profit\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gp_act\",\r\n          \"rowIdx\": 9,\r\n          \"label\": \"GP Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gp_ly\",\r\n          \"rowIdx\": 10,\r\n          \"label\": \"GP LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gp_var\",\r\n          \"rowIdx\": 11,\r\n          \"label\": \"GP Var %\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_gm\",\r\n          \"rowIdx\": 12,\r\n          \"label\": \"Gross Margin\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gm_act\",\r\n          \"rowIdx\": 13,\r\n          \"label\": \"GM % Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gm_ly\",\r\n          \"rowIdx\": 14,\r\n          \"label\": \"GM % LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"gm_var\",\r\n          \"rowIdx\": 15,\r\n          \"label\": \"GM Var bps\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_opx\",\r\n          \"rowIdx\": 16,\r\n          \"label\": \"Operating Expenses\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opx_act\",\r\n          \"rowIdx\": 17,\r\n          \"label\": \"Opex Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opx_ly\",\r\n          \"rowIdx\": 18,\r\n          \"label\": \"Opex LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opx_var\",\r\n          \"rowIdx\": 19,\r\n          \"label\": \"Opex Var %\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_ratio\",\r\n          \"rowIdx\": 20,\r\n          \"label\": \"Cost Ratio\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opr_act\",\r\n          \"rowIdx\": 21,\r\n          \"label\": \"Opex % Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opr_ly\",\r\n          \"rowIdx\": 22,\r\n          \"label\": \"Opex % LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"opr_var\",\r\n          \"rowIdx\": 23,\r\n          \"label\": \"Opex % Var bps\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        },\r\n        {\r\n          \"key\": \"t_np\",\r\n          \"rowIdx\": 24,\r\n          \"label\": \"Net Profit\",\r\n          \"kind\": \"title\",\r\n          \"fmt\": \"\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"np_act\",\r\n          \"rowIdx\": 25,\r\n          \"label\": \"NP Act\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"np_ly\",\r\n          \"rowIdx\": 26,\r\n          \"label\": \"NP LY\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"money\",\r\n          \"isVar\": false\r\n        },\r\n        {\r\n          \"key\": \"np_var\",\r\n          \"rowIdx\": 27,\r\n          \"label\": \"NP Var %\",\r\n          \"kind\": \"data\",\r\n          \"fmt\": \"pct\",\r\n          \"isVar\": true\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"rowEdges\",\r\n      \"values\": [\r\n        {\r\n          \"edge\": 0\r\n        },\r\n        {\r\n          \"edge\": 1\r\n        },\r\n        {\r\n          \"edge\": 2\r\n        },\r\n        {\r\n          \"edge\": 3\r\n        },\r\n        {\r\n          \"edge\": 4\r\n        },\r\n        {\r\n          \"edge\": 5\r\n        },\r\n        {\r\n          \"edge\": 6\r\n        },\r\n        {\r\n          \"edge\": 7\r\n        },\r\n        {\r\n          \"edge\": 8\r\n        },\r\n        {\r\n          \"edge\": 9\r\n        },\r\n        {\r\n          \"edge\": 10\r\n        },\r\n        {\r\n          \"edge\": 11\r\n        },\r\n        {\r\n          \"edge\": 12\r\n        },\r\n        {\r\n          \"edge\": 13\r\n        },\r\n        {\r\n          \"edge\": 14\r\n        },\r\n        {\r\n          \"edge\": 15\r\n        },\r\n        {\r\n          \"edge\": 16\r\n        },\r\n        {\r\n          \"edge\": 17\r\n        },\r\n        {\r\n          \"edge\": 18\r\n        },\r\n        {\r\n          \"edge\": 19\r\n        },\r\n        {\r\n          \"edge\": 20\r\n        },\r\n        {\r\n          \"edge\": 21\r\n        },\r\n        {\r\n          \"edge\": 22\r\n        },\r\n        {\r\n          \"edge\": 23\r\n        },\r\n        {\r\n          \"edge\": 24\r\n        },\r\n        {\r\n          \"edge\": 25\r\n        },\r\n        {\r\n          \"edge\": 26\r\n        },\r\n        {\r\n          \"edge\": 27\r\n        },\r\n        {\r\n          \"edge\": 28\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"colsReg\",\r\n      \"values\": [\r\n        {\r\n          \"colLabel\": \"Jan\",\r\n          \"colIdx\": 0\r\n        },\r\n        {\r\n          \"colLabel\": \"Feb\",\r\n          \"colIdx\": 1\r\n        },\r\n        {\r\n          \"colLabel\": \"Mar\",\r\n          \"colIdx\": 2\r\n        },\r\n        {\r\n          \"colLabel\": \"Apr\",\r\n          \"colIdx\": 3\r\n        },\r\n        {\r\n          \"colLabel\": \"May\",\r\n          \"colIdx\": 4\r\n        },\r\n        {\r\n          \"colLabel\": \"Jun\",\r\n          \"colIdx\": 5\r\n        },\r\n        {\r\n          \"colLabel\": \"Jul\",\r\n          \"colIdx\": 6\r\n        },\r\n        {\r\n          \"colLabel\": \"Aug\",\r\n          \"colIdx\": 7\r\n        },\r\n        {\r\n          \"colLabel\": \"Sep\",\r\n          \"colIdx\": 8\r\n        },\r\n        {\r\n          \"colLabel\": \"Oct\",\r\n          \"colIdx\": 9\r\n        },\r\n        {\r\n          \"colLabel\": \"Nov\",\r\n          \"colIdx\": 10\r\n        },\r\n        {\r\n          \"colLabel\": \"Dec\",\r\n          \"colIdx\": 11\r\n        },\r\n        {\r\n          \"colLabel\": \"YTD\",\r\n          \"colIdx\": 12\r\n        },\r\n        {\r\n          \"colLabel\": \"YTG\",\r\n          \"colIdx\": 13\r\n        },\r\n        {\r\n          \"colLabel\": \"FY\",\r\n          \"colIdx\": 14\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"titleRows\",\r\n      \"source\": \"rowsReg\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"filter\",\r\n          \"expr\": \"datum.kind == ''title''\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"months\",\r\n      \"source\": \"dataset\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"aggregate\",\r\n          \"fields\": [\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"todayIdx\"\r\n          ],\r\n          \"ops\": [\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"max\"\r\n          ],\r\n          \"as\": [\r\n            \"sIncAct\",\r\n            \"sIncLY\",\r\n            \"sCogAct\",\r\n            \"sCogLY\",\r\n            \"sGPAct\",\r\n            \"sGPLY\",\r\n            \"sOpxAct\",\r\n            \"sOpxLY\",\r\n            \"sNPAct\",\r\n            \"sNPLY\",\r\n            \"vIncAct\",\r\n            \"vIncLY\",\r\n            \"vCogAct\",\r\n            \"vCogLY\",\r\n            \"vGPAct\",\r\n            \"vGPLY\",\r\n            \"vOpxAct\",\r\n            \"vOpxLY\",\r\n            \"vNPAct\",\r\n            \"vNPLY\",\r\n            \"todayIdx\"\r\n          ],\r\n          \"groupby\": [\r\n            \"Month\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncAct\",\r\n          \"expr\": \"datum.vIncAct > 0 ? datum.sIncAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncLY\",\r\n          \"expr\": \"datum.vIncLY > 0 ? datum.sIncLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogAct\",\r\n          \"expr\": \"datum.vCogAct > 0 ? datum.sCogAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogLY\",\r\n          \"expr\": \"datum.vCogLY > 0 ? datum.sCogLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPAct\",\r\n          \"expr\": \"datum.vGPAct > 0 ? datum.sGPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPLY\",\r\n          \"expr\": \"datum.vGPLY > 0 ? datum.sGPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxAct\",\r\n          \"expr\": \"datum.vOpxAct > 0 ? datum.sOpxAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxLY\",\r\n          \"expr\": \"datum.vOpxLY > 0 ? datum.sOpxLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPAct\",\r\n          \"expr\": \"datum.vNPAct > 0 ? datum.sNPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPLY\",\r\n          \"expr\": \"datum.vNPLY > 0 ? datum.sNPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"curP\",\r\n          \"expr\": \"isFinite(datum.todayIdx) ? ((datum.todayIdx - 1) % 12) + 1 : null\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"monthCols\",\r\n      \"source\": \"months\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"filter\",\r\n          \"expr\": \"datum.Month >= 1 && datum.Month <= 12\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colIdx\",\r\n          \"expr\": \"datum.Month - 1\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colLabel\",\r\n          \"expr\": \"[\\\"Jan\\\", \\\"Feb\\\", \\\"Mar\\\", \\\"Apr\\\", \\\"May\\\", \\\"Jun\\\", \\\"Jul\\\", \\\"Aug\\\", \\\"Sep\\\", \\\"Oct\\\", \\\"Nov\\\", \\\"Dec\\\"][datum.Month - 1]\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"totYTD\",\r\n      \"source\": \"months\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"filter\",\r\n          \"expr\": \"isValid(datum.curP) && datum.Month <= datum.curP\"\r\n        },\r\n        {\r\n          \"type\": \"aggregate\",\r\n          \"fields\": [\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"todayIdx\"\r\n          ],\r\n          \"ops\": [\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"max\"\r\n          ],\r\n          \"as\": [\r\n            \"sIncAct\",\r\n            \"sIncLY\",\r\n            \"sCogAct\",\r\n            \"sCogLY\",\r\n            \"sGPAct\",\r\n            \"sGPLY\",\r\n            \"sOpxAct\",\r\n            \"sOpxLY\",\r\n            \"sNPAct\",\r\n            \"sNPLY\",\r\n            \"vIncAct\",\r\n            \"vIncLY\",\r\n            \"vCogAct\",\r\n            \"vCogLY\",\r\n            \"vGPAct\",\r\n            \"vGPLY\",\r\n            \"vOpxAct\",\r\n            \"vOpxLY\",\r\n            \"vNPAct\",\r\n            \"vNPLY\",\r\n            \"todayIdx\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncAct\",\r\n          \"expr\": \"datum.vIncAct > 0 ? datum.sIncAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncLY\",\r\n          \"expr\": \"datum.vIncLY > 0 ? datum.sIncLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogAct\",\r\n          \"expr\": \"datum.vCogAct > 0 ? datum.sCogAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogLY\",\r\n          \"expr\": \"datum.vCogLY > 0 ? datum.sCogLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPAct\",\r\n          \"expr\": \"datum.vGPAct > 0 ? datum.sGPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPLY\",\r\n          \"expr\": \"datum.vGPLY > 0 ? datum.sGPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxAct\",\r\n          \"expr\": \"datum.vOpxAct > 0 ? datum.sOpxAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxLY\",\r\n          \"expr\": \"datum.vOpxLY > 0 ? datum.sOpxLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPAct\",\r\n          \"expr\": \"datum.vNPAct > 0 ? datum.sNPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPLY\",\r\n          \"expr\": \"datum.vNPLY > 0 ? datum.sNPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colLabel\",\r\n          \"expr\": \"''YTD''\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colIdx\",\r\n          \"expr\": \"12\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"totYTG\",\r\n      \"source\": \"months\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"filter\",\r\n          \"expr\": \"isValid(datum.curP) && datum.Month > datum.curP\"\r\n        },\r\n        {\r\n          \"type\": \"aggregate\",\r\n          \"fields\": [\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"todayIdx\"\r\n          ],\r\n          \"ops\": [\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"max\"\r\n          ],\r\n          \"as\": [\r\n            \"sIncAct\",\r\n            \"sIncLY\",\r\n            \"sCogAct\",\r\n            \"sCogLY\",\r\n            \"sGPAct\",\r\n            \"sGPLY\",\r\n            \"sOpxAct\",\r\n            \"sOpxLY\",\r\n            \"sNPAct\",\r\n            \"sNPLY\",\r\n            \"vIncAct\",\r\n            \"vIncLY\",\r\n            \"vCogAct\",\r\n            \"vCogLY\",\r\n            \"vGPAct\",\r\n            \"vGPLY\",\r\n            \"vOpxAct\",\r\n            \"vOpxLY\",\r\n            \"vNPAct\",\r\n            \"vNPLY\",\r\n            \"todayIdx\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncAct\",\r\n          \"expr\": \"datum.vIncAct > 0 ? datum.sIncAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncLY\",\r\n          \"expr\": \"datum.vIncLY > 0 ? datum.sIncLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogAct\",\r\n          \"expr\": \"datum.vCogAct > 0 ? datum.sCogAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogLY\",\r\n          \"expr\": \"datum.vCogLY > 0 ? datum.sCogLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPAct\",\r\n          \"expr\": \"datum.vGPAct > 0 ? datum.sGPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPLY\",\r\n          \"expr\": \"datum.vGPLY > 0 ? datum.sGPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxAct\",\r\n          \"expr\": \"datum.vOpxAct > 0 ? datum.sOpxAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxLY\",\r\n          \"expr\": \"datum.vOpxLY > 0 ? datum.sOpxLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPAct\",\r\n          \"expr\": \"datum.vNPAct > 0 ? datum.sNPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPLY\",\r\n          \"expr\": \"datum.vNPLY > 0 ? datum.sNPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colLabel\",\r\n          \"expr\": \"''YTG''\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colIdx\",\r\n          \"expr\": \"13\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"totFY\",\r\n      \"source\": \"months\",\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"aggregate\",\r\n          \"fields\": [\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"IncAct\",\r\n            \"IncLY\",\r\n            \"CogAct\",\r\n            \"CogLY\",\r\n            \"GPAct\",\r\n            \"GPLY\",\r\n            \"OpxAct\",\r\n            \"OpxLY\",\r\n            \"NPAct\",\r\n            \"NPLY\",\r\n            \"todayIdx\"\r\n          ],\r\n          \"ops\": [\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"sum\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"valid\",\r\n            \"max\"\r\n          ],\r\n          \"as\": [\r\n            \"sIncAct\",\r\n            \"sIncLY\",\r\n            \"sCogAct\",\r\n            \"sCogLY\",\r\n            \"sGPAct\",\r\n            \"sGPLY\",\r\n            \"sOpxAct\",\r\n            \"sOpxLY\",\r\n            \"sNPAct\",\r\n            \"sNPLY\",\r\n            \"vIncAct\",\r\n            \"vIncLY\",\r\n            \"vCogAct\",\r\n            \"vCogLY\",\r\n            \"vGPAct\",\r\n            \"vGPLY\",\r\n            \"vOpxAct\",\r\n            \"vOpxLY\",\r\n            \"vNPAct\",\r\n            \"vNPLY\",\r\n            \"todayIdx\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncAct\",\r\n          \"expr\": \"datum.vIncAct > 0 ? datum.sIncAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"IncLY\",\r\n          \"expr\": \"datum.vIncLY > 0 ? datum.sIncLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogAct\",\r\n          \"expr\": \"datum.vCogAct > 0 ? datum.sCogAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"CogLY\",\r\n          \"expr\": \"datum.vCogLY > 0 ? datum.sCogLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPAct\",\r\n          \"expr\": \"datum.vGPAct > 0 ? datum.sGPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"GPLY\",\r\n          \"expr\": \"datum.vGPLY > 0 ? datum.sGPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxAct\",\r\n          \"expr\": \"datum.vOpxAct > 0 ? datum.sOpxAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"OpxLY\",\r\n          \"expr\": \"datum.vOpxLY > 0 ? datum.sOpxLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPAct\",\r\n          \"expr\": \"datum.vNPAct > 0 ? datum.sNPAct : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"NPLY\",\r\n          \"expr\": \"datum.vNPLY > 0 ? datum.sNPLY : null\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colLabel\",\r\n          \"expr\": \"''FY''\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"colIdx\",\r\n          \"expr\": \"14\"\r\n        }\r\n      ]\r\n    },\r\n    {\r\n      \"name\": \"cells\",\r\n      \"source\": [\r\n        \"monthCols\",\r\n        \"totYTD\",\r\n        \"totYTG\",\r\n        \"totFY\"\r\n      ],\r\n      \"transform\": [\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"inc_act\",\r\n          \"expr\": \"datum.IncAct\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"inc_ly\",\r\n          \"expr\": \"datum.IncLY\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"inc_var\",\r\n          \"expr\": \"(datum.IncLY == null || datum.IncLY == 0) ? null : (((datum.IncAct == null ? 0 : datum.IncAct) - datum.IncLY) / datum.IncLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"cog_act\",\r\n          \"expr\": \"datum.CogAct\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"cog_ly\",\r\n          \"expr\": \"datum.CogLY\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"cog_var\",\r\n          \"expr\": \"(datum.CogLY == null || datum.CogLY == 0) ? null : (((datum.CogAct == null ? 0 : datum.CogAct) - datum.CogLY) / datum.CogLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gp_act\",\r\n          \"expr\": \"datum.GPAct\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gp_ly\",\r\n          \"expr\": \"datum.GPLY\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gp_var\",\r\n          \"expr\": \"(datum.GPLY == null || datum.GPLY == 0) ? null : (((datum.GPAct == null ? 0 : datum.GPAct) - datum.GPLY) / datum.GPLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gm_act\",\r\n          \"expr\": \"(datum.IncAct == null || datum.IncAct == 0 || datum.GPAct == null) ? null : (datum.GPAct / datum.IncAct)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gm_ly\",\r\n          \"expr\": \"(datum.IncLY == null || datum.IncLY == 0 || datum.GPLY == null) ? null : (datum.GPLY / datum.IncLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"gm_var\",\r\n          \"expr\": \"(datum.gm_act == null && datum.gm_ly == null) ? null : ((datum.gm_act == null ? 0 : datum.gm_act) - (datum.gm_ly == null ? 0 : datum.gm_ly))\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opx_act\",\r\n          \"expr\": \"datum.OpxAct\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opx_ly\",\r\n          \"expr\": \"datum.OpxLY\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opx_var\",\r\n          \"expr\": \"(datum.OpxLY == null || datum.OpxLY == 0) ? null : (((datum.OpxAct == null ? 0 : datum.OpxAct) - datum.OpxLY) / datum.OpxLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opr_act\",\r\n          \"expr\": \"(datum.IncAct == null || datum.IncAct == 0 || datum.OpxAct == null) ? null : (-datum.OpxAct / datum.IncAct)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opr_ly\",\r\n          \"expr\": \"(datum.IncLY == null || datum.IncLY == 0 || datum.OpxLY == null) ? null : (-datum.OpxLY / datum.IncLY)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"opr_var\",\r\n          \"expr\": \"(datum.opr_act == null && datum.opr_ly == null) ? null : ((datum.opr_act == null ? 0 : datum.opr_act) - (datum.opr_ly == null ? 0 : datum.opr_ly))\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"np_act\",\r\n          \"expr\": \"datum.NPAct\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"np_ly\",\r\n          \"expr\": \"datum.NPLY\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"np_var\",\r\n          \"expr\": \"(datum.NPLY == null || datum.NPLY == 0) ? null : (((datum.NPAct == null ? 0 : datum.NPAct) - datum.NPLY) / datum.NPLY)\"\r\n        },\r\n        {\r\n          \"type\": \"fold\",\r\n          \"fields\": [\r\n            \"inc_act\",\r\n            \"inc_ly\",\r\n            \"inc_var\",\r\n            \"cog_act\",\r\n            \"cog_ly\",\r\n            \"cog_var\",\r\n            \"gp_act\",\r\n            \"gp_ly\",\r\n            \"gp_var\",\r\n            \"gm_act\",\r\n            \"gm_ly\",\r\n            \"gm_var\",\r\n            \"opx_act\",\r\n            \"opx_ly\",\r\n            \"opx_var\",\r\n            \"opr_act\",\r\n            \"opr_ly\",\r\n            \"opr_var\",\r\n            \"np_act\",\r\n            \"np_ly\",\r\n            \"np_var\"\r\n          ],\r\n          \"as\": [\r\n            \"key\",\r\n            \"value\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"lookup\",\r\n          \"from\": \"rowsReg\",\r\n          \"key\": \"key\",\r\n          \"fields\": [\r\n            \"key\"\r\n          ],\r\n          \"values\": [\r\n            \"rowIdx\",\r\n            \"label\",\r\n            \"fmt\",\r\n            \"isVar\"\r\n          ],\r\n          \"as\": [\r\n            \"rowIdx\",\r\n            \"rowLabel\",\r\n            \"fmt\",\r\n            \"isVar\"\r\n          ]\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"av\",\r\n          \"expr\": \"abs(datum.value)\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"body\",\r\n          \"expr\": \"datum.fmt == ''pct'' ? (datum.av >= 1 ? format(datum.av, ''.0%'') : format(datum.av, ''.1%'')) : ''$'' + (datum.av >= 999950 ? format(datum.av / 1e6, '',.1f'') + ''M'' : datum.av >= 999.5 ? format(datum.av / 1e3, '',.1f'') + ''K'' : format(datum.av, '',.0f''))\"\r\n        },\r\n        {\r\n          \"type\": \"formula\",\r\n          \"as\": \"fmtd\",\r\n          \"expr\": \"datum.value == null ? '''' : (datum.value < 0 ? ''('' + datum.body + '')'' : datum.body)\"\r\n        }\r\n      ]\r\n    }\r\n  ],\r\n  \"marks\": [\r\n    {\r\n      \"type\": \"rect\",\r\n      \"name\": \"headerBand\",\r\n      \"interactive\": false,\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"value\": 0\r\n          },\r\n          \"x2\": {\r\n            \"signal\": \"width\"\r\n          },\r\n          \"y\": {\r\n            \"value\": 0\r\n          },\r\n          \"y2\": {\r\n            \"signal\": \"headerHeight\"\r\n          },\r\n          \"fill\": {\r\n            \"value\": \"#1B3A57\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"type\": \"text\",\r\n      \"name\": \"headerLabels\",\r\n      \"from\": {\r\n        \"data\": \"colsReg\"\r\n      },\r\n      \"interactive\": false,\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"signal\": \"labelWidth + (datum.colIdx + 0.5) * colWidth\"\r\n          },\r\n          \"y\": {\r\n            \"signal\": \"headerHeight / 2\"\r\n          },\r\n          \"align\": {\r\n            \"value\": \"center\"\r\n          },\r\n          \"baseline\": {\r\n            \"value\": \"middle\"\r\n          },\r\n          \"text\": {\r\n            \"field\": \"colLabel\"\r\n          },\r\n          \"font\": {\r\n            \"value\": \"Segoe UI\"\r\n          },\r\n          \"fontSize\": {\r\n            \"value\": 13\r\n          },\r\n          \"fontWeight\": {\r\n            \"value\": \"bold\"\r\n          },\r\n          \"fill\": {\r\n            \"value\": \"#FFFFFF\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"type\": \"rect\",\r\n      \"name\": \"titleBands\",\r\n      \"from\": {\r\n        \"data\": \"titleRows\"\r\n      },\r\n      \"interactive\": false,\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"value\": 0\r\n          },\r\n          \"x2\": {\r\n            \"signal\": \"width\"\r\n          },\r\n          \"y\": {\r\n            \"signal\": \"headerHeight + datum.rowIdx * rowHeight\"\r\n          },\r\n          \"height\": {\r\n            \"signal\": \"rowHeight\"\r\n          },\r\n          \"fill\": {\r\n            \"value\": \"#F1F1F1\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"type\": \"rule\",\r\n      \"name\": \"gridRules\",\r\n      \"from\": {\r\n        \"data\": \"rowEdges\"\r\n      },\r\n      \"interactive\": false,\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"value\": 0\r\n          },\r\n          \"x2\": {\r\n            \"signal\": \"width\"\r\n          },\r\n          \"y\": {\r\n            \"signal\": \"min(headerHeight + datum.edge * rowHeight, height - 0.5)\"\r\n          },\r\n          \"stroke\": {\r\n            \"value\": \"#E6E6E6\"\r\n          },\r\n          \"strokeWidth\": {\r\n            \"value\": 1\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"type\": \"text\",\r\n      \"name\": \"rowLabels\",\r\n      \"from\": {\r\n        \"data\": \"rowsReg\"\r\n      },\r\n      \"interactive\": false,\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"signal\": \"datum.kind == ''title'' ? 10 : 24\"\r\n          },\r\n          \"y\": {\r\n            \"signal\": \"headerHeight + (datum.rowIdx + 0.5) * rowHeight\"\r\n          },\r\n          \"baseline\": {\r\n            \"value\": \"middle\"\r\n          },\r\n          \"text\": {\r\n            \"field\": \"label\"\r\n          },\r\n          \"font\": {\r\n            \"value\": \"Segoe UI\"\r\n          },\r\n          \"fontSize\": {\r\n            \"value\": 13\r\n          },\r\n          \"fontWeight\": {\r\n            \"signal\": \"datum.kind == ''title'' ? ''bold'' : ''normal''\"\r\n          },\r\n          \"fill\": {\r\n            \"value\": \"#231F20\"\r\n          },\r\n          \"limit\": {\r\n            \"signal\": \"labelWidth - (datum.kind == ''title'' ? 10 : 24) - 6\"\r\n          }\r\n        }\r\n      }\r\n    },\r\n    {\r\n      \"type\": \"text\",\r\n      \"name\": \"cellText\",\r\n      \"from\": {\r\n        \"data\": \"cells\"\r\n      },\r\n      \"encode\": {\r\n        \"update\": {\r\n          \"x\": {\r\n            \"signal\": \"labelWidth + (datum.colIdx + 1) * colWidth - 6\"\r\n          },\r\n          \"y\": {\r\n            \"signal\": \"headerHeight + (datum.rowIdx + 0.5) * rowHeight\"\r\n          },\r\n          \"align\": {\r\n            \"value\": \"right\"\r\n          },\r\n          \"baseline\": {\r\n            \"value\": \"middle\"\r\n          },\r\n          \"text\": {\r\n            \"field\": \"fmtd\"\r\n          },\r\n          \"font\": {\r\n            \"value\": \"Segoe UI\"\r\n          },\r\n          \"fontSize\": {\r\n            \"value\": 13\r\n          },\r\n          \"fill\": {\r\n            \"signal\": \"datum.isVar && datum.value != null && datum.value != 0 ? (datum.value > 0 ? ''#00792E'' : ''#B3261E'') : ''#231F20''\"\r\n          },\r\n          \"limit\": {\r\n            \"signal\": \"colWidth - 8\"\r\n          },\r\n          \"tooltip\": {\r\n            \"signal\": \"{''Line'': datum.rowLabel, ''Column'': datum.colLabel, ''Value'': datum.fmtd == '''' ? ''\\u2014'' : datum.fmtd}\"\r\n          }\r\n        }\r\n      }\r\n    }\r\n  ]\r\n}'"
+                }
+              }
+            },
+            "jsonConfig": {
+              "expr": {
+                "Literal": {
+                  "Value": "'{\"view\":{\"stroke\":\"transparent\"},\"font\":\"Segoe UI\"}'"
+                }
+              }
+            },
+            "enableTooltips": {
+              "expr": {
+                "Literal": {
+                  "Value": "true"
+                }
+              }
+            },
+            "renderMode": {
+              "expr": {
+                "Literal": {
+                  "Value": "'svg'"
+                }
+              }
+            },
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'6.2.0'"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "stateManagement": [
+        {
+          "properties": {
+            "viewportHeight": {
+              "expr": {
+                "Literal": {
+                  "Value": "710D"
+                }
+              }
+            },
+            "viewportWidth": {
+              "expr": {
+                "Literal": {
+                  "Value": "1578D"
+                }
+              }
+            }
+          }
+        }
+      ],
+      "developer": [
+        {
+          "properties": {
+            "version": {
+              "expr": {
+                "Literal": {
+                  "Value": "'1.9.1.0'"
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "drillFilterOtherVisuals": true
+  }
+}

@@ -1,0 +1,30 @@
+// demo_odd_rows_page6_query.dax -- page 6 "Odd Rows P&L" AS REBUILT (candidate D).
+// Rows: 'P&L Odd Rows'[Line] (13, disconnected). Columns: the 14-item 'P&L View'
+// calculation group. Values: the single model measure [NM Row Value].
+// Replaces the field-parameter design still preserved in demo_odd_rows_query.dax.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_odd_rows_page6_query.dax"
+
+DEFINE
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Odd Rows'[Line],
+    'P&L Odd Rows'[Sort],
+    __Yr,
+    "Actual", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "Actual" ),
+    "LY", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "LY" ),
+    "vs LY", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "vs LY" ),
+    "vs LY %", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "vs LY %" ),
+    "Budget", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "Budget" ),
+    "Var to Budget", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "Var to Budget" ),
+    "Var to Budget %", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "Var to Budget %" ),
+    "YTD Actual", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD Actual" ),
+    "YTD LY", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD LY" ),
+    "YTD vs LY", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD vs LY" ),
+    "YTD vs LY %", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD vs LY %" ),
+    "YTD Budget", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD Budget" ),
+    "YTD Var to Budget", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD Var to Budget" ),
+    "YTD Var to Budget %", CALCULATE ( [NM Row Value], 'P&L View'[P&L View] = "YTD Var to Budget %" )
+)
+ORDER BY 'P&L Odd Rows'[Sort]

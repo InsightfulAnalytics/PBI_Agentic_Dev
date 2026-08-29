@@ -1,0 +1,40 @@
+table Products
+	lineageTag: d26b0d01-35e1-454a-b4e3-e84162618a6a
+
+	column ProductKey
+		dataType: int64
+		formatString: 0
+		lineageTag: 6d103e39-1d7c-46e7-bf2b-bc55a5438ac4
+		summarizeBy: none
+		sourceColumn: ProductKey
+
+		annotation SummarizationSetBy = Automatic
+
+	column Product
+		dataType: string
+		lineageTag: 9a724861-0661-4347-beab-d2690b8ace6e
+		summarizeBy: none
+		sourceColumn: Product
+
+		annotation SummarizationSetBy = Automatic
+
+	column Category
+		dataType: string
+		lineageTag: 646fd6fd-4b76-479a-b799-9ed8fedf8113
+		summarizeBy: none
+		sourceColumn: Category
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Products-d0985ce5-cbd2-4d84-908e-8e0ff92f23b6 = m
+		mode: import
+		source =
+				let
+				    Source = Parquet.Document(File.Contents(DataFolder & "\products.parquet"))
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

@@ -1,0 +1,26 @@
+table 'Time Period'
+	lineageTag: 1eb0bdc5-301a-43f8-82e9-332fab4abaa8
+
+	column 'Time Period'
+		dataType: string
+		lineageTag: e344ed35-2e95-4f36-9e9a-05e90a8458f9
+		summarizeBy: none
+		sourceColumn: Time Period
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Time Period-f051e362-b2fa-404c-b537-9593d6c08506' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({
+				        {"Selected Period"},
+				        {"YTD"}
+				    }, type table [#"Time Period" = Text.Type])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

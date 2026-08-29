@@ -1,0 +1,3373 @@
+table 00_Measures
+	lineageTag: e9b66958-26a6-46aa-845e-4077eea73423
+
+	/// Scenario- and time-agnostic base. The calculation group supplies both.
+	measure 'NM Amount' =
+			
+			// deliberately scenario- and time-agnostic: the calculation group owns both
+			SUM ( 'Financials'[Amount] )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 2ab159ce-cc0d-55dc-8981-3e6beabd6841
+
+	/// Account-backed line: one filter on the bridge, no SWITCH.
+	measure 'NM Total Income' =
+			
+			CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Income" )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 1099bab3-958b-560b-9728-725650045146
+
+	/// Account-backed line: one filter on the bridge, no SWITCH.
+	measure 'NM Total Cost of Sales' =
+			
+			CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Cost of Sales" )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 68dc3035-3464-595e-8732-607eba83a522
+
+	/// Account-backed line: one filter on the bridge, no SWITCH.
+	measure 'NM Gross Profit' =
+			
+			CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Gross Profit" )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: ecbcbf91-d81f-5519-b711-ffb17d09314a
+
+	/// Account-backed line: one filter on the bridge, no SWITCH.
+	measure 'NM Total Operating Expenses' =
+			
+			CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Total Operating Expenses" )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 5929f9cb-d5b6-5afb-b9a3-696562da38ec
+
+	/// Account-backed line: one filter on the bridge, no SWITCH.
+	measure 'NM Net Profit' =
+			
+			CALCULATE ( [NM Amount], 'P&L Lines'[Line] = "Net Profit" )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 926b0b51-89da-5483-a1e0-b27c35712cd6
+
+	/// Ratio line - no set of accounts can express it.
+	measure 'NM Gross Margin %' =
+			
+			DIVIDE ( [NM Gross Profit], [NM Total Income] )
+		formatString: 0.0%
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 3b899e83-4a00-59b0-8a4d-93e420f1c256
+
+	/// Ratio line - no set of accounts can express it.
+	measure 'NM Net Margin %' =
+			
+			DIVIDE ( [NM Net Profit], [NM Total Income] )
+		formatString: 0.0%
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: c4f808cf-2f52-5e27-b11c-4846570e2ee1
+
+	/// Ratio line - no set of accounts can express it.
+	measure 'NM COGS % of Income' =
+			
+			DIVIDE ( - [NM Total Cost of Sales], [NM Total Income] )
+		formatString: 0.0%
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: a741371f-1e3c-53a2-a6c2-fabbf4bd25c7
+
+	/// Ratio line - no set of accounts can express it.
+	measure 'NM Opex % of Income' =
+			
+			DIVIDE ( - [NM Total Operating Expenses], [NM Total Income] )
+		formatString: 0.0%
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 1f2ddc2c-0fff-5025-8777-281d87290e22
+
+	/// Per-unit line - no set of accounts can express it.
+	measure 'NM Income per Trading Store' =
+			
+			DIVIDE ( [NM Total Income], [NM Trading Stores] )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 05a23cf5-f9b1-54bc-97f4-50f7a67e8121
+
+	/// Per-unit line - no set of accounts can express it.
+	measure 'NM Net Profit per Trading Store' =
+			
+			DIVIDE ( [NM Net Profit], [NM Trading Stores] )
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 282ffc17-a105-5d01-bd2b-a74c69fe5158
+
+	/// Per-unit line - no set of accounts can express it.
+	measure 'NM Income per Active Product' =
+			
+			DIVIDE (
+			    [NM Total Income],
+			    // ProductKey 0 is the sentinel for the 19 non-product accounts, not a product
+			    CALCULATE (
+			        DISTINCTCOUNT ( 'Financials'[ProductKey] ),
+			        'Financials'[ProductKey] <> 0
+			    )
+			)
+		formatString: $#,##0
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 67386f29-d049-5953-bed1-717445043c79
+
+	/// A count line - a third format class for the format UDF to handle.
+	measure 'NM Trading Stores' =
+			
+			DISTINCTCOUNT ( 'Financials'[StoreKey] )
+		formatString: #,##0;(#,##0)
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 88386df5-a3c9-55ad-8dc4-6f7b3409dc01
+
+	measure 'Dates Selected' = ```
+			// Source: Rick de Groot / Datahub -- "Showing period selections in Power BI"
+			// https://datahub.nl/showing-period-selections-in-power-bi/
+			// Shipped with attribution; adapted for the DimDate column names in this skill's DimDate.tmdl.
+			
+			// Return selected Dates: Years, Month & Year, use with v3 date table
+			
+			    /* _________________________________________________________________________________________________________________________________________________________ */
+			    // Adjust this variable to change the prefix used for the period title
+			    VAR __PeriodPrefix =                "Selected Period: "
+			    VAR __DiverseDates =                "a range of dates in "
+			
+			    // Define main start and end dates
+			    VAR __StartDate =                   MIN( 'DimDate'[Date] )
+			    VAR __EndDate =                     MAX( 'DimDate'[Date] )
+			
+			    // Provide information about the current context
+			    VAR __DaysInCurrentContext =        COUNTROWS( DimDate ) 
+			    VAR __DaysBetween_StartAndEnd =     DATEDIFF( __StartDate, __EndDate, DAY )  + 1
+			    VAR __IsConsecutivePeriod =         __DaysBetween_StartAndEnd = __DaysInCurrentContext
+			
+			    // Day Related Variables
+			    VAR __FormattedEndDate =            FORMAT( __EndDate, "d mmm yyyy" ) 
+			
+			    // Month related variables
+			    VAR __FormattedStartDateMonth =     FORMAT( __StartDate, "mmm yyyy" )
+			    VAR __FormattedEndMonth =           FORMAT( __EndDate,   "mmm yyyy" ) // "d mmm yyyy"
+			    VAR __FiltersFullMonthsOnly =
+			            VAR YearsSummary = SUMMARIZECOLUMNS( DimDate[MonthOfYear], 'DimDate'[Days In Month] )
+			            VAR DaysInYears = ADDCOLUMNS( YearsSummary, "@DaysInContext", CALCULATE( COUNTROWS( DimDate ) ) )
+			            VAR IncompleteMonths = FILTER( DaysInYears, [@DaysInContext] <> 'DimDate'[Days In Month] )
+			            VAR Result = ISEMPTY( IncompleteMonths )
+			        RETURN
+			            Result
+			
+			    // Year related variables
+			    VAR __IsSingleYear =                HASONEVALUE( 'DimDate'[Year] )
+			    VAR __FiltersFullYearsOnly =
+			        VAR YearsSummary = 
+			            VALUES( 'DimDate'[Year] )
+			        VAR IncompleteYearFlag = 
+			            ADDCOLUMNS(
+			                YearsSummary,
+			                "@IsIncompleteYear",
+			                    VAR DatesInContext = CALCULATE( COUNTROWS( DimDate ) )
+			                    VAR DatesInYear = CALCULATE( MAX( 'DimDate'[Days in Year] ) )
+			                    VAR IncompleteYearInContext = DatesInContext <> DatesInYear
+			                RETURN
+			                    IncompleteYearInContext
+			                )
+			        VAR IncompleteYears = 
+			            FILTER(
+			                IncompleteYearFlag,
+			                [@IsIncompleteYear] = TRUE()
+			                )
+			        VAR Result = ISEMPTY( IncompleteYears )
+			    RETURN
+			        Result
+			    VAR __Result = 
+			        SWITCH( TRUE(),
+			    /* _________________________________________________________________________________________________________________________________________________________  
+			    Logic for creating a YEAR selection string */
+			    
+			    // Perform this logic only if full years are selected
+			        __FiltersFullYearsOnly, 
+			        
+			        // Retrieve all Period Combinations that exist in the current filter context
+			        VAR SelectedYears = VALUES( 'DimDate'[Year] )
+			        // Find what the previous and next period is in the selection and add the values as a column
+			        VAR AddPrev_Next_Year = 
+			            ADDCOLUMNS(
+			                SelectedYears,
+			                "@PreviousPeriod", 
+			                MAXX(
+			                    FILTER(	SelectedYears,
+			                        'DimDate'[Year] < EARLIER( 'DimDate'[Year] ) ),
+			                    'DimDate'[Year] ),
+			                "@NextPeriod", 
+			                MINX(
+			                    FILTER(	SelectedYears,
+			                        'DimDate'[Year] > EARLIER( 'DimDate'[Year] ) ),
+			                    'DimDate'[Year] )
+			            )
+			        /* Based on whether the previous or next period combination in the context is consecutive, define logic.
+			            - The very last combination should end with a regular year value.
+			            - The start of a range should start with a period and end with a dash "-" to indicate the start of a range
+			            - All values within a range return blank, they don't need to be included
+			            - A single month (outside of a range) or the last month in a range should both show: Period and a separator ( pipe symbol ) */
+			            
+			        VAR __ConcatenationLogic = 
+			            ADDCOLUMNS( 
+			                AddPrev_Next_Year,
+			                "@PartOfRange",
+			                    VAR __NextPeriod =  'DimDate'[Year] + 1
+			                    VAR __PrevPeriod =  'DimDate'[Year] - 1
+			                    VAR __StringElements = 
+			                        SWITCH( TRUE(),
+			                            ISBLANK( [@NextPeriod] ), 											      'DimDate'[Year], 	        // The last period in the context
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod <> [@PreviousPeriod],       'DimDate'[Year] & " | " ,    // A period outside of a range 
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       'DimDate'[Year] & " | " ,    // The last period value in a range
+			                            __NextPeriod =  [@NextPeriod] && __PrevPeriod <> [@PreviousPeriod],       'DimDate'[Year] & " - " , 	// The first [Period] in a range
+			                            __NextPeriod =  [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       BLANK(), 					    // A period in the middle of a range
+			                            __NextPeriod <> [@NextPeriod] && __PrevPeriod =  [@PreviousPeriod],       'DimDate'[Year] & " | "      // The last period in a range
+			                        )
+			                    RETURN __StringElements
+			            )
+			        RETURN
+			        __PeriodPrefix & CONCATENATEX( __ConcatenationLogic, [@PartOfRange], "", 'DimDate'[Year], ASC ),
+			            
+			    /* _________________________________________________________________________________________________________________________________________________________
+			        For month selections below calculation returns the right values: */
+			            
+			    // Check if users filter full months only
+			        __FiltersFullMonthsOnly,
+			        
+			    // Retrieve all Start of Month Combinations that exist in the current filter context
+			        VAR SelectedDates = VALUES( 'DimDate'[Start Of Month] )
+			        VAR __MultipleYearsInContext = YEAR( __StartDate ) <> YEAR( __EndDate )
+			        
+			        // Find what the previous and next month-year combination is and add the values as a column
+			        VAR AddPreviousDates = 
+			            ADDCOLUMNS(
+			                SelectedDates,
+			                "@PreviousMonthYear", 
+			                MAXX(
+			                    FILTER(	SelectedDates,
+			                        'DimDate'[Start Of Month] < EARLIER( 'DimDate'[Start Of Month] ) ),
+			                    'DimDate'[Start Of Month] ),
+			                "@NextMonthYear", 
+			                MINX(
+			                    FILTER(	SelectedDates,
+			                        'DimDate'[Start Of Month] > EARLIER( 'DimDate'[Start Of Month] ) ),
+			                    'DimDate'[Start Of Month] )
+			            )
+			        /* Based on whether the previous or next month-year combination in the context is consecutive, define logic.
+			            - The very last combination should end with both the month (short) and the year value.
+			            - The start of a range should start with month (short) and end with a dash "-" to indicate the start of a range
+			            - All values within a range return blank, they don't need to be included
+			            - A single month (outside of a range) or the last month in a range should both show: Month (short) and a separator (pipe symbol ) */
+			
+			        VAR __ConcatenationLogic = 
+			            ADDCOLUMNS(
+			                AddPreviousDates,
+			                "@PartOfRange",
+			                VAR  __NextMonth = EDATE( 'DimDate'[Start Of Month], 1 )
+			                VAR  __PrevMonth = EDATE( 'DimDate'[Start Of Month], - 1 )
+			                VAR  __StringElements = 
+			                SWITCH(
+			                    TRUE(),
+			                    /* __________________ Multiple year logic ____________________________ */
+			                    
+			                    ISBLANK( [@NextMonthYear] ), FORMAT( 'DimDate'[Start Of Month], "mmm yyyy " ),   // The last period of all periods
+			                    
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear] && __MultipleYearsInContext, FORMAT( 'DimDate'[Start Of Month], "mmm yyyy - " ),     // The first period in a range, when multiple years are selected
+			
+			
+			                    YEAR( [@NextMonthYear] ) <> YEAR( 'DimDate'[Start Of Month] ) && NOT ( __IsConsecutivePeriod ), FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),       // The last period in current year (in non consecutive selection)
+			                    
+			                    __MultipleYearsInContext && __NextMonth <> [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),    // A period outside of a range
+			                    __MultipleYearsInContext && __NextMonth <> [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm yyyy | " ),     // Last period value in a range
+			                    
+			                    /* __________________ Single Year Logic   ____________________________ */
+			                    
+			                    __NextMonth <> [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear], FORMAT( 'DimDate'[Start Of Month], "mmm | " ),     // A month outside of a range
+			                    __NextMonth <> [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear],  FORMAT( 'DimDate'[Start Of Month], "mmm | " ),     // The last date/month value in a range
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth <> [@PreviousMonthYear],  FORMAT( 'DimDate'[Start Of Month], "mmm - " ),     // The first period in a range, with a single year selection
+			                    __NextMonth = [@NextMonthYear] && __PrevMonth = [@PreviousMonthYear],   BLANK()                                             // A month in the middle of a range
+			                )
+			                RETURN
+			                __StringElements
+			            )
+			        VAR __RemoveMiddleOfRange = FILTER( __ConcatenationLogic, [@PartOfRange] <> "" )
+			        VAR __YearRangeStartCorrection =
+			            ADDCOLUMNS(
+			                __RemoveMiddleOfRange,
+			                "@RangeElements",
+			                VAR __NextPartOfRange =
+			                    MINX(
+			                        FILTER(	__RemoveMiddleOfRange, 'DimDate'[Start Of Month] > EARLIER( 'DimDate'[Start Of Month] ) ),
+			                        'DimDate'[Start Of Month] 
+			                    )
+			                VAR Result =
+			                IF( 
+			                    RIGHT( [@PartOfRange], 2 ) = "- " 
+			                        && YEAR( __NextPartOfRange ) = YEAR( 'DimDate'[Start Of Month] ), 
+			                    LEFT( [@PartOfRange], 3 ) & RIGHT( [@PartOfRange], 3 ),
+			                    [@PartOfRange]
+			                )
+			                RETURN Result
+			            )
+			                        
+			                        
+			        RETURN
+			        __PeriodPrefix & CONCATENATEX( __YearRangeStartCorrection, [@RangeElements], "", 'DimDate'[Start Of Month], ASC ),
+			        
+			    /* _________________________________________________________________________________________________________________________________________________________ 
+			            When the selection consists of a single day, simply return the day */
+			
+			            __DaysInCurrentContext = 1,
+			            __PeriodPrefix & FORMAT( VALUES( 'DimDate'[Date] ), "d mmm yyyy" ),
+			        
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define non-consecutive periods within the same month , e.g. 1 jan 2023, 5 jan 2023, 6 jan 2023 -> 
+			            returns: niet openeenvolgende datums in Jan 2023 */
+			                    VAR SameYearMonth =      __FormattedStartDateMonth = __FormattedEndMonth 
+			                    RETURN  
+			            __IsSingleYear &&  SameYearMonth && NOT( __IsConsecutivePeriod ),
+			            __PeriodPrefix & __DiverseDates & __FormattedStartDateMonth,
+			
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define consecutive periods within the same month , e.g. 1 - 3 jan 2023
+			            returns: niet openeenvolgende datums in Jan 2023 */
+			                    VAR SameYearMonth =      __FormattedStartDateMonth = __FormattedEndMonth 
+			
+			                    RETURN  
+			            __IsSingleYear &&  SameYearMonth &&  __IsConsecutivePeriod,
+			                    VAR __FormattedStartDayShort = FORMAT( __StartDate, "d" )
+			                    VAR __FormattedEndDayMonth = FORMAT( __EndDate, "d mmm yyyy" )
+			                RETURN
+			            __PeriodPrefix & __FormattedStartDayShort & " - " & __FormattedEndDayMonth,
+			
+			    /* _________________________________________________________________________________________________________________________________________________________
+			            Define consecutive date range within the year where end date is not end of the month, but start date is start of the month. 
+			            In those cases, return the short full date format of both the start and end date , e.g. 1 jan 2023 t/m 19 feb 2023-> 
+			            returns: 1 jan 2023 - 19 feb 2023*/
+			                VAR __DatesNotStartTillEndOfMonth =      __EndDate <>  EOMONTH( __EndDate, 0 ) || __StartDate =  ( EOMONTH( __StartDate, - 1 ) + 1 )
+			            RETURN
+			            __IsSingleYear && __DatesNotStartTillEndOfMonth /* && __StartDate_IsStartOfMonth */ && __IsConsecutivePeriod,
+			                    VAR __FormattedStartDateShort = FORMAT( __StartDate, "d mmm" ) 
+			                RETURN 
+			                __PeriodPrefix & __FormattedStartDateShort & " - " & __FormattedEndDate
+			            
+			        )
+			    RETURN     
+			        
+			    SWITCH(
+			        TRUE(),
+			        ISBLANK( __Result ), "Selected Period: See Date Slicers",
+			        __Result
+			    )
+			```
+		lineageTag: 41be53b6-e71d-43cf-9881-3c004f3ce2a1
+
+	/// Actual for the selected period (slicer-state YTD switch; no row branching).
+	measure 'P&L Actual' =
+			
+			// scenario predicate + optional YTD shift are the only context changes
+			VAR __Base =
+			    CALCULATE (
+			        SUM ( 'Financials'[Amount] ),
+			        'Financials'[Scenario] = "Actual"
+			    )
+			VAR __Result =
+			    IF (
+			        SELECTEDVALUE ( 'Time Period'[Time Period] ) = "YTD",
+			        CALCULATE (
+			            SUM ( 'Financials'[Amount] ),
+			            'Financials'[Scenario] = "Actual",
+			            DATESYTD ( 'DimDate'[Date] )
+			        ),
+			        __Base
+			    )
+			RETURN
+			    __Result
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: ea760d1f-658b-4978-8735-070698e138fc
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Actual]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Actual]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Budget for the selected period (slicer-state YTD switch; no row branching).
+	measure 'P&L Budget' =
+			
+			// scenario predicate + optional YTD shift are the only context changes
+			VAR __Base =
+			    CALCULATE (
+			        SUM ( 'Financials'[Amount] ),
+			        'Financials'[Scenario] = "Budget"
+			    )
+			VAR __Result =
+			    IF (
+			        SELECTEDVALUE ( 'Time Period'[Time Period] ) = "YTD",
+			        CALCULATE (
+			            SUM ( 'Financials'[Amount] ),
+			            'Financials'[Scenario] = "Budget",
+			            DATESYTD ( 'DimDate'[Date] )
+			        ),
+			        __Base
+			    )
+			RETURN
+			    __Result
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 77cd068e-7479-4d27-bb1c-07c5a8b8aeb7
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Budget]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Budget]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Actual shifted back one year (time intelligence over DimDate).
+	measure 'P&L LY' =
+			
+			CALCULATE ( [P&L Actual], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: f3a3567c-92e5-4a14-923a-d3e7ab22941b
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L LY]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L LY]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Actual minus Budget.
+	measure 'P&L Var' =
+			
+			[P&L Actual] - [P&L Budget]
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 8b7920b3-9631-454c-8f8e-c0b05e74907b
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Var]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Var]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Variance as a share of Budget.
+	measure 'P&L Var %' =
+			
+			DIVIDE ( [P&L Var], [P&L Budget] )
+		formatString: 0.0%;(0.0%)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: b0ab6d1f-8311-4031-867b-4816a20dd5dd
+
+	/// Actual minus Last Year.
+	measure 'P&L vs LY' =
+			
+			[P&L Actual] - [P&L LY]
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 110c8f9c-d34d-4314-a0ca-fd77d461c842
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L vs LY]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L vs LY]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// The whole trick: one scenario predicate, and the bridge relationship does the rest.
+	measure 'Demo Actual' =
+			
+			CALCULATE ( SUM ( 'Financials'[Amount] ), 'Financials'[Scenario] = "Actual" )
+		formatString: #,##0;(#,##0)
+		displayFolder: 04 Teaching
+		lineageTag: e315bd54-f588-422f-97a7-94c461aea7c6
+
+	/// The whole trick: one scenario predicate, and the bridge relationship does the rest.
+	measure 'Demo Budget' =
+			
+			CALCULATE ( SUM ( 'Financials'[Amount] ), 'Financials'[Scenario] = "Budget" )
+		formatString: #,##0;(#,##0)
+		displayFolder: 04 Teaching
+		lineageTag: eae0589e-2ef6-46a6-9815-0a12f7f65605
+
+	/// Bridge reuse: filter the bridge's Line, the relationship does the rest.
+	measure 'Total Income $' =
+			
+			CALCULATE ( [P&L Actual], 'P&L Lines'[Line] = "Total Income" )
+		formatString: $#,##0
+		displayFolder: 03 Cards
+		lineageTag: e55be26f-38de-457d-aaed-1bfe189d402c
+
+	/// Bridge reuse: filter the bridge's Line, the relationship does the rest.
+	measure 'Gross Profit $' =
+			
+			CALCULATE ( [P&L Actual], 'P&L Lines'[Line] = "Gross Profit" )
+		formatString: $#,##0
+		displayFolder: 03 Cards
+		lineageTag: 1d1c2b90-74aa-45e9-9ac4-82e651b62e27
+
+	/// Bridge reuse: filter the bridge's Line, the relationship does the rest.
+	measure 'Net Profit $' =
+			
+			CALCULATE ( [P&L Actual], 'P&L Lines'[Line] = "Net Profit" )
+		formatString: $#,##0
+		displayFolder: 03 Cards
+		lineageTag: 46cc6f22-e3e8-455b-aa60-20995bfb270c
+
+	/// Gross Profit as a share of Total Income.
+	measure 'Gross Margin %' =
+			
+			DIVIDE ( [Gross Profit $], [Total Income $] )
+		formatString: 0.0%
+		displayFolder: 03 Cards
+		lineageTag: 47055b0a-5f58-485f-8b68-717a318709f2
+
+	/// Net Profit vs Budget at the Net Profit line, sign-safe via ABS.
+	measure 'Net Profit vs Budget %' =
+			
+			DIVIDE (
+			    [Net Profit $]
+			        - CALCULATE ( [P&L Budget], 'P&L Lines'[Line] = "Net Profit" ),
+			    ABS ( CALCULATE ( [P&L Budget], 'P&L Lines'[Line] = "Net Profit" ) )
+			)
+		formatString: +0.0%;-0.0%
+		displayFolder: 03 Cards
+		lineageTag: 7aa35614-ba1f-4aac-970d-d531124ffef2
+
+	measure 'Base Actual Value' =
+			
+			CALCULATE(SUM('Financials'[Amount]), 'Financials'[Scenario] = "Actual")
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1992557e-6201-5c53-b8e0-9d92bad51c84
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YTD Actual Value' =
+			
+			CALCULATE([Base Actual Value], DATESYTD('DimDate'[Date]))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 47688049-e70f-5303-9e46-d07fe1282d4f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Base Budget Value' =
+			
+			CALCULATE(SUM('Financials'[Amount]), 'Financials'[Scenario] = "Budget")
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 3869546f-d49e-5b3f-af10-e687fe41255a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'YTD Budget Value' =
+			
+			CALCULATE([Base Budget Value], DATESYTD('DimDate'[Date]))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6e1b5d94-542b-5387-835e-ce1bdc97d840
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Period Value' =
+			
+			Switch(True(), SELECTEDVALUE('Time Period'[Time Period]) = "YTD", [YTD Actual Value],
+			[Base Actual Value])
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d070ea62-bd60-562c-9e0f-34f360a7112a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Period Value' =
+			
+			Switch(True(), SELECTEDVALUE('Time Period'[Time Period]) = "YTD", [YTD Budget Value],
+			[Base Budget Value])
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 0c3655e9-9f34-503b-9b0b-3dce34e28431
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Period Value LY' =
+			
+			CALCULATE([Actual Period Value], DATEADD('DimDate'[Date], -1, YEAR))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: eae4192b-5250-55bb-a2e8-38cf55a0409f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Retail Sales' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2353a77d-1bed-52c0-a00a-a468b512944a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Retail Sales' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e529e648-a383-5a91-adf0-6295b985989b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Retail Sales LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: fc9865f0-086e-5c30-99e8-6fb47d8fa949
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Wholesale Sales' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 46245e2b-8fcf-5007-aadc-502ba89cc4b6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Wholesale Sales' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 3d1a0155-c699-56fb-ba8a-fac38df6feee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Wholesale Sales LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 052e2bb2-e0dc-5612-a492-a7f56c91ed61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Online Sales' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: bc0b022f-5196-5a9a-a1c7-38be598eee41
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Online Sales' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 071095a6-db82-513d-b7ff-7ab28c23a28d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Online Sales LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 73ff36df-a0ce-5241-bf61-3f48980f8776
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Delivery & Freight Income' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 9ab40d84-6aee-54ad-a35e-6576b384626c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Delivery & Freight Income' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 64cc3cf3-a402-5b9d-90fa-772ad8a9423a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Delivery & Freight Income LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2543a40d-a72a-5a78-8821-4cbf4aa653a7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Retail' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ecbbe8e8-9038-5b0d-a8ba-e950f0f3437f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Retail' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b1033683-97df-500c-9dd2-9ae289601106
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Retail LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 80f2e081-ef3f-5bf0-9fc0-c14cf7f0b7b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Wholesale' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: c6d9ad0a-ce9d-5913-b333-11848aa8a525
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Wholesale' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e0f6703a-7ff5-5671-8ad6-93d44074c638
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Wholesale LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 8ce2dab8-04b8-566c-b6f1-bfe19fa846d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Online' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: dd0de5d8-a7d9-5b85-8644-88dcc9fe7467
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Online' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6df0a64c-1529-502b-897a-6e2609412560
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Online LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 987119f7-4d4c-55b7-90a4-7b436cedf954
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Freight Inwards' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4f27c4b5-ed75-5384-a70f-91e204a4d8df
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Freight Inwards' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: c3bd99ca-fb69-59d2-8492-58cfbaf99cee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Freight Inwards LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a4a10208-8864-5563-b4eb-84bcba7b93a2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Stock Adjustments' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e3948e57-d602-5260-8ee5-c4751612c1ab
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Stock Adjustments' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ce5dcaba-e5bb-58a4-ae9d-18f357e4d280
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Stock Adjustments LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e52ed74c-bb5e-5306-8b60-ebb170e20517
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Stores' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 28e18e28-2df0-5000-9485-77c8a6f0afad
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Salaries & Wages - Stores' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: bfe5605e-41a4-56bd-a842-1fe3a5f220d2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Stores LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 9872997b-09d3-5f39-8949-80ad59cf3e7a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Warehouse' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 468e65a7-b1a4-5eb9-b51b-25a5788efaa1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Salaries & Wages - Warehouse' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ff6f2247-b8fb-5243-9262-06c62bc95cbd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Warehouse LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: aeef2a73-a297-53a8-944f-d209aa68c391
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Superannuation' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f61db9ed-8652-5a87-99fd-92271e936449
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Superannuation' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a3b44a54-1cef-50e1-9859-018ecf5f7e5b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Superannuation LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: dca6fdd2-4535-5f5f-b986-b3055ad6fa27
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Rent & Outgoings' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 87dc6d25-ea5d-51f7-b971-4fbc482abd5b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Rent & Outgoings' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 57a28348-015e-5d0d-8929-f58497572835
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Rent & Outgoings LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a96a81ab-70a0-53cf-b7fd-977567526730
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Utilities' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 7f37227b-734c-554d-971d-083b08281cec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Utilities' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a2e28ab1-1a37-557c-9b4d-33afd42b3bf0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Utilities LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 27ecdd5b-dfff-5882-a2f6-43defa30cd76
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Marketing & Advertising' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 17255d26-9a64-5c80-93ba-74b323da3efc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Marketing & Advertising' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4eef558e-081d-5d4a-9567-27b9500ce85b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Marketing & Advertising LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 47c46653-5012-54ef-98b6-653b6a8e58db
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Insurance' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e10174e3-e048-5768-ba13-6a427b005d2e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Insurance' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 97602060-9eb2-58e4-b47f-300cf1a2f1fb
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Insurance LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 91876703-44f4-57d3-a69a-63cb420221bc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Vehicle & Delivery Costs' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: de413261-f483-5b83-b0cb-ea9e8cfd65bf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Vehicle & Delivery Costs' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b54c3669-390d-5dee-b822-9b6b26167067
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Vehicle & Delivery Costs LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 08d92900-cc94-574c-b9ce-3aba16e636ea
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Repairs & Maintenance' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: aa2c6311-3253-5a99-89cc-5ba91292212c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Repairs & Maintenance' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: dca1a64f-8bb2-5127-8011-d5d0cd041503
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Repairs & Maintenance LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4ed7976a-a324-5f3a-8107-985e7918b575
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual IT & Software' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 825d0090-509c-5ff9-91eb-fefd61a3f42d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget IT & Software' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 851e6481-df74-56e9-98ec-7cfeb42c6837
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual IT & Software LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b29ec071-2add-5fac-bf7b-9cae8f80fbce
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Merchant & Bank Fees' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4fcdab48-24a1-509f-b92c-a75aeeaf1cba
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Merchant & Bank Fees' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e4f4d916-07bc-51b0-a10b-5700e7bb40ff
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Merchant & Bank Fees LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ae7892c7-6820-5f40-9ed8-fb78d78cca75
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Depreciation' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f96b8183-6952-57be-99dc-36207b4f31c0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Depreciation' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d7d0abf2-758a-535b-a650-f4cc2f03cd82
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Depreciation LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: c01ba70e-81bd-569d-8c6b-5761dc158d62
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Other Expenses' =
+			
+			calculate([Actual Period Value], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 0ad1c0c7-2909-5417-b6a8-ac70eaeddee6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Other Expenses' =
+			
+			calculate([Budget Period Value], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d1c40635-38d7-5282-a3f3-acea81f395e5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Other Expenses LY' =
+			
+			calculate([Actual Period Value LY], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 86a45abe-e751-509f-b0f9-f9d30ee0eebf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Income' =
+			
+			[Actual Retail Sales] + [Actual Wholesale Sales] + [Actual Online Sales] + [Actual Delivery & Freight Income]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a2819e11-bb0a-5b48-b4d5-16a290e268e1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Cost of Sales' =
+			
+			[Actual Cost of Goods - Retail] + [Actual Cost of Goods - Wholesale] + [Actual Cost of Goods - Online] + [Actual Freight Inwards] + [Actual Stock Adjustments]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 7e4841bf-79df-5d8e-afb6-17f202aa16a9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Gross Profit' =
+			
+			[Actual Total Income] + [Actual Total Cost of Sales]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 34ba9043-2064-5d74-af60-87113ce0e002
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Operating Expenses' =
+			
+			[Actual Salaries & Wages - Stores] + [Actual Salaries & Wages - Warehouse] + [Actual Superannuation] + [Actual Rent & Outgoings] + [Actual Utilities] + [Actual Marketing & Advertising] + [Actual Insurance] + [Actual Vehicle & Delivery Costs] + [Actual Repairs & Maintenance] + [Actual IT & Software] + [Actual Merchant & Bank Fees] + [Actual Depreciation] + [Actual Other Expenses]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e1da708d-50bb-518f-ac8c-d44ebc84d053
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Net Profit' =
+			
+			[Actual Gross Profit] + [Actual Total Operating Expenses]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: deb4adc5-14df-5832-ad2c-5cbfb3173a38
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Income' =
+			
+			[Budget Retail Sales] + [Budget Wholesale Sales] + [Budget Online Sales] + [Budget Delivery & Freight Income]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 131b77b0-19de-510e-bf52-7a4af6efb5c7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Cost of Sales' =
+			
+			[Budget Cost of Goods - Retail] + [Budget Cost of Goods - Wholesale] + [Budget Cost of Goods - Online] + [Budget Freight Inwards] + [Budget Stock Adjustments]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: bb349b76-b825-5762-b1e0-2588fd301966
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Gross Profit' =
+			
+			[Budget Total Income] + [Budget Total Cost of Sales]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 596b104c-d445-5e11-b09c-ff6be331d3b7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Operating Expenses' =
+			
+			[Budget Salaries & Wages - Stores] + [Budget Salaries & Wages - Warehouse] + [Budget Superannuation] + [Budget Rent & Outgoings] + [Budget Utilities] + [Budget Marketing & Advertising] + [Budget Insurance] + [Budget Vehicle & Delivery Costs] + [Budget Repairs & Maintenance] + [Budget IT & Software] + [Budget Merchant & Bank Fees] + [Budget Depreciation] + [Budget Other Expenses]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4f2e94fc-3802-5f1c-adfb-cb936ed5f0ec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Net Profit' =
+			
+			[Budget Gross Profit] + [Budget Total Operating Expenses]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1b82fc98-cf24-5bed-9a58-1d08e5082b49
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Income LY' =
+			
+			[Actual Retail Sales LY] + [Actual Wholesale Sales LY] + [Actual Online Sales LY] + [Actual Delivery & Freight Income LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: fba01c78-b1c7-55bd-8898-b39180c6bd39
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Cost of Sales LY' =
+			
+			[Actual Cost of Goods - Retail LY] + [Actual Cost of Goods - Wholesale LY] + [Actual Cost of Goods - Online LY] + [Actual Freight Inwards LY] + [Actual Stock Adjustments LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2d55d5e4-3e5d-5e6b-b001-702d3adca85c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Gross Profit LY' =
+			
+			[Actual Total Income LY] + [Actual Total Cost of Sales LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4d8db22b-624e-51cf-b2f9-0b0d4f200862
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Operating Expenses LY' =
+			
+			[Actual Salaries & Wages - Stores LY] + [Actual Salaries & Wages - Warehouse LY] + [Actual Superannuation LY] + [Actual Rent & Outgoings LY] + [Actual Utilities LY] + [Actual Marketing & Advertising LY] + [Actual Insurance LY] + [Actual Vehicle & Delivery Costs LY] + [Actual Repairs & Maintenance LY] + [Actual IT & Software LY] + [Actual Merchant & Bank Fees LY] + [Actual Depreciation LY] + [Actual Other Expenses LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 8388c4c7-1fe7-5e5d-9604-dfa2d2c16f57
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Net Profit LY' =
+			
+			[Actual Gross Profit LY] + [Actual Total Operating Expenses LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: de66faa0-63d6-50e4-865c-860f904059e6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Slow Actual Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales],
+			__Line = "    Online Sales", [Actual Online Sales],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income],
+			__Line = "Total Income", [Actual Total Income],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online],
+			__Line = "    Freight Inwards", [Actual Freight Inwards],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales],
+			__Line = "Gross Profit", [Actual Gross Profit],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse],
+			__Line = "    Superannuation", [Actual Superannuation],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings],
+			__Line = "    Utilities", [Actual Utilities],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising],
+			__Line = "    Insurance", [Actual Insurance],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance],
+			__Line = "    IT & Software", [Actual IT & Software],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees],
+			__Line = "    Depreciation", [Actual Depreciation],
+			__Line = "    Other Expenses", [Actual Other Expenses],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses],
+			__Line = "Net Profit", [Actual Net Profit]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f0196ca4-0014-5d00-8b3d-f81525092f43
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Actual Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Actual Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Budget Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Budget Retail Sales],
+			__Line = "    Wholesale Sales", [Budget Wholesale Sales],
+			__Line = "    Online Sales", [Budget Online Sales],
+			__Line = "    Delivery & Freight Income", [Budget Delivery & Freight Income],
+			__Line = "Total Income", [Budget Total Income],
+			__Line = "    Cost of Goods - Retail", [Budget Cost of Goods - Retail],
+			__Line = "    Cost of Goods - Wholesale", [Budget Cost of Goods - Wholesale],
+			__Line = "    Cost of Goods - Online", [Budget Cost of Goods - Online],
+			__Line = "    Freight Inwards", [Budget Freight Inwards],
+			__Line = "    Stock Adjustments", [Budget Stock Adjustments],
+			__Line = "Total Cost of Sales", [Budget Total Cost of Sales],
+			__Line = "Gross Profit", [Budget Gross Profit],
+			__Line = "    Salaries & Wages - Stores", [Budget Salaries & Wages - Stores],
+			__Line = "    Salaries & Wages - Warehouse", [Budget Salaries & Wages - Warehouse],
+			__Line = "    Superannuation", [Budget Superannuation],
+			__Line = "    Rent & Outgoings", [Budget Rent & Outgoings],
+			__Line = "    Utilities", [Budget Utilities],
+			__Line = "    Marketing & Advertising", [Budget Marketing & Advertising],
+			__Line = "    Insurance", [Budget Insurance],
+			__Line = "    Vehicle & Delivery Costs", [Budget Vehicle & Delivery Costs],
+			__Line = "    Repairs & Maintenance", [Budget Repairs & Maintenance],
+			__Line = "    IT & Software", [Budget IT & Software],
+			__Line = "    Merchant & Bank Fees", [Budget Merchant & Bank Fees],
+			__Line = "    Depreciation", [Budget Depreciation],
+			__Line = "    Other Expenses", [Budget Other Expenses],
+			__Line = "Total Operating Expenses", [Budget Total Operating Expenses],
+			__Line = "Net Profit", [Budget Net Profit]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ff5d2429-f60b-55cf-9b5a-865c2ff48326
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Budget Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Budget Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Var Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales] - [Budget Retail Sales],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales] - [Budget Wholesale Sales],
+			__Line = "    Online Sales", [Actual Online Sales] - [Budget Online Sales],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income] - [Budget Delivery & Freight Income],
+			__Line = "Total Income", [Actual Total Income] - [Budget Total Income],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail] - [Budget Cost of Goods - Retail],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale] - [Budget Cost of Goods - Wholesale],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online] - [Budget Cost of Goods - Online],
+			__Line = "    Freight Inwards", [Actual Freight Inwards] - [Budget Freight Inwards],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments] - [Budget Stock Adjustments],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales] - [Budget Total Cost of Sales],
+			__Line = "Gross Profit", [Actual Gross Profit] - [Budget Gross Profit],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores] - [Budget Salaries & Wages - Stores],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse] - [Budget Salaries & Wages - Warehouse],
+			__Line = "    Superannuation", [Actual Superannuation] - [Budget Superannuation],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings] - [Budget Rent & Outgoings],
+			__Line = "    Utilities", [Actual Utilities] - [Budget Utilities],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising] - [Budget Marketing & Advertising],
+			__Line = "    Insurance", [Actual Insurance] - [Budget Insurance],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs] - [Budget Vehicle & Delivery Costs],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance] - [Budget Repairs & Maintenance],
+			__Line = "    IT & Software", [Actual IT & Software] - [Budget IT & Software],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees] - [Budget Merchant & Bank Fees],
+			__Line = "    Depreciation", [Actual Depreciation] - [Budget Depreciation],
+			__Line = "    Other Expenses", [Actual Other Expenses] - [Budget Other Expenses],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses] - [Budget Total Operating Expenses],
+			__Line = "Net Profit", [Actual Net Profit] - [Budget Net Profit]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 890efa26-cc97-5f02-ac1e-8e2e749c42fa
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Var Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Var Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Var % Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", format(([Actual Retail Sales] - [Budget Retail Sales]) / [Budget Retail Sales], "0.0%"),
+			__Line = "    Wholesale Sales", format(([Actual Wholesale Sales] - [Budget Wholesale Sales]) / [Budget Wholesale Sales], "0.0%"),
+			__Line = "    Online Sales", format(([Actual Online Sales] - [Budget Online Sales]) / [Budget Online Sales], "0.0%"),
+			__Line = "    Delivery & Freight Income", format(([Actual Delivery & Freight Income] - [Budget Delivery & Freight Income]) / [Budget Delivery & Freight Income], "0.0%"),
+			__Line = "Total Income", format(([Actual Total Income] - [Budget Total Income]) / [Budget Total Income], "0.0%"),
+			__Line = "    Cost of Goods - Retail", format(([Actual Cost of Goods - Retail] - [Budget Cost of Goods - Retail]) / [Budget Cost of Goods - Retail], "0.0%"),
+			__Line = "    Cost of Goods - Wholesale", format(([Actual Cost of Goods - Wholesale] - [Budget Cost of Goods - Wholesale]) / [Budget Cost of Goods - Wholesale], "0.0%"),
+			__Line = "    Cost of Goods - Online", format(([Actual Cost of Goods - Online] - [Budget Cost of Goods - Online]) / [Budget Cost of Goods - Online], "0.0%"),
+			__Line = "    Freight Inwards", format(([Actual Freight Inwards] - [Budget Freight Inwards]) / [Budget Freight Inwards], "0.0%"),
+			__Line = "    Stock Adjustments", format(([Actual Stock Adjustments] - [Budget Stock Adjustments]) / [Budget Stock Adjustments], "0.0%"),
+			__Line = "Total Cost of Sales", format(([Actual Total Cost of Sales] - [Budget Total Cost of Sales]) / [Budget Total Cost of Sales], "0.0%"),
+			__Line = "Gross Profit", format(([Actual Gross Profit] - [Budget Gross Profit]) / [Budget Gross Profit], "0.0%"),
+			__Line = "    Salaries & Wages - Stores", format(([Actual Salaries & Wages - Stores] - [Budget Salaries & Wages - Stores]) / [Budget Salaries & Wages - Stores], "0.0%"),
+			__Line = "    Salaries & Wages - Warehouse", format(([Actual Salaries & Wages - Warehouse] - [Budget Salaries & Wages - Warehouse]) / [Budget Salaries & Wages - Warehouse], "0.0%"),
+			__Line = "    Superannuation", format(([Actual Superannuation] - [Budget Superannuation]) / [Budget Superannuation], "0.0%"),
+			__Line = "    Rent & Outgoings", format(([Actual Rent & Outgoings] - [Budget Rent & Outgoings]) / [Budget Rent & Outgoings], "0.0%"),
+			__Line = "    Utilities", format(([Actual Utilities] - [Budget Utilities]) / [Budget Utilities], "0.0%"),
+			__Line = "    Marketing & Advertising", format(([Actual Marketing & Advertising] - [Budget Marketing & Advertising]) / [Budget Marketing & Advertising], "0.0%"),
+			__Line = "    Insurance", format(([Actual Insurance] - [Budget Insurance]) / [Budget Insurance], "0.0%"),
+			__Line = "    Vehicle & Delivery Costs", format(([Actual Vehicle & Delivery Costs] - [Budget Vehicle & Delivery Costs]) / [Budget Vehicle & Delivery Costs], "0.0%"),
+			__Line = "    Repairs & Maintenance", format(([Actual Repairs & Maintenance] - [Budget Repairs & Maintenance]) / [Budget Repairs & Maintenance], "0.0%"),
+			__Line = "    IT & Software", format(([Actual IT & Software] - [Budget IT & Software]) / [Budget IT & Software], "0.0%"),
+			__Line = "    Merchant & Bank Fees", format(([Actual Merchant & Bank Fees] - [Budget Merchant & Bank Fees]) / [Budget Merchant & Bank Fees], "0.0%"),
+			__Line = "    Depreciation", format(([Actual Depreciation] - [Budget Depreciation]) / [Budget Depreciation], "0.0%"),
+			__Line = "    Other Expenses", format(([Actual Other Expenses] - [Budget Other Expenses]) / [Budget Other Expenses], "0.0%"),
+			__Line = "Total Operating Expenses", format(([Actual Total Operating Expenses] - [Budget Total Operating Expenses]) / [Budget Total Operating Expenses], "0.0%"),
+			__Line = "Net Profit", format(([Actual Net Profit] - [Budget Net Profit]) / [Budget Net Profit], "0.0%")
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 289aa591-28a8-5875-952a-64e07c045e9e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Slow LY Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales LY],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales LY],
+			__Line = "    Online Sales", [Actual Online Sales LY],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income LY],
+			__Line = "Total Income", [Actual Total Income LY],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail LY],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale LY],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online LY],
+			__Line = "    Freight Inwards", [Actual Freight Inwards LY],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments LY],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales LY],
+			__Line = "Gross Profit", [Actual Gross Profit LY],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores LY],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse LY],
+			__Line = "    Superannuation", [Actual Superannuation LY],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings LY],
+			__Line = "    Utilities", [Actual Utilities LY],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising LY],
+			__Line = "    Insurance", [Actual Insurance LY],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs LY],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance LY],
+			__Line = "    IT & Software", [Actual IT & Software LY],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees LY],
+			__Line = "    Depreciation", [Actual Depreciation LY],
+			__Line = "    Other Expenses", [Actual Other Expenses LY],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses LY],
+			__Line = "Net Profit", [Actual Net Profit LY]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d60f24c9-07bf-5fc2-b0b5-8f0931dda32d
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow LY Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow LY Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow vs LY Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales] - [Actual Retail Sales LY],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales] - [Actual Wholesale Sales LY],
+			__Line = "    Online Sales", [Actual Online Sales] - [Actual Online Sales LY],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income] - [Actual Delivery & Freight Income LY],
+			__Line = "Total Income", [Actual Total Income] - [Actual Total Income LY],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail] - [Actual Cost of Goods - Retail LY],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale] - [Actual Cost of Goods - Wholesale LY],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online] - [Actual Cost of Goods - Online LY],
+			__Line = "    Freight Inwards", [Actual Freight Inwards] - [Actual Freight Inwards LY],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments] - [Actual Stock Adjustments LY],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales] - [Actual Total Cost of Sales LY],
+			__Line = "Gross Profit", [Actual Gross Profit] - [Actual Gross Profit LY],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores] - [Actual Salaries & Wages - Stores LY],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse] - [Actual Salaries & Wages - Warehouse LY],
+			__Line = "    Superannuation", [Actual Superannuation] - [Actual Superannuation LY],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings] - [Actual Rent & Outgoings LY],
+			__Line = "    Utilities", [Actual Utilities] - [Actual Utilities LY],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising] - [Actual Marketing & Advertising LY],
+			__Line = "    Insurance", [Actual Insurance] - [Actual Insurance LY],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs] - [Actual Vehicle & Delivery Costs LY],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance] - [Actual Repairs & Maintenance LY],
+			__Line = "    IT & Software", [Actual IT & Software] - [Actual IT & Software LY],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees] - [Actual Merchant & Bank Fees LY],
+			__Line = "    Depreciation", [Actual Depreciation] - [Actual Depreciation LY],
+			__Line = "    Other Expenses", [Actual Other Expenses] - [Actual Other Expenses LY],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses] - [Actual Total Operating Expenses LY],
+			__Line = "Net Profit", [Actual Net Profit] - [Actual Net Profit LY]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 40d5a3da-741e-5498-9678-9364bfb22b1f
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow vs LY Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow vs LY Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// vs Last Year as a share of Last Year.
+	measure 'P&L vs LY %' =
+			
+			DIVIDE ( [P&L vs LY], [P&L LY] )
+		formatString: 0.0%;(0.0%)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 77b0f560-823b-43e3-8a27-18e05f0da63d
+
+	/// Actual year-to-date (DATESYTD over DimDate; scenario predicate only).
+	measure 'P&L Actual YTD' =
+			
+			CALCULATE (
+			    SUM ( 'Financials'[Amount] ),
+			    'Financials'[Scenario] = "Actual",
+			    DATESYTD ( 'DimDate'[Date] )
+			)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 5e088fb8-4a3f-4969-85cd-9bbd89484ed6
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Actual YTD]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Actual YTD]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Budget year-to-date (DATESYTD over DimDate; scenario predicate only).
+	measure 'P&L Budget YTD' =
+			
+			CALCULATE (
+			    SUM ( 'Financials'[Amount] ),
+			    'Financials'[Scenario] = "Budget",
+			    DATESYTD ( 'DimDate'[Date] )
+			)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 3adb4452-2dd8-444d-bbb2-fd68b0285baa
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Budget YTD]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Budget YTD]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Actual YTD minus Budget YTD.
+	measure 'P&L Var YTD' =
+			
+			[P&L Actual YTD] - [P&L Budget YTD]
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: e74827cf-7761-4e60-a16d-c0efce95d0a5
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L Var YTD]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L Var YTD]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// YTD variance as a share of Budget YTD.
+	measure 'P&L Var % YTD' =
+			
+			DIVIDE ( [P&L Var YTD], [P&L Budget YTD] )
+		formatString: 0.0%;(0.0%)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: d475392d-e3fa-48df-a090-9df874f6bf33
+
+	/// Actual YTD shifted back one year (time intelligence over DimDate).
+	measure 'P&L LY YTD' =
+			
+			CALCULATE ( [P&L Actual YTD], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: bdfbf6f7-01a5-4529-9465-496c4c408ab6
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L LY YTD]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L LY YTD]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// Actual YTD minus Last Year YTD.
+	measure 'P&L vs LY YTD' =
+			
+			[P&L Actual YTD] - [P&L LY YTD]
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 3f02f9c0-0fac-4341-8498-d92bf89a23b2
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([P&L vs LY YTD]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([P&L vs LY YTD]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	/// YTD vs Last Year as a share of Last Year YTD.
+	measure 'P&L vs LY % YTD' =
+			
+			DIVIDE ( [P&L vs LY YTD], [P&L LY YTD] )
+		formatString: 0.0%;(0.0%)
+		displayFolder: 01 Fast P&L (bridge)
+		lineageTag: 5050aa54-1795-424f-a513-408b3b8d4aea
+
+	measure 'YTD Actual Value LY' =
+			
+			CALCULATE([YTD Actual Value], DATEADD('DimDate'[Date], -1, YEAR))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: c854c355-07f8-5e0b-a726-5beab72f2a17
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Retail Sales YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2ad738c5-f4d6-5c52-9adc-817e2c4a1d42
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Retail Sales YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b16bb00a-b991-5270-8002-ff9d757ee5ee
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Retail Sales YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Retail Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d21e108d-f590-52fb-8bc6-1437c3fdabac
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Wholesale Sales YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 40765684-e311-5c47-9206-28a4b3c282b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Wholesale Sales YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d133035c-13ef-50dc-9a4f-f640221613d5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Wholesale Sales YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Wholesale Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f96da5e6-c3dc-5312-a442-5945c6e36112
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Online Sales YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: cb60be73-3923-5887-a2f8-7c58fb677c48
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Online Sales YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 66a3f86e-ed7f-5431-8d98-44bc4f998649
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Online Sales YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Online Sales"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1a4aa39c-8c8e-548c-af7c-9e87e502741e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Delivery & Freight Income YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6554f446-e26d-5bc6-8e56-536cb056c567
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Delivery & Freight Income YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 09211a42-e57e-51f3-81e9-8e3a93eef792
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Delivery & Freight Income YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Delivery & Freight Income"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 32257bd3-2c81-5aaa-9932-179daef1651d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Retail YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b1a26a5e-06c8-5cd7-a301-d1b54e820987
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Retail YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 61e0863e-8198-545b-a9ba-6a9272b178c5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Retail YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Retail"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: db013ff5-d079-55a2-9415-5dc58cf6d84b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Wholesale YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f043e683-2884-598b-bffd-df44f178f9c7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Wholesale YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1b4bc972-8e40-553c-bbc3-ecc957e33901
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Wholesale YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Wholesale"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6411e1b4-fbac-5bea-9217-1543d69ae879
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Online YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 8057ee4a-b57d-5276-a5e2-7dfabe543c3d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Cost of Goods - Online YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e7e73b58-2f61-5fdd-9bfd-a96734562d22
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Cost of Goods - Online YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Cost of Goods - Online"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4b1ef871-10c8-584f-b2a4-42a004e0bf68
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Freight Inwards YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 9a7e124e-e9d8-58de-b3f9-171d339c2886
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Freight Inwards YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 609c569c-f328-58c5-9312-749950c1ae81
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Freight Inwards YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Freight Inwards"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 0b4d30be-68da-5d20-81e8-241e9d80376b
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Stock Adjustments YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a97dca0b-2701-569d-9da7-94b04a6ec173
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Stock Adjustments YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e2d48479-06f9-5108-a2ed-b051af9152f3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Stock Adjustments YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Stock Adjustments"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 3dfdbfcf-05d6-5191-90f7-ae934c254737
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Stores YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 98293761-80a1-511f-a4c4-1870a21ed6a2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Salaries & Wages - Stores YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 0b0f55c8-d092-58ca-95fc-314b864ec720
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Stores YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Stores"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: a7d3ff2b-3f6e-5480-ac38-512cba928a7a
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Warehouse YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6b312841-955b-55e5-ad9b-6ac89d89cc13
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Salaries & Wages - Warehouse YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: fa98f579-632b-5f88-877d-390d7603f8dc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Salaries & Wages - Warehouse YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Salaries & Wages - Warehouse"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: eefb1754-ec12-574c-99e1-5628e008daea
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Superannuation YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 6f808d74-cb00-53d6-886e-94103f3f3b84
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Superannuation YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: faf4326a-aa8c-59b8-8745-56e5a8f02167
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Superannuation YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Superannuation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1c05326e-fa88-5e8a-8689-0d07bd0b5c39
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Rent & Outgoings YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 57cdb7db-9cf7-5ee1-9925-f09dac846883
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Rent & Outgoings YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 3c920630-a684-551c-970e-de617758e500
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Rent & Outgoings YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Rent & Outgoings"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e8330fb7-0715-5760-8823-1ea9d8d01e17
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Utilities YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ed5c1118-2946-5af3-8d1f-38e930ad56e0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Utilities YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: fd38f237-36ca-5896-992d-ce234b433aed
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Utilities YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Utilities"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 349367c2-b2ad-5b5b-9406-6c8237930e61
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Marketing & Advertising YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: c6eaf537-8e57-50f3-8d9e-b923d9dad114
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Marketing & Advertising YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f78ee209-1170-5eef-bcc0-412a7136ff33
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Marketing & Advertising YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Marketing & Advertising"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ac41b255-642e-5a96-9529-886f2e74b719
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Insurance YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 60531657-5568-5686-bbc5-a5625d618937
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Insurance YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2c8d710f-d5fd-5e70-9e1c-cac02da35bdf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Insurance YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Insurance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ea7e0b34-9eeb-50af-90c7-ddd7f08985ec
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Vehicle & Delivery Costs YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ab715349-585f-56f6-8f4c-aecaea50c562
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Vehicle & Delivery Costs YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 4a7df814-a0d8-54e0-9bb0-fa8d173fbed9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Vehicle & Delivery Costs YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Vehicle & Delivery Costs"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 3681397d-e997-57a4-9580-3821ddf240f0
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Repairs & Maintenance YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 371a9489-bcf4-5a8c-b9e5-5eebdbc90ef2
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Repairs & Maintenance YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e8174912-e594-52bb-a5a0-bd5501e659b3
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Repairs & Maintenance YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Repairs & Maintenance"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b5523a71-52de-5197-a24e-0517785dc156
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual IT & Software YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e157493a-fce4-59ce-a6d6-67bdcb9f3a16
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget IT & Software YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 1cc68799-280e-5364-884d-de8f6c4d8aad
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual IT & Software YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "IT & Software"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: fb9b6b1c-38c3-5c2b-a61e-49b3a323b0b9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Merchant & Bank Fees YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b7348144-047a-5a3d-8953-55f64380b6b5
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Merchant & Bank Fees YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: e70809c3-4148-50af-a687-7e348b15c44d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Merchant & Bank Fees YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Merchant & Bank Fees"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2cf21628-89d8-58d4-b74d-5228a870f477
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Depreciation YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 5c9e528d-a0ca-5b66-a517-b42d39757e30
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Depreciation YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f380b1e4-16aa-5b07-bb48-71d75c8e5a9c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Depreciation YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Depreciation"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: f4628b6d-79e2-57e8-87f7-52606c5abd32
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Other Expenses YTD' =
+			
+			calculate([YTD Actual Value], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 8473b9a2-4fcb-5390-8e90-93a80af9e7f1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Other Expenses YTD' =
+			
+			calculate([YTD Budget Value], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: bbcbb102-1994-5403-a9dc-3acf92afd4d9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Other Expenses YTD LY' =
+			
+			calculate([YTD Actual Value LY], filter('Accounts', 'Accounts'[Account] = "Other Expenses"))
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 077c9489-637c-5ee6-8fb1-74aa4f0889cd
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Income YTD' =
+			
+			[Actual Retail Sales YTD] + [Actual Wholesale Sales YTD] + [Actual Online Sales YTD] + [Actual Delivery & Freight Income YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 51c0ff06-9e9d-5645-9651-01b71b22989d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Cost of Sales YTD' =
+			
+			[Actual Cost of Goods - Retail YTD] + [Actual Cost of Goods - Wholesale YTD] + [Actual Cost of Goods - Online YTD] + [Actual Freight Inwards YTD] + [Actual Stock Adjustments YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 18ea2881-4ab3-500e-91cb-f73a8dec1781
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Gross Profit YTD' =
+			
+			[Actual Total Income YTD] + [Actual Total Cost of Sales YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 605daeae-a7b0-5c48-b26b-ec740341acdf
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Operating Expenses YTD' =
+			
+			[Actual Salaries & Wages - Stores YTD] + [Actual Salaries & Wages - Warehouse YTD] + [Actual Superannuation YTD] + [Actual Rent & Outgoings YTD] + [Actual Utilities YTD] + [Actual Marketing & Advertising YTD] + [Actual Insurance YTD] + [Actual Vehicle & Delivery Costs YTD] + [Actual Repairs & Maintenance YTD] + [Actual IT & Software YTD] + [Actual Merchant & Bank Fees YTD] + [Actual Depreciation YTD] + [Actual Other Expenses YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b1d1cd8b-29cc-5dfd-978f-d44f0f2fbc7f
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Net Profit YTD' =
+			
+			[Actual Gross Profit YTD] + [Actual Total Operating Expenses YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 14c60586-8335-5add-b4ad-c1b42cb0eaae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Income YTD' =
+			
+			[Budget Retail Sales YTD] + [Budget Wholesale Sales YTD] + [Budget Online Sales YTD] + [Budget Delivery & Freight Income YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 8beefe59-713f-5038-8925-cd8e05bd06fc
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Cost of Sales YTD' =
+			
+			[Budget Cost of Goods - Retail YTD] + [Budget Cost of Goods - Wholesale YTD] + [Budget Cost of Goods - Online YTD] + [Budget Freight Inwards YTD] + [Budget Stock Adjustments YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: d80fcb23-31ee-55fe-a906-25692a693cae
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Gross Profit YTD' =
+			
+			[Budget Total Income YTD] + [Budget Total Cost of Sales YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 7a71eb2a-2ef5-5346-9df8-3c73989e5f60
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Total Operating Expenses YTD' =
+			
+			[Budget Salaries & Wages - Stores YTD] + [Budget Salaries & Wages - Warehouse YTD] + [Budget Superannuation YTD] + [Budget Rent & Outgoings YTD] + [Budget Utilities YTD] + [Budget Marketing & Advertising YTD] + [Budget Insurance YTD] + [Budget Vehicle & Delivery Costs YTD] + [Budget Repairs & Maintenance YTD] + [Budget IT & Software YTD] + [Budget Merchant & Bank Fees YTD] + [Budget Depreciation YTD] + [Budget Other Expenses YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b045f7b2-637b-59ad-80d2-c46685ab3a6e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Budget Net Profit YTD' =
+			
+			[Budget Gross Profit YTD] + [Budget Total Operating Expenses YTD]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 9b4f75e5-7207-5943-baaa-53ddf8af5bb7
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Income YTD LY' =
+			
+			[Actual Retail Sales YTD LY] + [Actual Wholesale Sales YTD LY] + [Actual Online Sales YTD LY] + [Actual Delivery & Freight Income YTD LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 7cd596b0-738f-5d9c-a8ae-4738304467ef
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Cost of Sales YTD LY' =
+			
+			[Actual Cost of Goods - Retail YTD LY] + [Actual Cost of Goods - Wholesale YTD LY] + [Actual Cost of Goods - Online YTD LY] + [Actual Freight Inwards YTD LY] + [Actual Stock Adjustments YTD LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ff791dc9-e401-53af-9ead-d23b0509948d
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Gross Profit YTD LY' =
+			
+			[Actual Total Income YTD LY] + [Actual Total Cost of Sales YTD LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2521bf70-b4c0-5c33-804f-3cefa620677e
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Total Operating Expenses YTD LY' =
+			
+			[Actual Salaries & Wages - Stores YTD LY] + [Actual Salaries & Wages - Warehouse YTD LY] + [Actual Superannuation YTD LY] + [Actual Rent & Outgoings YTD LY] + [Actual Utilities YTD LY] + [Actual Marketing & Advertising YTD LY] + [Actual Insurance YTD LY] + [Actual Vehicle & Delivery Costs YTD LY] + [Actual Repairs & Maintenance YTD LY] + [Actual IT & Software YTD LY] + [Actual Merchant & Bank Fees YTD LY] + [Actual Depreciation YTD LY] + [Actual Other Expenses YTD LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 89e209bd-57c8-53ed-ad76-1d251e0bfee6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Actual Net Profit YTD LY' =
+			
+			[Actual Gross Profit YTD LY] + [Actual Total Operating Expenses YTD LY]
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b6d3c2a5-8c5d-5e37-86e3-d2564849c8fe
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Slow vs LY % Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", format(([Actual Retail Sales] - [Actual Retail Sales LY]) / [Actual Retail Sales LY], "0.0%"),
+			__Line = "    Wholesale Sales", format(([Actual Wholesale Sales] - [Actual Wholesale Sales LY]) / [Actual Wholesale Sales LY], "0.0%"),
+			__Line = "    Online Sales", format(([Actual Online Sales] - [Actual Online Sales LY]) / [Actual Online Sales LY], "0.0%"),
+			__Line = "    Delivery & Freight Income", format(([Actual Delivery & Freight Income] - [Actual Delivery & Freight Income LY]) / [Actual Delivery & Freight Income LY], "0.0%"),
+			__Line = "Total Income", format(([Actual Total Income] - [Actual Total Income LY]) / [Actual Total Income LY], "0.0%"),
+			__Line = "    Cost of Goods - Retail", format(([Actual Cost of Goods - Retail] - [Actual Cost of Goods - Retail LY]) / [Actual Cost of Goods - Retail LY], "0.0%"),
+			__Line = "    Cost of Goods - Wholesale", format(([Actual Cost of Goods - Wholesale] - [Actual Cost of Goods - Wholesale LY]) / [Actual Cost of Goods - Wholesale LY], "0.0%"),
+			__Line = "    Cost of Goods - Online", format(([Actual Cost of Goods - Online] - [Actual Cost of Goods - Online LY]) / [Actual Cost of Goods - Online LY], "0.0%"),
+			__Line = "    Freight Inwards", format(([Actual Freight Inwards] - [Actual Freight Inwards LY]) / [Actual Freight Inwards LY], "0.0%"),
+			__Line = "    Stock Adjustments", format(([Actual Stock Adjustments] - [Actual Stock Adjustments LY]) / [Actual Stock Adjustments LY], "0.0%"),
+			__Line = "Total Cost of Sales", format(([Actual Total Cost of Sales] - [Actual Total Cost of Sales LY]) / [Actual Total Cost of Sales LY], "0.0%"),
+			__Line = "Gross Profit", format(([Actual Gross Profit] - [Actual Gross Profit LY]) / [Actual Gross Profit LY], "0.0%"),
+			__Line = "    Salaries & Wages - Stores", format(([Actual Salaries & Wages - Stores] - [Actual Salaries & Wages - Stores LY]) / [Actual Salaries & Wages - Stores LY], "0.0%"),
+			__Line = "    Salaries & Wages - Warehouse", format(([Actual Salaries & Wages - Warehouse] - [Actual Salaries & Wages - Warehouse LY]) / [Actual Salaries & Wages - Warehouse LY], "0.0%"),
+			__Line = "    Superannuation", format(([Actual Superannuation] - [Actual Superannuation LY]) / [Actual Superannuation LY], "0.0%"),
+			__Line = "    Rent & Outgoings", format(([Actual Rent & Outgoings] - [Actual Rent & Outgoings LY]) / [Actual Rent & Outgoings LY], "0.0%"),
+			__Line = "    Utilities", format(([Actual Utilities] - [Actual Utilities LY]) / [Actual Utilities LY], "0.0%"),
+			__Line = "    Marketing & Advertising", format(([Actual Marketing & Advertising] - [Actual Marketing & Advertising LY]) / [Actual Marketing & Advertising LY], "0.0%"),
+			__Line = "    Insurance", format(([Actual Insurance] - [Actual Insurance LY]) / [Actual Insurance LY], "0.0%"),
+			__Line = "    Vehicle & Delivery Costs", format(([Actual Vehicle & Delivery Costs] - [Actual Vehicle & Delivery Costs LY]) / [Actual Vehicle & Delivery Costs LY], "0.0%"),
+			__Line = "    Repairs & Maintenance", format(([Actual Repairs & Maintenance] - [Actual Repairs & Maintenance LY]) / [Actual Repairs & Maintenance LY], "0.0%"),
+			__Line = "    IT & Software", format(([Actual IT & Software] - [Actual IT & Software LY]) / [Actual IT & Software LY], "0.0%"),
+			__Line = "    Merchant & Bank Fees", format(([Actual Merchant & Bank Fees] - [Actual Merchant & Bank Fees LY]) / [Actual Merchant & Bank Fees LY], "0.0%"),
+			__Line = "    Depreciation", format(([Actual Depreciation] - [Actual Depreciation LY]) / [Actual Depreciation LY], "0.0%"),
+			__Line = "    Other Expenses", format(([Actual Other Expenses] - [Actual Other Expenses LY]) / [Actual Other Expenses LY], "0.0%"),
+			__Line = "Total Operating Expenses", format(([Actual Total Operating Expenses] - [Actual Total Operating Expenses LY]) / [Actual Total Operating Expenses LY], "0.0%"),
+			__Line = "Net Profit", format(([Actual Net Profit] - [Actual Net Profit LY]) / [Actual Net Profit LY], "0.0%")
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 5e54ffe8-47fe-5055-acb6-3c627dbdf5f1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Slow Actual YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales YTD],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales YTD],
+			__Line = "    Online Sales", [Actual Online Sales YTD],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income YTD],
+			__Line = "Total Income", [Actual Total Income YTD],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail YTD],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale YTD],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online YTD],
+			__Line = "    Freight Inwards", [Actual Freight Inwards YTD],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments YTD],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales YTD],
+			__Line = "Gross Profit", [Actual Gross Profit YTD],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores YTD],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse YTD],
+			__Line = "    Superannuation", [Actual Superannuation YTD],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings YTD],
+			__Line = "    Utilities", [Actual Utilities YTD],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising YTD],
+			__Line = "    Insurance", [Actual Insurance YTD],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs YTD],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance YTD],
+			__Line = "    IT & Software", [Actual IT & Software YTD],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees YTD],
+			__Line = "    Depreciation", [Actual Depreciation YTD],
+			__Line = "    Other Expenses", [Actual Other Expenses YTD],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses YTD],
+			__Line = "Net Profit", [Actual Net Profit YTD]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: b87684e4-366c-5266-9aaf-6a55a32a24d5
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Actual YTD Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Actual YTD Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Budget YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Budget Retail Sales YTD],
+			__Line = "    Wholesale Sales", [Budget Wholesale Sales YTD],
+			__Line = "    Online Sales", [Budget Online Sales YTD],
+			__Line = "    Delivery & Freight Income", [Budget Delivery & Freight Income YTD],
+			__Line = "Total Income", [Budget Total Income YTD],
+			__Line = "    Cost of Goods - Retail", [Budget Cost of Goods - Retail YTD],
+			__Line = "    Cost of Goods - Wholesale", [Budget Cost of Goods - Wholesale YTD],
+			__Line = "    Cost of Goods - Online", [Budget Cost of Goods - Online YTD],
+			__Line = "    Freight Inwards", [Budget Freight Inwards YTD],
+			__Line = "    Stock Adjustments", [Budget Stock Adjustments YTD],
+			__Line = "Total Cost of Sales", [Budget Total Cost of Sales YTD],
+			__Line = "Gross Profit", [Budget Gross Profit YTD],
+			__Line = "    Salaries & Wages - Stores", [Budget Salaries & Wages - Stores YTD],
+			__Line = "    Salaries & Wages - Warehouse", [Budget Salaries & Wages - Warehouse YTD],
+			__Line = "    Superannuation", [Budget Superannuation YTD],
+			__Line = "    Rent & Outgoings", [Budget Rent & Outgoings YTD],
+			__Line = "    Utilities", [Budget Utilities YTD],
+			__Line = "    Marketing & Advertising", [Budget Marketing & Advertising YTD],
+			__Line = "    Insurance", [Budget Insurance YTD],
+			__Line = "    Vehicle & Delivery Costs", [Budget Vehicle & Delivery Costs YTD],
+			__Line = "    Repairs & Maintenance", [Budget Repairs & Maintenance YTD],
+			__Line = "    IT & Software", [Budget IT & Software YTD],
+			__Line = "    Merchant & Bank Fees", [Budget Merchant & Bank Fees YTD],
+			__Line = "    Depreciation", [Budget Depreciation YTD],
+			__Line = "    Other Expenses", [Budget Other Expenses YTD],
+			__Line = "Total Operating Expenses", [Budget Total Operating Expenses YTD],
+			__Line = "Net Profit", [Budget Net Profit YTD]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 835e3305-cdc0-5015-b813-8f0e1f2aa13b
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Budget YTD Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Budget YTD Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Var YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales YTD] - [Budget Retail Sales YTD],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales YTD] - [Budget Wholesale Sales YTD],
+			__Line = "    Online Sales", [Actual Online Sales YTD] - [Budget Online Sales YTD],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income YTD] - [Budget Delivery & Freight Income YTD],
+			__Line = "Total Income", [Actual Total Income YTD] - [Budget Total Income YTD],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail YTD] - [Budget Cost of Goods - Retail YTD],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale YTD] - [Budget Cost of Goods - Wholesale YTD],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online YTD] - [Budget Cost of Goods - Online YTD],
+			__Line = "    Freight Inwards", [Actual Freight Inwards YTD] - [Budget Freight Inwards YTD],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments YTD] - [Budget Stock Adjustments YTD],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales YTD] - [Budget Total Cost of Sales YTD],
+			__Line = "Gross Profit", [Actual Gross Profit YTD] - [Budget Gross Profit YTD],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores YTD] - [Budget Salaries & Wages - Stores YTD],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse YTD] - [Budget Salaries & Wages - Warehouse YTD],
+			__Line = "    Superannuation", [Actual Superannuation YTD] - [Budget Superannuation YTD],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings YTD] - [Budget Rent & Outgoings YTD],
+			__Line = "    Utilities", [Actual Utilities YTD] - [Budget Utilities YTD],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising YTD] - [Budget Marketing & Advertising YTD],
+			__Line = "    Insurance", [Actual Insurance YTD] - [Budget Insurance YTD],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs YTD] - [Budget Vehicle & Delivery Costs YTD],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance YTD] - [Budget Repairs & Maintenance YTD],
+			__Line = "    IT & Software", [Actual IT & Software YTD] - [Budget IT & Software YTD],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees YTD] - [Budget Merchant & Bank Fees YTD],
+			__Line = "    Depreciation", [Actual Depreciation YTD] - [Budget Depreciation YTD],
+			__Line = "    Other Expenses", [Actual Other Expenses YTD] - [Budget Other Expenses YTD],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses YTD] - [Budget Total Operating Expenses YTD],
+			__Line = "Net Profit", [Actual Net Profit YTD] - [Budget Net Profit YTD]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 09e5ef46-38dc-57c4-bc61-5d126ceec17f
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow Var YTD Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow Var YTD Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow Var % YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", format(([Actual Retail Sales YTD] - [Budget Retail Sales YTD]) / [Budget Retail Sales YTD], "0.0%"),
+			__Line = "    Wholesale Sales", format(([Actual Wholesale Sales YTD] - [Budget Wholesale Sales YTD]) / [Budget Wholesale Sales YTD], "0.0%"),
+			__Line = "    Online Sales", format(([Actual Online Sales YTD] - [Budget Online Sales YTD]) / [Budget Online Sales YTD], "0.0%"),
+			__Line = "    Delivery & Freight Income", format(([Actual Delivery & Freight Income YTD] - [Budget Delivery & Freight Income YTD]) / [Budget Delivery & Freight Income YTD], "0.0%"),
+			__Line = "Total Income", format(([Actual Total Income YTD] - [Budget Total Income YTD]) / [Budget Total Income YTD], "0.0%"),
+			__Line = "    Cost of Goods - Retail", format(([Actual Cost of Goods - Retail YTD] - [Budget Cost of Goods - Retail YTD]) / [Budget Cost of Goods - Retail YTD], "0.0%"),
+			__Line = "    Cost of Goods - Wholesale", format(([Actual Cost of Goods - Wholesale YTD] - [Budget Cost of Goods - Wholesale YTD]) / [Budget Cost of Goods - Wholesale YTD], "0.0%"),
+			__Line = "    Cost of Goods - Online", format(([Actual Cost of Goods - Online YTD] - [Budget Cost of Goods - Online YTD]) / [Budget Cost of Goods - Online YTD], "0.0%"),
+			__Line = "    Freight Inwards", format(([Actual Freight Inwards YTD] - [Budget Freight Inwards YTD]) / [Budget Freight Inwards YTD], "0.0%"),
+			__Line = "    Stock Adjustments", format(([Actual Stock Adjustments YTD] - [Budget Stock Adjustments YTD]) / [Budget Stock Adjustments YTD], "0.0%"),
+			__Line = "Total Cost of Sales", format(([Actual Total Cost of Sales YTD] - [Budget Total Cost of Sales YTD]) / [Budget Total Cost of Sales YTD], "0.0%"),
+			__Line = "Gross Profit", format(([Actual Gross Profit YTD] - [Budget Gross Profit YTD]) / [Budget Gross Profit YTD], "0.0%"),
+			__Line = "    Salaries & Wages - Stores", format(([Actual Salaries & Wages - Stores YTD] - [Budget Salaries & Wages - Stores YTD]) / [Budget Salaries & Wages - Stores YTD], "0.0%"),
+			__Line = "    Salaries & Wages - Warehouse", format(([Actual Salaries & Wages - Warehouse YTD] - [Budget Salaries & Wages - Warehouse YTD]) / [Budget Salaries & Wages - Warehouse YTD], "0.0%"),
+			__Line = "    Superannuation", format(([Actual Superannuation YTD] - [Budget Superannuation YTD]) / [Budget Superannuation YTD], "0.0%"),
+			__Line = "    Rent & Outgoings", format(([Actual Rent & Outgoings YTD] - [Budget Rent & Outgoings YTD]) / [Budget Rent & Outgoings YTD], "0.0%"),
+			__Line = "    Utilities", format(([Actual Utilities YTD] - [Budget Utilities YTD]) / [Budget Utilities YTD], "0.0%"),
+			__Line = "    Marketing & Advertising", format(([Actual Marketing & Advertising YTD] - [Budget Marketing & Advertising YTD]) / [Budget Marketing & Advertising YTD], "0.0%"),
+			__Line = "    Insurance", format(([Actual Insurance YTD] - [Budget Insurance YTD]) / [Budget Insurance YTD], "0.0%"),
+			__Line = "    Vehicle & Delivery Costs", format(([Actual Vehicle & Delivery Costs YTD] - [Budget Vehicle & Delivery Costs YTD]) / [Budget Vehicle & Delivery Costs YTD], "0.0%"),
+			__Line = "    Repairs & Maintenance", format(([Actual Repairs & Maintenance YTD] - [Budget Repairs & Maintenance YTD]) / [Budget Repairs & Maintenance YTD], "0.0%"),
+			__Line = "    IT & Software", format(([Actual IT & Software YTD] - [Budget IT & Software YTD]) / [Budget IT & Software YTD], "0.0%"),
+			__Line = "    Merchant & Bank Fees", format(([Actual Merchant & Bank Fees YTD] - [Budget Merchant & Bank Fees YTD]) / [Budget Merchant & Bank Fees YTD], "0.0%"),
+			__Line = "    Depreciation", format(([Actual Depreciation YTD] - [Budget Depreciation YTD]) / [Budget Depreciation YTD], "0.0%"),
+			__Line = "    Other Expenses", format(([Actual Other Expenses YTD] - [Budget Other Expenses YTD]) / [Budget Other Expenses YTD], "0.0%"),
+			__Line = "Total Operating Expenses", format(([Actual Total Operating Expenses YTD] - [Budget Total Operating Expenses YTD]) / [Budget Total Operating Expenses YTD], "0.0%"),
+			__Line = "Net Profit", format(([Actual Net Profit YTD] - [Budget Net Profit YTD]) / [Budget Net Profit YTD], "0.0%")
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ae0c4c08-102d-5564-bf63-3b3302e34f18
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Slow LY YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales YTD LY],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales YTD LY],
+			__Line = "    Online Sales", [Actual Online Sales YTD LY],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income YTD LY],
+			__Line = "Total Income", [Actual Total Income YTD LY],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail YTD LY],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale YTD LY],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online YTD LY],
+			__Line = "    Freight Inwards", [Actual Freight Inwards YTD LY],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments YTD LY],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales YTD LY],
+			__Line = "Gross Profit", [Actual Gross Profit YTD LY],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores YTD LY],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse YTD LY],
+			__Line = "    Superannuation", [Actual Superannuation YTD LY],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings YTD LY],
+			__Line = "    Utilities", [Actual Utilities YTD LY],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising YTD LY],
+			__Line = "    Insurance", [Actual Insurance YTD LY],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs YTD LY],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance YTD LY],
+			__Line = "    IT & Software", [Actual IT & Software YTD LY],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees YTD LY],
+			__Line = "    Depreciation", [Actual Depreciation YTD LY],
+			__Line = "    Other Expenses", [Actual Other Expenses YTD LY],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses YTD LY],
+			__Line = "Net Profit", [Actual Net Profit YTD LY]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 2f2c1447-f742-5118-b0d4-0d88234e52cc
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow LY YTD Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow LY YTD Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow vs LY YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", [Actual Retail Sales YTD] - [Actual Retail Sales YTD LY],
+			__Line = "    Wholesale Sales", [Actual Wholesale Sales YTD] - [Actual Wholesale Sales YTD LY],
+			__Line = "    Online Sales", [Actual Online Sales YTD] - [Actual Online Sales YTD LY],
+			__Line = "    Delivery & Freight Income", [Actual Delivery & Freight Income YTD] - [Actual Delivery & Freight Income YTD LY],
+			__Line = "Total Income", [Actual Total Income YTD] - [Actual Total Income YTD LY],
+			__Line = "    Cost of Goods - Retail", [Actual Cost of Goods - Retail YTD] - [Actual Cost of Goods - Retail YTD LY],
+			__Line = "    Cost of Goods - Wholesale", [Actual Cost of Goods - Wholesale YTD] - [Actual Cost of Goods - Wholesale YTD LY],
+			__Line = "    Cost of Goods - Online", [Actual Cost of Goods - Online YTD] - [Actual Cost of Goods - Online YTD LY],
+			__Line = "    Freight Inwards", [Actual Freight Inwards YTD] - [Actual Freight Inwards YTD LY],
+			__Line = "    Stock Adjustments", [Actual Stock Adjustments YTD] - [Actual Stock Adjustments YTD LY],
+			__Line = "Total Cost of Sales", [Actual Total Cost of Sales YTD] - [Actual Total Cost of Sales YTD LY],
+			__Line = "Gross Profit", [Actual Gross Profit YTD] - [Actual Gross Profit YTD LY],
+			__Line = "    Salaries & Wages - Stores", [Actual Salaries & Wages - Stores YTD] - [Actual Salaries & Wages - Stores YTD LY],
+			__Line = "    Salaries & Wages - Warehouse", [Actual Salaries & Wages - Warehouse YTD] - [Actual Salaries & Wages - Warehouse YTD LY],
+			__Line = "    Superannuation", [Actual Superannuation YTD] - [Actual Superannuation YTD LY],
+			__Line = "    Rent & Outgoings", [Actual Rent & Outgoings YTD] - [Actual Rent & Outgoings YTD LY],
+			__Line = "    Utilities", [Actual Utilities YTD] - [Actual Utilities YTD LY],
+			__Line = "    Marketing & Advertising", [Actual Marketing & Advertising YTD] - [Actual Marketing & Advertising YTD LY],
+			__Line = "    Insurance", [Actual Insurance YTD] - [Actual Insurance YTD LY],
+			__Line = "    Vehicle & Delivery Costs", [Actual Vehicle & Delivery Costs YTD] - [Actual Vehicle & Delivery Costs YTD LY],
+			__Line = "    Repairs & Maintenance", [Actual Repairs & Maintenance YTD] - [Actual Repairs & Maintenance YTD LY],
+			__Line = "    IT & Software", [Actual IT & Software YTD] - [Actual IT & Software YTD LY],
+			__Line = "    Merchant & Bank Fees", [Actual Merchant & Bank Fees YTD] - [Actual Merchant & Bank Fees YTD LY],
+			__Line = "    Depreciation", [Actual Depreciation YTD] - [Actual Depreciation YTD LY],
+			__Line = "    Other Expenses", [Actual Other Expenses YTD] - [Actual Other Expenses YTD LY],
+			__Line = "Total Operating Expenses", [Actual Total Operating Expenses YTD] - [Actual Total Operating Expenses YTD LY],
+			__Line = "Net Profit", [Actual Net Profit YTD] - [Actual Net Profit YTD LY]
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: ecd8885a-fdc1-5b8a-8d71-1eeae62ad004
+
+		formatStringDefinition = SWITCH(TRUE(), ABS([Slow vs LY YTD Value]) >= 1000000, "$#,##0,,.0""M"";($#,##0,,.0""M"")", ABS([Slow vs LY YTD Value]) >= 1000, "$#,##0,.0""K"";($#,##0,.0""K"")", "$#,##0;($#,##0)")
+
+	measure 'Slow vs LY % YTD Value' =
+			
+			VAR __Line = SELECTEDVALUE('P&L Rows'[Line])
+			RETURN
+			Switch(True(),
+			__Line = "    Retail Sales", format(([Actual Retail Sales YTD] - [Actual Retail Sales YTD LY]) / [Actual Retail Sales YTD LY], "0.0%"),
+			__Line = "    Wholesale Sales", format(([Actual Wholesale Sales YTD] - [Actual Wholesale Sales YTD LY]) / [Actual Wholesale Sales YTD LY], "0.0%"),
+			__Line = "    Online Sales", format(([Actual Online Sales YTD] - [Actual Online Sales YTD LY]) / [Actual Online Sales YTD LY], "0.0%"),
+			__Line = "    Delivery & Freight Income", format(([Actual Delivery & Freight Income YTD] - [Actual Delivery & Freight Income YTD LY]) / [Actual Delivery & Freight Income YTD LY], "0.0%"),
+			__Line = "Total Income", format(([Actual Total Income YTD] - [Actual Total Income YTD LY]) / [Actual Total Income YTD LY], "0.0%"),
+			__Line = "    Cost of Goods - Retail", format(([Actual Cost of Goods - Retail YTD] - [Actual Cost of Goods - Retail YTD LY]) / [Actual Cost of Goods - Retail YTD LY], "0.0%"),
+			__Line = "    Cost of Goods - Wholesale", format(([Actual Cost of Goods - Wholesale YTD] - [Actual Cost of Goods - Wholesale YTD LY]) / [Actual Cost of Goods - Wholesale YTD LY], "0.0%"),
+			__Line = "    Cost of Goods - Online", format(([Actual Cost of Goods - Online YTD] - [Actual Cost of Goods - Online YTD LY]) / [Actual Cost of Goods - Online YTD LY], "0.0%"),
+			__Line = "    Freight Inwards", format(([Actual Freight Inwards YTD] - [Actual Freight Inwards YTD LY]) / [Actual Freight Inwards YTD LY], "0.0%"),
+			__Line = "    Stock Adjustments", format(([Actual Stock Adjustments YTD] - [Actual Stock Adjustments YTD LY]) / [Actual Stock Adjustments YTD LY], "0.0%"),
+			__Line = "Total Cost of Sales", format(([Actual Total Cost of Sales YTD] - [Actual Total Cost of Sales YTD LY]) / [Actual Total Cost of Sales YTD LY], "0.0%"),
+			__Line = "Gross Profit", format(([Actual Gross Profit YTD] - [Actual Gross Profit YTD LY]) / [Actual Gross Profit YTD LY], "0.0%"),
+			__Line = "    Salaries & Wages - Stores", format(([Actual Salaries & Wages - Stores YTD] - [Actual Salaries & Wages - Stores YTD LY]) / [Actual Salaries & Wages - Stores YTD LY], "0.0%"),
+			__Line = "    Salaries & Wages - Warehouse", format(([Actual Salaries & Wages - Warehouse YTD] - [Actual Salaries & Wages - Warehouse YTD LY]) / [Actual Salaries & Wages - Warehouse YTD LY], "0.0%"),
+			__Line = "    Superannuation", format(([Actual Superannuation YTD] - [Actual Superannuation YTD LY]) / [Actual Superannuation YTD LY], "0.0%"),
+			__Line = "    Rent & Outgoings", format(([Actual Rent & Outgoings YTD] - [Actual Rent & Outgoings YTD LY]) / [Actual Rent & Outgoings YTD LY], "0.0%"),
+			__Line = "    Utilities", format(([Actual Utilities YTD] - [Actual Utilities YTD LY]) / [Actual Utilities YTD LY], "0.0%"),
+			__Line = "    Marketing & Advertising", format(([Actual Marketing & Advertising YTD] - [Actual Marketing & Advertising YTD LY]) / [Actual Marketing & Advertising YTD LY], "0.0%"),
+			__Line = "    Insurance", format(([Actual Insurance YTD] - [Actual Insurance YTD LY]) / [Actual Insurance YTD LY], "0.0%"),
+			__Line = "    Vehicle & Delivery Costs", format(([Actual Vehicle & Delivery Costs YTD] - [Actual Vehicle & Delivery Costs YTD LY]) / [Actual Vehicle & Delivery Costs YTD LY], "0.0%"),
+			__Line = "    Repairs & Maintenance", format(([Actual Repairs & Maintenance YTD] - [Actual Repairs & Maintenance YTD LY]) / [Actual Repairs & Maintenance YTD LY], "0.0%"),
+			__Line = "    IT & Software", format(([Actual IT & Software YTD] - [Actual IT & Software YTD LY]) / [Actual IT & Software YTD LY], "0.0%"),
+			__Line = "    Merchant & Bank Fees", format(([Actual Merchant & Bank Fees YTD] - [Actual Merchant & Bank Fees YTD LY]) / [Actual Merchant & Bank Fees YTD LY], "0.0%"),
+			__Line = "    Depreciation", format(([Actual Depreciation YTD] - [Actual Depreciation YTD LY]) / [Actual Depreciation YTD LY], "0.0%"),
+			__Line = "    Other Expenses", format(([Actual Other Expenses YTD] - [Actual Other Expenses YTD LY]) / [Actual Other Expenses YTD LY], "0.0%"),
+			__Line = "Total Operating Expenses", format(([Actual Total Operating Expenses YTD] - [Actual Total Operating Expenses YTD LY]) / [Actual Total Operating Expenses YTD LY], "0.0%"),
+			__Line = "Net Profit", format(([Actual Net Profit YTD] - [Actual Net Profit YTD LY]) / [Actual Net Profit YTD LY], "0.0%")
+			)
+		displayFolder: 02 Slow P&L (SWITCH)
+		lineageTag: 7eca860a-dad6-5794-bcf9-8d3ca2dd1cb9
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	/// Bridge reuse: one line, one filter on the bridge's Line column, no SWITCH.
+	measure 'Line Total Cost of Sales' =
+			
+			CALCULATE ( [P&L Actual], 'P&L Lines'[Line] = "Total Cost of Sales" )
+		formatString: $#,##0
+		displayFolder: 05 Hybrid (field parameter)
+		lineageTag: 84e71f8a-b45e-4e2b-bbd9-f02b83e56925
+
+	/// Bridge reuse: one line, one filter on the bridge's Line column, no SWITCH.
+	measure 'Line Total Operating Expenses' =
+			
+			CALCULATE ( [P&L Actual], 'P&L Lines'[Line] = "Total Operating Expenses" )
+		formatString: $#,##0
+		displayFolder: 05 Hybrid (field parameter)
+		lineageTag: a2cd1a3a-1cde-415a-ac7d-d553cb779bfc
+
+	/// A line no account can express, so just a normal measure.
+	measure 'Hybrid Income per Store' =
+			
+			DIVIDE (
+			    [Total Income $],
+			    DISTINCTCOUNT ( 'Stores'[Store] )
+			)
+		formatString: $#,##0,,.0"M"
+		displayFolder: 05 Hybrid (field parameter)
+		lineageTag: ddd3d0f1-703e-4ae7-8453-5b4a76abcec4
+
+	/// SWITCH counterpart of the calculation item 'Actual' -- 13 branches.
+	measure 'Slow NM Actual' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 7b0f37da-29df-584e-943a-1c8cd1bbfefe
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM Actual] ) )
+
+	/// SWITCH counterpart of the calculation item 'LY' -- 13 branches.
+	measure 'Slow NM LY' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 16c79975-f6b3-59e1-ab4f-105b9dbdbc7a
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM LY] ) )
+
+	/// SWITCH counterpart of the calculation item 'vs LY' -- 13 branches.
+	measure 'Slow NM vs LY' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: e02cc381-f17f-5f15-97bd-53ef341c2d40
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM vs LY] ) )
+
+	/// SWITCH counterpart of the calculation item 'vs LY %' -- 13 branches.
+	measure 'Slow NM vs LY %' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        DIVIDE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Total Cost of Sales",
+			        DIVIDE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Gross Profit",
+			        DIVIDE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Total Operating Expenses",
+			        DIVIDE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Profit",
+			        DIVIDE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Gross Margin %",
+			        DIVIDE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Margin %",
+			        DIVIDE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "COGS % of Income",
+			        DIVIDE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Opex % of Income",
+			        DIVIDE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Income per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Profit per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Income per Active Product",
+			        DIVIDE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Trading Stores",
+			        DIVIDE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) )
+			)
+		formatString: 0.0%;(0.0%)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 8ebe463f-5e03-56f5-9044-b98ed070957d
+
+	/// SWITCH counterpart of the calculation item 'Budget' -- 13 branches.
+	measure 'Slow NM Budget' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget" )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 953299c2-4be9-553c-9d00-22fd66d8b494
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM Budget] ) )
+
+	/// SWITCH counterpart of the calculation item 'Var to Budget' -- 13 branches.
+	measure 'Slow NM Var to Budget' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget" ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget" )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: f832e37b-f983-5d5a-a3fd-9cf8801e6da2
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM Var to Budget] ) )
+
+	/// SWITCH counterpart of the calculation item 'Var to Budget %' -- 13 branches.
+	measure 'Slow NM Var to Budget %' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        DIVIDE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Total Cost of Sales",
+			        DIVIDE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Gross Profit",
+			        DIVIDE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Total Operating Expenses",
+			        DIVIDE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Net Profit",
+			        DIVIDE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Gross Margin %",
+			        DIVIDE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Net Margin %",
+			        DIVIDE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "COGS % of Income",
+			        DIVIDE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Opex % of Income",
+			        DIVIDE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Income per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Net Profit per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Income per Active Product",
+			        DIVIDE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget" ) ),
+			    __Line = "Trading Stores",
+			        DIVIDE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual" ) - CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget" ), CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget" ) )
+			)
+		formatString: 0.0%;(0.0%)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 5f09d59d-5353-5caf-9e3b-da8ffad3c2b9
+
+	/// SWITCH counterpart of the calculation item 'YTD Actual' -- 13 branches.
+	measure 'Slow NM YTD Actual' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: c5b0077a-e967-59bf-ac10-be887155bf90
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM YTD Actual] ) )
+
+	/// SWITCH counterpart of the calculation item 'YTD LY' -- 13 branches.
+	measure 'Slow NM YTD LY' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: e7414832-7c76-5a28-bd2a-ba1ed14c1e37
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM YTD LY] ) )
+
+	/// SWITCH counterpart of the calculation item 'YTD vs LY' -- 13 branches.
+	measure 'Slow NM YTD vs LY' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 97fda5c2-cc4b-554c-bab7-159fa4952437
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM YTD vs LY] ) )
+
+	/// SWITCH counterpart of the calculation item 'YTD vs LY %' -- 13 branches.
+	measure 'Slow NM YTD vs LY %' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        DIVIDE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Total Cost of Sales",
+			        DIVIDE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Gross Profit",
+			        DIVIDE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Total Operating Expenses",
+			        DIVIDE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Profit",
+			        DIVIDE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Gross Margin %",
+			        DIVIDE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Margin %",
+			        DIVIDE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "COGS % of Income",
+			        DIVIDE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Opex % of Income",
+			        DIVIDE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Income per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Net Profit per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Income per Active Product",
+			        DIVIDE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) ),
+			    __Line = "Trading Stores",
+			        DIVIDE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ), CALCULATE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ), DATEADD ( 'DimDate'[Date], -1, YEAR ) ) )
+			)
+		formatString: 0.0%;(0.0%)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 3ac3faad-1f8e-5e14-9e55-c95e9839bf20
+
+	/// SWITCH counterpart of the calculation item 'YTD Budget' -- 13 branches.
+	measure 'Slow NM YTD Budget' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 6b2a2e0a-951d-5cf6-b7c7-aceefdf4b572
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM YTD Budget] ) )
+
+	/// SWITCH counterpart of the calculation item 'YTD Var to Budget' -- 13 branches.
+	measure 'Slow NM YTD Var to Budget' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Cost of Sales",
+			        CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Profit",
+			        CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Total Operating Expenses",
+			        CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit",
+			        CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Gross Margin %",
+			        CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Margin %",
+			        CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "COGS % of Income",
+			        CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Opex % of Income",
+			        CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Trading Store",
+			        CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Net Profit per Trading Store",
+			        CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Income per Active Product",
+			        CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ),
+			    __Line = "Trading Stores",
+			        CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) )
+			)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: 462f8081-05b7-55da-acd1-1ae3902c20fd
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [Slow NM YTD Var to Budget] ) )
+
+	/// SWITCH counterpart of the calculation item 'YTD Var to Budget %' -- 13 branches.
+	measure 'Slow NM YTD Var to Budget %' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    TRUE ( ),
+			    __Line = "Total Income",
+			        DIVIDE ( CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Total Cost of Sales",
+			        DIVIDE ( CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Gross Profit",
+			        DIVIDE ( CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Total Operating Expenses",
+			        DIVIDE ( CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Net Profit",
+			        DIVIDE ( CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Gross Margin %",
+			        DIVIDE ( CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Gross Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Net Margin %",
+			        DIVIDE ( CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Net Margin %], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "COGS % of Income",
+			        DIVIDE ( CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM COGS % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Opex % of Income",
+			        DIVIDE ( CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Opex % of Income], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Income per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Income per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Net Profit per Trading Store",
+			        DIVIDE ( CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Net Profit per Trading Store], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Income per Active Product",
+			        DIVIDE ( CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Income per Active Product], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) ),
+			    __Line = "Trading Stores",
+			        DIVIDE ( CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Actual", DATESYTD ( 'DimDate'[Date] ) ) - CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ), CALCULATE ( [NM Trading Stores], 'Financials'[Scenario] = "Budget", DATESYTD ( 'DimDate'[Date] ) ) )
+			)
+		formatString: 0.0%;(0.0%)
+		displayFolder: 07 Odd Rows SWITCH
+		lineageTag: b69ca24b-8163-5144-a85e-5a85fe5ce2c3
+
+	/// Single dispatch measure for the Odd Rows P&L. One 13-branch SWITCH replaces
+	/// thirteen explicit row measures: same leaf measures, same 182 cells, ~40% less time.
+	measure 'NM Row Value' =
+			
+			VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] )
+			RETURN
+			SWITCH (
+			    __Line,
+			    "Total Income", [NM Total Income],
+			    "Total Cost of Sales", [NM Total Cost of Sales],
+			    "Gross Profit", [NM Gross Profit],
+			    "Total Operating Expenses", [NM Total Operating Expenses],
+			    "Net Profit", [NM Net Profit],
+			    "Gross Margin %", [NM Gross Margin %],
+			    "Net Margin %", [NM Net Margin %],
+			    "COGS % of Income", [NM COGS % of Income],
+			    "Opex % of Income", [NM Opex % of Income],
+			    "Income per Trading Store", [NM Income per Trading Store],
+			    "Net Profit per Trading Store", [NM Net Profit per Trading Store],
+			    "Income per Active Product", [NM Income per Active Product],
+			    "Trading Stores", [NM Trading Stores]
+			)
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 7a2cebb8-1fa2-5468-9098-dfe506691f5c
+
+		formatStringDefinition = VAR __Line = SELECTEDVALUE ( 'P&L Odd Rows'[Line] ) RETURN SWITCH ( TRUE ( ), __Line IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Line IN { "Trading Stores" }, "#,##0;(#,##0)", Fmt.Money ( [NM Row Value] ) )
+
+	/// Values-well measure for the two-calculation-group page. Same number as [NM Amount];
+	/// the point is the dynamic format string, which reads the ROW calculation group.
+	measure 'NM CG Value' =
+			
+			// numerically identical to [NM Amount]; exists to carry the row-aware format string
+			[NM Amount]
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 64fcdecb-16d1-5b4b-8fe9-5f798a122b5d
+
+		formatStringDefinition = VAR __Row = SELECTEDVALUE ( 'P&L Row'[P&L Row] ) RETURN SWITCH ( TRUE ( ), __Row IN { "Gross Margin %", "Net Margin %", "COGS % of Income", "Opex % of Income" }, "0.0%;(0.0%)", __Row IN { "Trading Stores" }, "#,##0;(#,##0)", "$#,##0;($#,##0)" )
+
+	/// Distinct trading stores, ignoring any statement-line filter. The Deneb dataset groups
+	/// by 'P&L Lines'[Line], and this count must NOT inherit that grouping.
+	measure 'NM Stores All Lines' =
+			
+			CALCULATE ( [NM Trading Stores], REMOVEFILTERS ( 'P&L Lines' ) )
+		formatString: #,##0;(#,##0)
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 9e7852b2-db40-5428-8c4a-0a0bb67cf564
+
+	/// Distinct active products, ignoring any statement-line filter. ProductKey 0 is the
+	/// sentinel for the 19 non-product accounts, not a product.
+	measure 'NM Products All Lines' =
+			
+			CALCULATE (
+			    DISTINCTCOUNT ( 'Financials'[ProductKey] ),
+			    'Financials'[ProductKey] <> 0,
+			    REMOVEFILTERS ( 'P&L Lines' )
+			)
+		formatString: #,##0;(#,##0)
+		displayFolder: 06 Odd Rows P&L
+		lineageTag: 04bf2f58-24e8-59c9-89af-d5a9cacccb0c
+
+	/// Fully transparent fill for conditional-formatting slots whose static color
+	/// picker has no alpha (slicer header backgrounds, etc). 8-digit hex, alpha 00.
+	measure 'UI Transparent' =
+			
+			"#FFFFFF00"
+		displayFolder: 08 UI
+		lineageTag: a73c75ff-b3a8-5be4-a6f5-7aed02300bb3
+
+	/// Total Income, actual. Scenario-specific, period-agnostic: the calculation group owns the period.
+	measure 'MP Income Act' =
+			
+			CALCULATE ( [NM Total Income], 'Financials'[Scenario] = "Actual" )
+		displayFolder: 09 Monthly P&L
+		lineageTag: c63c09e9-1fcf-548e-84de-b1510c57ea8a
+
+		formatStringDefinition = Fmt.Money ( [MP Income Act] )
+
+	/// Total Income, same period last year.
+	measure 'MP Income LY' =
+			
+			CALCULATE ( [MP Income Act], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 09 Monthly P&L
+		lineageTag: af38bb51-14b9-5d5e-a5c9-84a6c43f9bca
+
+		formatStringDefinition = Fmt.Money ( [MP Income LY] )
+
+	/// Total Cost of Sales, actual. Scenario-specific, period-agnostic: the calculation group owns the period.
+	measure 'MP COGS Act' =
+			
+			CALCULATE ( [NM Total Cost of Sales], 'Financials'[Scenario] = "Actual" )
+		displayFolder: 09 Monthly P&L
+		lineageTag: c1545ec4-5512-5af5-8495-b2b121f00a83
+
+		formatStringDefinition = Fmt.Money ( [MP COGS Act] )
+
+	/// Total Cost of Sales, same period last year.
+	measure 'MP COGS LY' =
+			
+			CALCULATE ( [MP COGS Act], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 4eb7afdb-d1cf-52d6-aeb8-087ac09c10c0
+
+		formatStringDefinition = Fmt.Money ( [MP COGS LY] )
+
+	/// Gross Profit, actual. Scenario-specific, period-agnostic: the calculation group owns the period.
+	measure 'MP GP Act' =
+			
+			CALCULATE ( [NM Gross Profit], 'Financials'[Scenario] = "Actual" )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 7c06ca37-d9eb-53d2-9c68-36d80a47e36e
+
+		formatStringDefinition = Fmt.Money ( [MP GP Act] )
+
+	/// Gross Profit, same period last year.
+	measure 'MP GP LY' =
+			
+			CALCULATE ( [MP GP Act], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 2fac2286-eae8-5856-bfc4-12cd61c8897f
+
+		formatStringDefinition = Fmt.Money ( [MP GP LY] )
+
+	/// Total Operating Expenses, actual. Scenario-specific, period-agnostic: the calculation group owns the period.
+	measure 'MP Opex Act' =
+			
+			CALCULATE ( [NM Total Operating Expenses], 'Financials'[Scenario] = "Actual" )
+		displayFolder: 09 Monthly P&L
+		lineageTag: c1b03d01-c489-519a-b6d6-e568abfc6e9b
+
+		formatStringDefinition = Fmt.Money ( [MP Opex Act] )
+
+	/// Total Operating Expenses, same period last year.
+	measure 'MP Opex LY' =
+			
+			CALCULATE ( [MP Opex Act], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 09 Monthly P&L
+		lineageTag: d377dcf2-2fcb-5395-b2a6-8338ccbfdbb9
+
+		formatStringDefinition = Fmt.Money ( [MP Opex LY] )
+
+	/// Net Profit, actual. Scenario-specific, period-agnostic: the calculation group owns the period.
+	measure 'MP NP Act' =
+			
+			CALCULATE ( [NM Net Profit], 'Financials'[Scenario] = "Actual" )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 91255b6a-7c0d-5497-b3b5-001daae32fdf
+
+		formatStringDefinition = Fmt.Money ( [MP NP Act] )
+
+	/// Net Profit, same period last year.
+	measure 'MP NP LY' =
+			
+			CALCULATE ( [MP NP Act], DATEADD ( 'DimDate'[Date], -1, YEAR ) )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 0e625826-80b3-5713-8f5b-b3c9a4db6a03
+
+		formatStringDefinition = Fmt.Money ( [MP NP LY] )
+
+	/// Income growth on last year. Blank Act over a real LY is -100%, matching DAX's blank-as-zero subtraction.
+	measure 'MP Income Var %' =
+			
+			DIVIDE ( [MP Income Act] - [MP Income LY], [MP Income LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: fba707ac-46c2-51cb-82c9-c414288d07d5
+
+		formatStringDefinition = IF ( ABS ( [MP Income Var %] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Cost of sales movement on last year. Both sides are negative, so the sign reads as cost growth.
+	measure 'MP COGS Var %' =
+			
+			DIVIDE ( [MP COGS Act] - [MP COGS LY], [MP COGS LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 16e5da03-26b8-50cb-83ef-84b86165bc0b
+
+		formatStringDefinition = IF ( ABS ( [MP COGS Var %] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Gross profit growth on last year.
+	measure 'MP GP Var %' =
+			
+			DIVIDE ( [MP GP Act] - [MP GP LY], [MP GP LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 6b02faac-38a6-5ddc-8c8a-a4ae9f1cc018
+
+		formatStringDefinition = IF ( ABS ( [MP GP Var %] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Gross margin, actual.
+	measure 'MP GM % Act' =
+			
+			DIVIDE ( [MP GP Act], [MP Income Act] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 19d2d105-1e3c-59e0-bf6b-53fe7bdb977a
+
+		formatStringDefinition = IF ( ABS ( [MP GM % Act] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Gross margin, last year.
+	measure 'MP GM % LY' =
+			
+			DIVIDE ( [MP GP LY], [MP Income LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: e3e98596-0330-5afb-a963-d1b4749ce94d
+
+		formatStringDefinition = IF ( ABS ( [MP GM % LY] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Gross margin movement in points. A difference, not a ratio -- blank only if both sides are blank.
+	measure 'MP GM % Var bps' =
+			
+			[MP GM % Act] - [MP GM % LY]
+		displayFolder: 09 Monthly P&L
+		lineageTag: faf30470-a592-5177-a2e0-9eb991dafaad
+
+		formatStringDefinition = IF ( ABS ( [MP GM % Var bps] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Operating expense movement on last year.
+	measure 'MP Opex Var %' =
+			
+			DIVIDE ( [MP Opex Act] - [MP Opex LY], [MP Opex LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: adc6ce82-2935-5036-9415-cdd4a5d8e0cc
+
+		formatStringDefinition = IF ( ABS ( [MP Opex Var %] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Operating expenses as a positive share of income. -1 * BLANK() is BLANK, so the blank survives the sign flip.
+	measure 'MP Opex % Act' =
+			
+			DIVIDE ( -1 * [MP Opex Act], [MP Income Act] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: d80ce830-b84b-56cd-9b25-8f3525caca2d
+
+		formatStringDefinition = IF ( ABS ( [MP Opex % Act] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Operating expense ratio, last year.
+	measure 'MP Opex % LY' =
+			
+			DIVIDE ( -1 * [MP Opex LY], [MP Income LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 14655108-f5d4-5548-99ff-a5da34b493a9
+
+		formatStringDefinition = IF ( ABS ( [MP Opex % LY] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Operating expense ratio movement in points.
+	measure 'MP Opex % Var bps' =
+			
+			[MP Opex % Act] - [MP Opex % LY]
+		displayFolder: 09 Monthly P&L
+		lineageTag: 66dc4386-1574-5f6b-9a81-582c0b8a4956
+
+		formatStringDefinition = IF ( ABS ( [MP Opex % Var bps] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Net profit growth on last year.
+	measure 'MP NP Var %' =
+			
+			DIVIDE ( [MP NP Act] - [MP NP LY], [MP NP LY] )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 5659feca-020c-5ebd-9fd4-8a75840071b7
+
+		formatStringDefinition = IF ( ABS ( [MP NP Var %] ) >= 1, "0%;(0%)", "0.0%;(0.0%)" )
+
+	/// Section band: renders as the 'Income' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Income' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: ace9db21-435a-5def-87d7-79e00e60823c
+
+	/// Section band: renders as the 'Cost of Sales' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Cost of Sales' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: 407bca2c-42ed-5c08-a3b9-9c568cda795e
+
+	/// Section band: renders as the 'Gross Profit' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Gross Profit' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: adeeb546-f272-5ede-9996-111bb5a3545b
+
+	/// Section band: renders as the 'Gross Margin' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Gross Margin' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: a2554995-84f3-5fc1-84a0-7ded23f124be
+
+	/// Section band: renders as the 'Operating Expenses' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Operating Expenses' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: c502728c-27a2-5107-a238-4d09f8b65422
+
+	/// Section band: renders as the 'Cost Ratio' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Cost Ratio' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: d72f9ee7-1d84-518b-ae92-d9680e793fe5
+
+	/// Section band: renders as the 'Net Profit' caption row and returns nothing. Still a measure the dispatch plan has to be able to produce, in all 15 columns.
+	measure 'MP Sec Net Profit' =
+			
+			BLANK ( )
+		displayFolder: 09 Monthly P&L
+		lineageTag: f89b92a0-5972-58af-aff2-a29baea7d6bd
+
+	partition 00_Measures-06ec8090-9040-48c1-b4f4-4989bc1cc751 = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows(Json.Document(Binary.Decompress(Binary.FromText("i44FAA==", BinaryEncoding.Base64), Compression.Deflate)), let _t = ((type nullable text) meta [Serialized.Text = true]) in type table [Column1 = _t]),
+				    #"Changed Type" = Table.TransformColumnTypes(Source,{{"Column1", type text}}),
+				    #"Removed Columns" = Table.RemoveColumns(#"Changed Type",{"Column1"})
+				in
+				    #"Removed Columns"
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Measures
+

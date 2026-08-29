@@ -52,3 +52,7 @@ Spec authoring rules (theme `pbiColor`, escaping, interactivity, responsive sizi
 
 - A sensible default `jsonConfig`: `{"background":"transparent","view":{"stroke":"transparent"},"font":"Segoe UI"}` — whatever config you settle on, keep `jsonConfig` consistent across the report's existing Deneb visuals.
 - Writing any OTHER inline node script against vega: packages are ESM-only — dynamic `import()`, never `require()`.
+
+## Related Skills
+
+- **`performant-matrix`** -- diagnose a slow matrix before assuming Deneb; the bridge/native/Deneb decision

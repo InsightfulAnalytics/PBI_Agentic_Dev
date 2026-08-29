@@ -1,0 +1,311 @@
+<title>Bi Nexus Rail Marks</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;1,8..60,400&display=swap">
+<style>
+:root{
+  --paper:#F4F6FA; --card:#FFFFFF; --sunk:#EAEEF6;
+  --ink:#111A2B; --ink2:#4A5A73; --ink3:#77859D;
+  --line:#DAE1ED; --line2:#C6D0E0;
+  --accent:#9A6100; --accent-mark:#FFB703;
+  --shadow:0 1px 2px rgba(17,26,43,.06),0 8px 24px -12px rgba(17,26,43,.18);
+  /* product surface: a swatch of the real report rail, held identical in both themes */
+  --panel-a:#071A38; --panel-b:#164080; --panel-mid:#0B2C5B;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --paper:#0B1020; --card:#141C31; --sunk:#0F1729;
+    --ink:#E7ECF7; --ink2:#A3B0C8; --ink3:#74829C;
+    --line:#243149; --line2:#33425E;
+    --accent:#FFC63D;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#0B1020; --card:#141C31; --sunk:#0F1729;
+  --ink:#E7ECF7; --ink2:#A3B0C8; --ink3:#74829C;
+  --line:#243149; --line2:#33425E;
+  --accent:#FFC63D;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -12px rgba(0,0,0,.7);
+}
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"Source Serif 4",Georgia,serif; font-size:16px; line-height:1.6;
+  -webkit-font-smoothing:antialiased;
+}
+.wrap{max-width:1180px; margin:0 auto; padding:56px 28px 96px; display:flex; flex-direction:column; gap:60px}
+h1,h2,.ui{font-family:Archivo,"Helvetica Neue",Arial,sans-serif}
+.eyebrow{font-family:Archivo,sans-serif; font-size:11px; font-weight:700; letter-spacing:.16em; text-transform:uppercase; color:var(--accent)}
+h1{font-size:clamp(34px,5vw,52px); font-weight:800; letter-spacing:-.025em; line-height:1.02; margin:10px 0 0; text-wrap:balance}
+h2{font-size:22px; font-weight:700; letter-spacing:-.01em; margin:0}
+.lede{max-width:62ch; color:var(--ink2); font-size:17.5px; margin:16px 0 0}
+.sec-head{display:flex; align-items:baseline; gap:16px; flex-wrap:wrap; padding-bottom:14px; border-bottom:1px solid var(--line); margin-bottom:26px}
+.sec-head p{margin:0; color:var(--ink3); font-size:14.5px; flex:1; min-width:250px}
+
+.brief{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:40px; align-items:center}
+@media(max-width:760px){.brief{grid-template-columns:1fr}}
+/* the source swatch keeps its native white ground in both themes - the original
+   mark is navy, and on a dark card it would be as invisible as the problem we're fixing */
+.source{background:#FFFFFF; border:1px solid var(--line2); border-radius:4px; padding:18px 22px 14px; box-shadow:var(--shadow); text-align:center}
+.source img{display:block; width:154px; height:auto; margin:0 auto 12px}
+.source .cap{font-family:Archivo,sans-serif; font-size:10.5px; letter-spacing:.13em; text-transform:uppercase; color:#77859D}
+
+.controls{position:sticky; top:0; z-index:20; margin:0 -28px; padding:14px 28px;
+  background:color-mix(in srgb,var(--paper) 88%,transparent); backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--line); display:flex; gap:30px; align-items:center; flex-wrap:wrap}
+.ctl{display:flex; align-items:center; gap:10px}
+.ctl .lbl{font-family:Archivo,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--ink3)}
+.swatches{display:flex; gap:6px}
+.sw{width:30px; height:30px; border-radius:3px; border:1px solid var(--line2); cursor:pointer; padding:0; outline-offset:3px}
+.sw[aria-pressed="true"]{box-shadow:0 0 0 2px var(--paper),0 0 0 4px var(--ink)}
+input[type=range]{accent-color:var(--accent-mark); width:150px}
+.seg{display:flex; border:1px solid var(--line2); border-radius:3px; overflow:hidden}
+.seg button{font-family:Archivo,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.11em;
+  text-transform:uppercase; padding:8px 13px; border:0; border-left:1px solid var(--line2);
+  background:var(--card); color:var(--ink3); cursor:pointer}
+.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{background:var(--ink); color:var(--paper)}
+.val{font-family:Archivo,sans-serif; font-size:12.5px; font-weight:600; color:var(--ink2); font-variant-numeric:tabular-nums; min-width:52px}
+
+.situ{display:grid; grid-template-columns:repeat(auto-fit,minmax(232px,1fr)); gap:22px}
+.rail-card{display:flex; flex-direction:column; gap:10px}
+.rail{height:340px; border-radius:10px 4px 4px 10px; overflow:hidden;
+  background:linear-gradient(200deg,var(--panel-b) 0%,var(--panel-mid) 55%,var(--panel-a) 100%);
+  display:flex; flex-direction:column; align-items:center; padding:22px 14px; box-shadow:var(--shadow); position:relative}
+.rail::after{content:""; position:absolute; inset:0 auto 0 0; width:34%; background:linear-gradient(90deg,rgba(255,255,255,.055),transparent); pointer-events:none}
+.rail img{display:block; max-width:100%; height:auto}
+.rail .nav{margin-top:auto; width:100%; display:flex; flex-direction:column; gap:7px}
+.rail .nav i{display:block; height:9px; border-radius:2px; background:rgba(255,255,255,.11)}
+.rail .nav i:first-child{background:var(--accent-mark); opacity:.85; width:62%}
+.tag{font-family:Archivo,sans-serif; font-size:11px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--ink3); display:flex; justify-content:space-between}
+
+.finding{margin:26px 0 18px; max-width:70ch; color:var(--ink2); font-size:15.5px}
+.finding b{font-family:Archivo,sans-serif; font-weight:700; font-size:14.5px; letter-spacing:.01em; color:var(--ink)}
+.strips{display:flex; flex-direction:column; gap:10px}
+.strip-row{display:grid; grid-template-columns:66px minmax(0,1fr); gap:14px; align-items:center}
+.strip-row .lbl{font-family:Archivo,sans-serif; font-size:10.5px; font-weight:700; letter-spacing:.13em;
+  text-transform:uppercase; color:var(--ink3); text-align:right}
+.strip{height:74px; border-radius:4px; display:flex; align-items:center; gap:16px; padding:0 22px;
+  background:linear-gradient(90deg,var(--panel-b),var(--panel-mid)); box-shadow:var(--shadow); overflow:hidden}
+.strip img{display:block; height:auto; max-height:52px; width:auto}
+.strip .crumbs{margin-left:auto; display:flex; gap:9px}
+.strip .crumbs i{display:block; width:56px; height:9px; border-radius:2px; background:rgba(255,255,255,.13)}
+.strip .crumbs i:last-child{background:var(--accent-mark); opacity:.85}
+
+.matrix{display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:2px; background:var(--line); border:1px solid var(--line); border-radius:5px; overflow:hidden}
+@media(max-width:900px){.matrix{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.matrix{grid-template-columns:1fr}}
+.mhead{background:var(--card); padding:14px 16px 13px}
+.mhead .name{font-family:Archivo,sans-serif; font-weight:800; font-size:15px}
+.mhead .hex{font-family:Archivo,sans-serif; font-size:11px; color:var(--ink3); font-variant-numeric:tabular-nums; letter-spacing:.03em; margin-top:6px; display:flex; gap:10px; flex-wrap:wrap}
+.mhead .hex span{display:inline-flex; align-items:center; gap:5px}
+.chip{width:9px; height:9px; border-radius:2px; display:inline-block; border:1px solid rgba(127,127,127,.35)}
+.cell{padding:26px 18px; display:flex; align-items:center; justify-content:center; min-height:152px; background:var(--cellbg)}
+.cell img{display:block; max-width:100%; height:auto}
+.rowlbl{grid-column:1/-1; background:var(--card); padding:11px 16px; font-family:Archivo,sans-serif;
+  font-size:10.5px; font-weight:700; letter-spacing:.15em; text-transform:uppercase; color:var(--ink3); display:flex; gap:12px; align-items:baseline; flex-wrap:wrap}
+.rowlbl b{color:var(--ink)}
+
+.scroll{overflow-x:auto}
+table{width:100%; border-collapse:collapse; font-family:Archivo,sans-serif; font-size:13.5px}
+th,td{text-align:left; padding:9px 14px; border-bottom:1px solid var(--line); white-space:nowrap}
+th{font-size:10.5px; font-weight:700; letter-spacing:.13em; text-transform:uppercase; color:var(--ink3)}
+td{color:var(--ink2); font-variant-numeric:tabular-nums}
+td:first-child{color:var(--ink); font-weight:600}
+.note{background:var(--sunk); border-left:2px solid var(--accent-mark); padding:16px 20px; border-radius:0 4px 4px 0; color:var(--ink2); font-size:15px}
+.note b{color:var(--ink); font-family:Archivo,sans-serif; font-weight:700}
+:focus-visible{outline:2px solid var(--accent-mark); outline-offset:2px}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="wrap">
+
+  <header>
+    <div class="brief">
+      <div>
+        <div class="eyebrow">Logo variants &middot; PL Bridge Demo</div>
+        <h1>Bi Nexus marks for the navy rail</h1>
+        <p class="lede">The original mark is navy on white, so it vanishes against the report's own
+        navy side panel &mdash; and its stacked lockup is too tall for a rail that also has to carry
+        navigation. Four light palettes, three lockups, every one on transparency.</p>
+      </div>
+      <figure class="source">
+        <img src="__SRC__" alt="The original Bi Nexus logo: navy bars and a blue swoosh on white">
+        <div class="cap">Source &middot; 309 &times; 274 JPEG</div>
+      </figure>
+    </div>
+  </header>
+
+  <div class="controls">
+    <div class="ctl">
+      <span class="lbl">Ground</span>
+      <div class="swatches" id="grounds"></div>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Lockup in rail</span>
+      <div class="seg" id="lockups"></div>
+    </div>
+    <div class="ctl">
+      <span class="lbl">Mark width</span>
+      <input type="range" id="size" min="70" max="220" value="112" aria-label="Mark width in pixels">
+      <span class="val" id="sizeval">140px</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head">
+      <h2>In place</h2>
+      <p>Both chrome surfaces at their true report proportions &mdash; the rail is 280&nbsp;px of a
+      2000&nbsp;px canvas, the strip 104&nbsp;px tall. Widen the mark until it stops fitting.</p>
+    </div>
+    <div class="situ" id="situ"></div>
+    <p class="finding">Push <b>Beside</b> into the rail and it runs out of width almost immediately &mdash;
+    that lockup is for the <b>top strip</b>, where height is the scarce dimension, not width. The rail
+    wants <b>Stacked</b>, or <b>Mark</b> alone once navigation fills it.</p>
+    <div class="strips" id="strips"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>Every combination</h2>
+      <p>Palettes across, lockups down. The ground swatches above change what these sit on.</p>
+    </div>
+    <div class="matrix" id="matrix"></div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <h2>What shipped</h2>
+      <p>PNG, straight alpha, 4&times; source resolution, in <code>design/logo/</code>.</p>
+    </div>
+    <div class="scroll"><table id="files">
+      <thead><tr><th>File</th><th>Lockup</th><th>Bars &amp; letters</th><th>Swoosh</th><th>Pixels</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+  </section>
+
+  <p class="note"><b>One judgement call worth flagging.</b> The wordmark's pale drop shadow is gone
+  from every version. It was there to lift <em>dark</em> letters off white; with the letters now
+  light it only doubled them into a blur. Say the word and it comes back as a true dark shadow.</p>
+
+</div>
+
+<script>
+const IMG = __IMAGES__;
+const PALETTES = [
+  {key:"ice",    name:"Ice",    ink:"#EAF2FB", acc:"#8ECAE6", accSwatch:"#8ECAE6"},
+  {key:"signal", name:"Signal", ink:"#FFFFFF", acc:"#FFB703", accSwatch:"#FFB703"},
+  {key:"sky",    name:"Sky",    ink:"#B8D9F2", acc:"#5DA9E9", accSwatch:"#5DA9E9"},
+  {key:"mono",   name:"Mono",   ink:"#FFFFFF", acc:"#FFFFFF at 70%", accSwatch:"#B3B9C4"}
+];
+const LAYOUTS = [
+  {key:"stacked",    name:"Stacked", note:"mark over wordmark &mdash; the original lockup", w:1.0},
+  {key:"horizontal", name:"Beside",  note:"wordmark to the right &mdash; roughly half the height", w:1.9},
+  {key:"mark",       name:"Mark",    note:"icon alone &mdash; for the tightest rails", w:0.78}
+];
+const GROUNDS = [
+  {name:"Rail gradient", css:"linear-gradient(200deg,#164080,#0B2C5B 55%,#071A38)"},
+  {name:"Panel mid",     css:"#0B2C5B"},
+  {name:"Panel deep",    css:"#071A38"},
+  {name:"Light card",    css:"#F7F9FC"}
+];
+
+const $ = s => document.querySelector(s);
+const src = (p, l) => IMG.data[p + "-" + l];
+const root = document.documentElement;
+
+const gWrap = $("#grounds");
+GROUNDS.forEach((g, i) => {
+  const b = document.createElement("button");
+  b.className = "sw";
+  b.style.background = g.css;
+  b.title = g.name;
+  b.setAttribute("aria-label", g.name);
+  b.setAttribute("aria-pressed", String(i === 0));
+  b.onclick = () => {
+    gWrap.querySelectorAll(".sw").forEach(x => x.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true");
+    root.style.setProperty("--cellbg", g.css);
+  };
+  gWrap.append(b);
+});
+root.style.setProperty("--cellbg", GROUNDS[0].css);
+
+// The rail row is the fit test: switching lockup here is how you see whether the
+// wordmark still has room once the nav block is in.
+let lockup = LAYOUTS[0];
+const drawRails = () => {
+  $("#situ").innerHTML = PALETTES.map(p => `
+    <div class="rail-card">
+      <div class="rail">
+        <img class="sized" data-w="${lockup.w}" src="${src(p.key, lockup.key)}"
+             alt="${p.name} ${lockup.name} lockup shown in the report rail">
+        <div class="nav"><i></i><i></i><i></i><i></i><i></i></div>
+      </div>
+      <div class="tag"><span>${p.name}</span><span>${lockup.name}</span></div>
+    </div>`).join("");
+};
+
+// The strip always carries the Beside lockup - that is the whole argument for it.
+$("#strips").innerHTML = PALETTES.map(p => `
+  <div class="strip-row">
+    <span class="lbl">${p.name}</span>
+    <div class="strip">
+      <img src="${src(p.key, "horizontal")}" alt="${p.name} Beside lockup in the report top strip">
+      <div class="crumbs"><i></i><i></i><i></i></div>
+    </div>
+  </div>`).join("");
+
+const lWrap = $("#lockups");
+LAYOUTS.forEach((l, i) => {
+  const b = document.createElement("button");
+  b.textContent = l.name;
+  b.setAttribute("aria-pressed", String(i === 0));
+  b.onclick = () => {
+    lWrap.querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", "false"));
+    b.setAttribute("aria-pressed", "true");
+    lockup = l;
+    drawRails();
+    applySize();
+  };
+  lWrap.append(b);
+});
+drawRails();
+
+$("#matrix").innerHTML =
+  PALETTES.map(p => `<div class="mhead">
+      <div class="name">${p.name}</div>
+      <div class="hex">
+        <span><i class="chip" style="background:${p.ink}"></i>${p.ink}</span>
+        <span><i class="chip" style="background:${p.accSwatch}"></i>${p.acc}</span>
+      </div>
+    </div>`).join("")
+  + LAYOUTS.map(l =>
+      `<div class="rowlbl"><b>${l.name}</b><span>${l.note}</span></div>`
+      + PALETTES.map(p => `<div class="cell">
+          <img class="sized" data-w="${l.w}" src="${src(p.key, l.key)}"
+               alt="${p.name} palette, ${l.name} lockup">
+        </div>`).join("")
+    ).join("");
+
+$("#files tbody").innerHTML = PALETTES.flatMap(p => LAYOUTS.map(l => `
+  <tr>
+    <td>binexus-${p.key}-${l.key}.png</td>
+    <td>${l.name}</td>
+    <td>${p.ink}</td>
+    <td>${p.acc}</td>
+    <td>${IMG.dims[p.key + "-" + l.key]}</td>
+  </tr>`)).join("");
+
+const size = $("#size"), sizeval = $("#sizeval");
+const applySize = () => {
+  const w = Number(size.value);
+  sizeval.textContent = w + "px";
+  document.querySelectorAll("img.sized").forEach(i => {
+    i.style.width = Math.round(w * Number(i.dataset.w)) + "px";
+  });
+};
+size.oninput = applySize;
+applySize();
+</script>

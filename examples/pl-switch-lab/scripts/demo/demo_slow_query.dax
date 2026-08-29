@@ -1,0 +1,29 @@
+// demo_slow_query.dax -- the classic SWITCH P&L, exactly as the report's
+// "P&L - Classic SWITCH" table plans it: 27 rows x 14 slow measures.
+// Pins match the statement pages' filterConfig: Year 2026, Selected Period.
+// Run: scripts\time_query.ps1 -QueryFile "scripts\demo\demo_slow_query.dax"
+
+DEFINE
+    VAR __TP = TREATAS ( { "Selected Period" }, 'Time Period'[Time Period] )
+    VAR __Yr = TREATAS ( { 2026 }, 'DimDate'[Year] )
+EVALUATE
+SUMMARIZECOLUMNS (
+    'P&L Rows'[Line],
+    'P&L Rows'[Sort],
+    __TP, __Yr,
+    "Actual",       [Slow Actual Value],
+    "Budget",       [Slow Budget Value],
+    "Var",          [Slow Var Value],
+    "Var %",        [Slow Var % Value],
+    "LY",           [Slow LY Value],
+    "vs LY",        [Slow vs LY Value],
+    "vs LY %",      [Slow vs LY % Value],
+    "YTD Actual",   [Slow Actual YTD Value],
+    "YTD Budget",   [Slow Budget YTD Value],
+    "YTD Var",      [Slow Var YTD Value],
+    "YTD Var %",    [Slow Var % YTD Value],
+    "YTD LY",       [Slow LY YTD Value],
+    "YTD vs LY",    [Slow vs LY YTD Value],
+    "YTD vs LY %",  [Slow vs LY % YTD Value]
+)
+ORDER BY 'P&L Rows'[Sort]
