@@ -32,8 +32,10 @@ Measure =
 ```
 
 Three steps: **(1)** capture the scalars you need out of the current context, **(2)** build a
-table variable holding the rows the calculation runs over, **(3)** reduce it with an
-X-aggregator. Complex measures grow to dozens of lines — the *shape* stays the same.
+table variable holding the rows the calculation runs over, **(3)** reduce it — usually with an
+X-aggregator, sometimes with `CALCULATE` (see
+[Step 3 is not always an X-aggregator](#step-3-is-not-always-an-x-aggregator)). Complex measures
+grow to dozens of lines — the *shape* stays the same.
 
 Naming conventions (non-negotiable, they make measures greppable and diffable):
 
@@ -41,6 +43,46 @@ Naming conventions (non-negotiable, they make measures greppable and diffable):
   variable names the engine generates in its own queries.
 - Name the final variable `__Result` and `RETURN __Result`. No functions after `RETURN`.
 - Use `&&` / `||` / `<>` inside `FILTER`, not nested `AND()` / `OR()`.
+
+## Step 3 is not always an X-aggregator
+
+The **table VAR is the part that pays for itself**, not the X-function that follows it. Step 3 is
+a *semantic* choice: `SUMX( __Table, <expr> )` **iterates**, `CALCULATE( <expr>, __Table )`
+**filters**. They are not two spellings of one thing, and swapping one for the other can silently
+change the number. Pick by what is being aggregated:
+
+| `__Table` / expression shape                                                    | Final step     |
+| --------------------------------------------------------------------------------- | ---------------- |
+| `__Table` carries computed columns you must aggregate (`ADDCOLUMNS` + `"@…"`)  | X-aggregator   |
+| The row expression needs row context (`Sales[Qty] * Sales[Price]`, a per-row `IF`) | X-aggregator   |
+| **The row expression is an existing measure**                                 | **`CALCULATE`** |
+| **The aggregation is non-additive** — `DISTINCTCOUNT`, `MIN`/`MAX`, any ratio | **`CALCULATE`** |
+| It needs a time shift or another filter modifier                                  | `CALCULATE`    |
+| You only want the row count                                                       | `COUNTROWS`    |
+
+**`SUMX( __Table, [Some Measure] )` is the common bug this fixes.** It forces context transition
+per row and then *adds* the results — which for a ratio is nonsense (30.9% + 29.1% = 59.9% is not
+a margin), and for a `DISTINCTCOUNT` double-counts whatever two rows share.
+`CALCULATE( [Some Measure], __Table )` evaluates it once over the pooled set, which is usually
+what was meant — and usually faster, because the filter and the scan fuse into one storage-engine
+query instead of materialising `__Table` for the formula engine to walk.
+
+Two things cannot move into `CALCULATE`, so there the X-aggregator stays:
+
+- **Computed columns.** Extension columns carry no data lineage, so they filter nothing *and*
+  cannot be referenced: `CALCULATE( [@Revenue], __Table )` fails with *"The value for '@Revenue'
+  cannot be determined."* Materialise-then-aggregate — weighted averages, per-row currency
+  conversion, per-customer thresholds — is X-function territory.
+- **Row-level expressions.** `CALCULATE`'s first argument has no row context, so
+  `CALCULATE( Sales[Qty] * Sales[Price], __Table )` fails with *"A single value for column 'Qty'
+  … cannot be determined."* The working rewrite is `CALCULATE( SUMX( Sales, … ), __Table )` — the
+  `SUMX` did not disappear, it moved inside and now iterates `Sales`.
+
+**The guard.** A table filter argument *replaces* the filter context on every column it carries
+lineage to. When step 3 is `CALCULATE`, decide `KEEPFILTERS` explicitly and say why in the
+comment — otherwise a `__Table` built over `ALL( … )` quietly ignores the slicers on the page. An
+X-aggregator over that same table overrides identically, so the culprit is the `ALL`, not the
+terminator; `KEEPFILTERS` is the repair, and it exists only inside `CALCULATE`.
 
 ## Standing exception: time intelligence uses CALCULATE + DATEADD
 

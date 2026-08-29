@@ -36,6 +36,13 @@ There is no prize for avoiding it. Reasonable uses:
   `CALCULATE( [Base], <one column predicate> )` beats copying a block of DAX and re-editing it.
 - **A modifier interaction you actually understand** and can explain in the measure's comment.
 - **A profiled rewrite that measurably wins.** Rare, but real — and it is evidence, not taste.
+- **As step 3 of the house pattern**, when the thing being reduced is an existing measure or a
+  non-additive aggregation. `CALCULATE( [Measure], __Table )` is both more correct and usually
+  faster than `SUMX( __Table, [Measure] )`, which context-transitions per row and then *adds* the
+  results — meaningless for a ratio, double-counting for a `DISTINCTCOUNT`. This does not make
+  CALCULATE the default terminator: computed columns and row-level expressions cannot move into
+  it at all. See [Step 3 is not always an X-aggregator](../SKILL.md#step-3-is-not-always-an-x-aggregator)
+  for the full decision table and the `KEEPFILTERS` guard.
 
 Rule of thumb: **a single, simple column predicate over a base measure** is the safe and
 readable use. Stacked filter modifiers are where it stops being readable.
