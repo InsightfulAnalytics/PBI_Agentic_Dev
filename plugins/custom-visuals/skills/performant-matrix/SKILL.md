@@ -1,7 +1,7 @@
 ---
 name: performant-matrix
 version: 26.25
-description: Diagnose a slow financial matrix before fixing it: separate row-dispatch cost from the per-cell format-string and conditional-formatting tax, then choose with the user between a bridge-table model fix, a native restructure, or a Deneb grid. Use whenever a P&L or financial matrix is slow or unrenderable ("the matrix takes 10 seconds", "slow P&L visual", "my SWITCH dispatch measure is slow", "calculation group on rows is slow", "Performance Analyzer is much higher than the DAX time", "the matrix errors in the Service"). Deneb is one of three outcomes, never the assumed one. Vega spec authoring lives in custom-visuals:deneb-visuals and spec round-tripping in custom-visuals:deneb-pbir.
+description: 'Diagnose a slow financial matrix before fixing it: separate row-dispatch cost from the per-cell format-string and conditional-formatting tax, then choose with the user between a bridge-table model fix, a native restructure, or a Deneb grid. Use whenever a P&L or financial matrix is slow or unrenderable ("the matrix takes 10 seconds", "slow P&L visual", "my SWITCH dispatch measure is slow", "calculation group on rows is slow", "Performance Analyzer is much higher than the DAX time", "the matrix errors in the Service"). Deneb is one of three outcomes, never the assumed one. Vega spec authoring lives in custom-visuals:deneb-visuals and spec round-tripping in custom-visuals:deneb-pbir.'
 ---
 
 # Performant Matrix: diagnosing and fixing a slow financial matrix (PBIR)
