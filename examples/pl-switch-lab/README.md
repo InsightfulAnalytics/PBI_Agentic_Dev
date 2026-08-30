@@ -81,10 +81,36 @@ Edit parameters (or Transform data, Data source settings). Set it to the absolut
 `data/demo` folder the generator just wrote, with no trailing backslash, for example
 `C:\lab\PL Switch Lab\data\demo`. Five table partitions read from it.
 
+If you would rather not use the ribbon, or you are scripting the install, the parameter is a
+plain literal on one line of `PL Bridge Demo.SemanticModel/definition/expressions.tmdl`:
+
+```
+expression DataFolder = "C:\lab\PL Switch Lab\data\demo" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+```
+
+Edit that string before you first open the project. Save as UTF-8 with no byte order mark, as the
+[Known limits](#known-limits) section warns.
+
 **5. Refresh.** Every visual will be blank on first open, with a banner reading *"Some of the
 tables have incomplete or no data"*. That is expected and correct: a PBIP with no cached data
 opens with the full model definition and no rows in it. Hit Refresh. You may get a privacy level
 prompt for the local folder the first time.
+
+If you are scripting the install, the refresh can be driven headlessly against the local engine
+instead of through the ribbon. Discover the Analysis Services port the way
+[`docs/performance/tools/run_dax.ps1`](docs/performance/tools/run_dax.ps1) does, then:
+
+```powershell
+Add-Type -Path "C:\Program Files\DAX Studio\bin\Microsoft.AnalysisServices.Tabular.dll"
+$srv = New-Object Microsoft.AnalysisServices.Tabular.Server
+$srv.Connect("Data Source=localhost:$port")
+$srv.Databases[0].Model.RequestRefresh('Full')
+$srv.Databases[0].Model.SaveChanges()
+```
+
+That populated all 15 partitions in 92 seconds here, with no privacy level prompt. Use the DAX
+Studio copy of the DLL as shown: the Tabular Editor 3 copy is .NET 8 and will not load under
+Windows PowerShell 5.1.
 
 Then start on page 1 and work left to right. Pages 1 and 2 are the same statement, and the
 difference between them is the entire argument.
