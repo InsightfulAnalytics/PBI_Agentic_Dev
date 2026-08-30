@@ -58,6 +58,11 @@ Snowflake schemas force multiple SE joins per query. Flatten dimension chains in
 
 High-cardinality columns inflate dictionary size and segment memory.
 
+**Find them first.** `te vertipaq --columns --detail --top 20 -s <ws> -d <model>` ranks columns by
+size and share of the model, with the encoding and dictionary breakdown. It is cross-platform and
+headless, so it works where DAX Studio does not (macOS, Linux, CI). `--export stats.vpax` writes a
+VPAX for sharing or later offline analysis via `--import`. See the `te-cli` skill.
+
 - **Integer keys over string keys:** Replace `"PROD-001234"` with integer surrogates.
 - **Reduce timestamp precision:** `DateTime` → `Date` when queries only group by date.
 - **Bin continuous values:** 50K distinct decimals → binned ranges if measure logic allows.

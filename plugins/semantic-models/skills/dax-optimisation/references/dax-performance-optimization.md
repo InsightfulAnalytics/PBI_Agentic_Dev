@@ -89,6 +89,11 @@ Only consult these sections if the corresponding signal is present. All require 
 | **Fabric Workspace Monitoring** (`SemanticModelLogs` Eventhouse table) | Fabric workspaces (Workspace Monitoring enabled) | Logged events, queried after the fact | KQL queries against the Eventhouse | Per-row `OperationName`, `DurationMs`, `CpuTimeMs`; correlate events for one query via `OperationId`. Best for after-the-fact production analysis at scale; not suited for tight iterate-and-rerun loops. |
 | **Power BI Modeling MCP** | Local PBI Desktop + remote (Fabric XMLA) | Live trace subscription | Tool calls (agent-friendly) | Returns pre-calculated FE/SE split, peak memory, and result rows. Reach for it after the options above. |
 
+**Storage stats are not a trace.** Column sizes, cardinality and dictionary cost come from VertiPaq
+metadata, not from server timings, so none of the above give them. Use `te vertipaq` (cross-platform,
+headless) or DAX Studio's VertiPaq Analyzer. That is a Tier 3 concern; see
+[MDL003](./model-optimization.md#mdl003-column-cardinality-and-data-type-optimization).
+
 ---
 
 ## Phase 1: Establish Baseline
