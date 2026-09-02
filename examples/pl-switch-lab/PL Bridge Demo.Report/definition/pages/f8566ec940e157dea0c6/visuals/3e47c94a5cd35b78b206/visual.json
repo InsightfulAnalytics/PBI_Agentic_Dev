@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "21 measures carry a format string that reads the measure back: a second evaluation per cell, 315 times. An EVALUATE never pays it, so it shows up in Performance Analyzer and nowhere else: 12,412 ms on the visual against 2,178 ms on the query.",
+                    "value": "21 measures carry a format string that reads the measure back: a second evaluation per cell, 315 times. An EVALUATE never pays it, so it shows up in Performance Analyzer and nowhere else: 9,133 ms on the visual against 2,307 ms on the query.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "10pt",

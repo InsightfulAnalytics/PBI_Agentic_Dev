@@ -2,11 +2,11 @@
   "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/visualContainer/2.12.0/schema.json",
   "name": "c1ac00347b2350738581",
   "position": {
-    "x": 335.40372670807454,
-    "y": 887.50862663906139,
+    "x": 336,
+    "y": 888,
+    "width": 796,
+    "height": 64,
     "z": 0,
-    "height": 92.4775707384403,
-    "width": 796.41131815044855,
     "tabOrder": 4000
   },
   "visual": {
@@ -23,7 +23,7 @@
                     "textStyle": {
                       "fontFamily": "Segoe UI Semibold",
                       "fontSize": "12pt",
-                      "color": "#0b1e3f"
+                      "color": "#0B1E3F"
                     }
                   }
                 ]
@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "The twelve month items differ only in a literal, but each rewrites the DimDate filter context, so the engine cannot collapse them into one GROUP BY scan. It compiles a single plan able to produce every item for every measure: 15 x 28 = 420 dispatched cell evaluations, for 10 irreducible numbers.",
+                    "value": "The twelve month items differ only in a literal, but each rewrites the DimDate filter context, so the engine cannot collapse them into one GROUP BY scan. 15 x 28 = 420 dispatched cells, for 10 irreducible numbers.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "10pt",

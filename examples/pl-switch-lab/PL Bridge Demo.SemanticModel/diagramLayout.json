@@ -5,7 +5,7 @@
       "ordinal": 0,
       "scrollPosition": {
         "x": 0,
-        "y": 0
+        "y": 75.118347397420351
       },
       "nodes": [
         {
@@ -63,13 +63,13 @@
         },
         {
           "location": {
-            "x": 340.42759129269632,
-            "y": 732.37995609062045
+            "x": 375.183841581055,
+            "y": 799.6501179390566
           },
           "nodeIndex": "P&L Lines",
           "nodeLineageTag": "6fd1fbeb-21f6-4fb1-ada1-31ee4272ad2b",
           "size": {
-            "height": 200,
+            "height": 219.05987919039035,
             "width": 234
           },
           "zIndex": 9
@@ -141,6 +141,71 @@
           },
           "zIndex": 0,
           "expandedHeight": 152
+        },
+        {
+          "location": {
+            "x": 1875.8986603526155,
+            "y": 427.18997804531023
+          },
+          "nodeIndex": "P&L Odd Rows",
+          "nodeLineageTag": "ca1341f3-0e79-5ba5-8c2e-fac81eefc583",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2159.8986603526155,
+            "y": 415.18997804531023
+          },
+          "nodeIndex": "P&L Odd Rows Fields",
+          "nodeLineageTag": "05650ca3-a6f4-5b3e-bef0-d4b5d83726d1",
+          "size": {
+            "height": 152,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2443.8986603526155,
+            "y": 427.18997804531023
+          },
+          "nodeIndex": "P&L Row",
+          "nodeLineageTag": "44592b47-9ec3-5d9d-861f-84fdaa40d61b",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 2727.8986603526155,
+            "y": 427.18997804531023
+          },
+          "nodeIndex": "P&L View",
+          "nodeLineageTag": "2033718c-78ab-5349-8fdc-557fb750d507",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
+        },
+        {
+          "location": {
+            "x": 3011.8986603526155,
+            "y": 427.18997804531023
+          },
+          "nodeIndex": "Period View",
+          "nodeLineageTag": "b619ea4b-156a-5f36-9adb-ffabd122c2a0",
+          "size": {
+            "height": 128,
+            "width": 234
+          },
+          "zIndex": 0
         }
       ],
       "name": "All tables",

@@ -21,7 +21,7 @@ annotation PBI_ProTooling = ["DevMode"]
 
 annotation __TEdtr = 1
 
-annotation PBI_QueryOrder = ["00_Measures","Financials","Products","Stores","Accounts","P&L Lines","P&L Rows","Time Period","DimDate","P&L Odd Rows","FunctionDateTable"]
+annotation PBI_QueryOrder = ["00_Measures","Financials","Products","Stores","Accounts","P&L Lines","P&L Rows","Time Period","Month Highlight","DimDate","P&L Odd Rows","FunctionDateTable","DataFolder"]
 
 ref table 00_Measures
 ref table Financials
@@ -38,6 +38,7 @@ ref table 'P&L Odd Rows Fields'
 ref table 'P&L Odd Rows'
 ref table 'P&L Row'
 ref table 'Period View'
+ref table 'Month Highlight'
 
 ref cultureInfo en-US
 

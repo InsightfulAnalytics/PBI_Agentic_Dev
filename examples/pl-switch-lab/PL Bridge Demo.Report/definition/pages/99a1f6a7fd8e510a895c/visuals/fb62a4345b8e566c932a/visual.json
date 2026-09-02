@@ -20,14 +20,14 @@
                 "Column": {
                   "Expression": {
                     "SourceRef": {
-                      "Entity": "DimDate"
+                      "Entity": "Month Highlight"
                     }
                   },
-                  "Property": "Month Name Short"
+                  "Property": "Month"
                 }
               },
-              "queryRef": "DimDate.Month Name Short",
-              "nativeQueryRef": "Month Name Short"
+              "queryRef": "Month Highlight.Month",
+              "nativeQueryRef": "Month"
             }
           ]
         }
@@ -346,6 +346,11 @@
           "selector": {
             "id": "default"
           }
+        }
+      ],
+      "general": [
+        {
+          "properties": {}
         }
       ]
     },

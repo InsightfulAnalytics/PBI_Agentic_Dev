@@ -31,7 +31,7 @@
               {
                 "textRuns": [
                   {
-                    "value": "DimDate[Year] x [MonthOfYear] grouped natively, the ten Act/LY measures, and MonthOffset as a Min aggregation: one scan shape, twelve rows per selected year, no calculation group anywhere near it. 332 ms in Performance Analyzer, against 12,412 ms for the matrix.",
+                    "value": "DimDate[Year] x [MonthOfYear] grouped natively, the ten Act/LY measures, and MonthOffset as a Min aggregation: one scan shape, twelve rows per selected year, no calculation group anywhere near it. 370 ms in Performance Analyzer.",
                     "textStyle": {
                       "fontFamily": "Segoe UI",
                       "fontSize": "10pt",

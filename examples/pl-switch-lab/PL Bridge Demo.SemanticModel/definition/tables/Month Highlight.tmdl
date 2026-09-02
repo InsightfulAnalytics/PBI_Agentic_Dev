@@ -1,0 +1,50 @@
+/// Disconnected month list behind the MONTH slicer on the Deneb page. No relationship to DimDate, so a selection marks a column instead of filtering one.
+table 'Month Highlight'
+	lineageTag: e216ae0a-02c5-4002-8d31-2811d12ae4a7
+
+	column Month
+		dataType: string
+		lineageTag: 07b30ff5-d450-4e89-bf21-daa15d47dbd1
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: MonthOfYear
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column MonthOfYear
+		dataType: int64
+		isHidden
+		formatString: 0
+		lineageTag: 4454b185-3143-4397-8772-7ec48e729731
+		summarizeBy: none
+		sourceColumn: MonthOfYear
+
+		annotation SummarizationSetBy = Automatic
+
+	partition 'Month Highlight-ea3042f6-eb92-4f9f-8702-430114591898' = m
+		mode: import
+		source =
+				let
+				    Source = Table.FromRows({
+				        {"Jan", 1},
+				        {"Feb", 2},
+				        {"Mar", 3},
+				        {"Apr", 4},
+				        {"May", 5},
+				        {"Jun", 6},
+				        {"Jul", 7},
+				        {"Aug", 8},
+				        {"Sep", 9},
+				        {"Oct", 10},
+				        {"Nov", 11},
+				        {"Dec", 12}
+				    }, type table [Month = Text.Type, MonthOfYear = Int64.Type])
+				in
+				    Source
+
+	annotation PBI_ResultType = Table
+
+	annotation TabularEditor_TableGroup = Tables
+

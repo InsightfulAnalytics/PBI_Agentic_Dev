@@ -144,10 +144,11 @@ expression FunctionDateTable = ```
 
 	annotation PBI_NavigationStepName = Navigation
 
-expression DataFolder = "C:\lab\PL Switch Lab\data\demo" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
+expression DataFolder = "B:\VS Code Files\PBI Projects\PL Switch Lab\data\demo" meta [IsParameterQuery=true, Type="Text", IsParameterQueryRequired=true]
 	lineageTag: 3f1c8a52-6d74-4e19-9b30-0c5ae7d21f88
 	queryGroup: Others
 
 	annotation PBI_ResultType = Text
 
 	annotation PBI_NavigationStepName = Navigation
+

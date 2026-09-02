@@ -3357,6 +3357,19 @@ table 00_Measures
 		displayFolder: 09 Monthly P&L
 		lineageTag: f89b92a0-5972-58af-aff2-a29baea7d6bd
 
+	/// 1 when this column's month is picked in the MONTH slicer, 0 otherwise. Marks a column in the Deneb grid instead of filtering one; every month returns 0 while the slicer is empty.
+	measure 'MP Month Highlighted' =
+			
+			// the source is the DISCONNECTED 'Month Highlight' table, so nothing here reaches DimDate
+			VAR HasSelection = ISFILTERED ( 'Month Highlight'[Month] )
+			VAR ThisMonth = SELECTEDVALUE ( 'DimDate'[MonthOfYear] )
+			VAR SelectedMonths = VALUES ( 'Month Highlight'[MonthOfYear] )
+			RETURN
+				INT ( HasSelection && ThisMonth IN SelectedMonths )
+		formatString: 0
+		displayFolder: 09 Monthly P&L
+		lineageTag: 6a09780f-01fc-4ff2-89c5-39fb3883c4a1
+
 	partition 00_Measures-06ec8090-9040-48c1-b4f4-4989bc1cc751 = m
 		mode: import
 		source =
