@@ -1,0 +1,26 @@
+# Generic leakage patterns. Unlike denylist-hashes.txt these are safe to publish, because
+# they describe a SHAPE of leak rather than a specific person, client or machine.
+#
+# Format, tab separated:
+#   <regex> <TAB> <label> [<TAB> allow-glob,allow-glob]
+#
+# Patterns are compiled CASE SENSITIVE. Use an inline (?i) where folding is wanted; a blanket
+# fold turns "/Users/" into a match on every REST path containing "/users/".
+#
+# A file whose repo-relative path matches an allow glob is exempt from that one pattern. The
+# allow globs exist for the few files that must NAME a per-machine memory location in order
+# to tell an agent not to write there.
+#
+# Deliberately NOT patterns:
+#   $env:TEMP\tom_nuget      an environment variable, not a user path. Portable as written.
+#   a generic email regex    every address in this repo is a documentation placeholder
+#                            (contoso.com, company.com, example.com). Real addresses are
+#                            caught by denylist-hashes.txt instead.
+
+C:\\Users\\[A-Za-z0-9][A-Za-z0-9._-]*	a Windows user-profile path
+/Users/[A-Za-z0-9][A-Za-z0-9._-]*	a macOS user-profile path
+[A-Za-z]:\\VS Code Files	the fork maintainer's workspace root
+(?i)[A-Za-z0-9._%+-]+@(?:gmail|googlemail|outlook|hotmail|live|yahoo|icloud|me|proton|protonmail|aol)\.[A-Za-z.]{2,}	a personal email address
+~/\.claude/rules|\.claude[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md
+\.cursor[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md
+\.github[\\/]instructions	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md

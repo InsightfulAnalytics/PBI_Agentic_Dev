@@ -6,7 +6,99 @@ description: TOM and ADOMD.NET guidance via PowerShell for connecting to Power B
 
 # Connect to Power BI Desktop (Local Analysis Services)
 
-> **CRITICAL:** Record mistakes, surprises, and model-specific nuances encountered while using this skill in `.claude/rules/connect-pbid.md`. This file must begin with "Learnings from Claude about connecting to semantic models via the connect-pbid skill". Write only active reference notes (e.g. "QueryGroup property returns an object; access .Folder for the name string"); do not log a changelog or history of events. Omit anything already documented in the skill or its references. Keep the file under 1500 characters at all times; prune stale entries when adding new ones. Do not over-attend to this file; update it only when something genuinely unexpected is discovered.
+> **CRITICAL:** When you hit a mistake, a surprise, or a non-obvious behaviour while using this
+> skill, record it in this skill folder: the `references/` file that owns the topic, or `SKILL.md`
+> itself when the agent must know it before opening any reference. Write active reference notes,
+> not a history of events (good: "QueryGroup returns an object; access `.Folder` for the name
+> string"). Omit anything the skill already documents.
+>
+> There is no length cap, because the destination is a progressive-disclosure reference rather than
+> an always-loaded memory file. There is a discipline instead: **one fact, one place.** Correct a
+> stale entry, move a still-true entry that is in the wrong file, and **never delete a verified fact
+> to make room.** The previous destination for these notes carried a 1500-character cap plus "prune
+> stale entries when adding new ones", which functioned as a standing instruction to destroy
+> verified knowledge. A per-agent memory file now holds machine-local facts only, per the boundary
+> rule below: which assembly is installed here, whether a preview toggle is on. Everything else
+> ships with the plugin.
+
+<!-- boundary-rule:begin -->
+## Where a new learning goes
+
+Three questions, in order. Stop at the first yes.
+
+**1. Is it true only because of how THIS machine is set up right now?**
+An installed path, which identity you are logged in as, a preview toggle, a console codepage, which
+build happens to be installed. Then it is machine-local.
+
+Before accepting that answer, try to generalise it. Most machine-local facts are the residue of a
+search that succeeded once, and the search is the portable part:
+
+| Instead of recording | Record |
+| --- | --- |
+| the path where you found a DLL | the probe that finds it, and how to tell which host can load it |
+| that a preview toggle is off here | the verbatim symptom string, and the route that works regardless |
+| which account has rights here | the check that reveals the mismatch |
+| that a script cannot find a binary | a fix to the script |
+
+If the generalised form survives, it is not machine-local: take it to question 2 or 3. If nothing
+survives, because the fact is about one machine, one tenant or one person, write it to the agent's
+own memory file and nowhere else. It would mislead an agent anywhere else, and this repository is
+public.
+
+**A Codespace has no legitimate machine-local layer.** A fact about a Codespace is true of every
+Codespace built from the same devcontainer, which makes it a fact about that image. Commit it.
+Never start a memory file inside a container.
+
+**2. Is it true only where Power BI Desktop runs, only in a Windows shell, or only at some tool
+version?**
+Then it is portable knowledge with a boundary. It goes in this skill's `references/`, with the
+boundary in the sentence:
+
+- Platform: open or close with the scope. "On a cp1252 Windows console ... Linux and macOS never
+  hit this." "Power BI Desktop only."
+- Version: write the symptom and the check as the instruction, never the version. "If `fab find`
+  errors, run `fab --version` before assuming a syntax problem." Put the version and date you
+  observed in brackets at the end, never in the imperative. A version in the imperative rots into a
+  lie; a version in brackets rots into a footnote.
+- A dated or version-pinned claim also carries a `Retest:` line naming the one command that settles
+  it, plus a `Verified <date>` stamp. `scripts/check-skill-hygiene.py` reports the stale ones and
+  fails on a version claim with no `Retest:`.
+
+**A scoped statement that is a ROUTE is not finished until it names the substitute in the same
+sentence.** "`pbir desktop screenshot` is Windows and Desktop only" leaves a Linux agent stuck.
+"`pbir desktop screenshot` is Windows and Desktop only; where Desktop is unavailable, render
+server-side with the `ExportTo` API (fabric-cli `references/reports.md`)" does not.
+
+**3. Otherwise it is a fact about the file format, the product, or the service API.**
+True everywhere, including a Codespace with no Desktop and no Windows. It goes in this skill's
+`references/` with no qualifier, or in `SKILL.md` when the agent must know it before opening any
+reference. This is the default and where most learnings land.
+
+### Two tests that settle almost every case
+
+- *Would this sentence still be true in a Linux Codespace with no Power BI Desktop?* Yes means
+  question 3. No, but only because Desktop is missing, means question 2. No, because the sentence
+  names a path, a version or a toggle, means question 1, so run the generalisation table first.
+- *Could anyone else running this plugin act on it?* If not, question 1.
+
+### When torn, file it in the more public place
+
+An over-cautious scope clause on a portable fact costs a reader one clause. A machine-local fact
+shipped as product knowledge misleads everyone who installs the plugin.
+
+### Where to write it
+
+If `PBI_MARKETPLACE_ROOT` is set, a writable clone of this marketplace is on the machine:
+`bash "$PBI_MARKETPLACE_ROOT/scripts/record-learning.sh"` writes the note, runs the hygiene scan,
+commits to a branch and opens a pull request.
+
+If it is unset, the skills are loading from a read-only plugin cache and an edit there is discarded
+by the next `plugin update`. Write the note to the agent's memory file instead, and say plainly in
+the note that it still needs promoting into the plugin.
+
+Nothing portable belongs in `~/.claude/rules/`, `.cursor/rules/` or `.github/instructions/`. Those
+are per-machine and per-user.
+<!-- boundary-rule:end -->
 
 > **Note:** No MCP server required; do not use this skill with MCP servers or CLI tools. Use this skill to execute PowerShell commands directly via Bash to connect to Power BI Desktop's local Analysis Services instance.
 

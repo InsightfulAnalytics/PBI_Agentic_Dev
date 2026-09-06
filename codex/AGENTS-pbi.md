@@ -104,7 +104,7 @@ Skills assume these CLIs; install on first need:
 
 | Tool | Install | Used by |
 |---|---|---|
-| `pbir` | `pip install pbir-cli` | pbir-cli, create-pbi-report, themes, verify-loop |
+| `pbir` | `pip install pbir-cli` (macOS/Windows only; no Linux build) | pbir-cli, create-pbi-report, themes, verify-loop |
 | `fab` | `pip install ms-fabric-cli` (or `uv tool install`) | fabric-cli, fabric-admin, refresh, lineage |
 | `te` | see `{{REPO}}/plugins/tabular-editor/skills/te-cli/references/get-te-cli.md` | semantic-model, te-cli |
 | `TabularEditor.exe` | tabulareditor.com (TE2 free) | te2-cli, c-sharp-scripting |

@@ -1,0 +1,22 @@
+# Personal-data denylist, stored as SHA-256 of the normalised term.
+# The terms themselves are deliberately absent: this file ships in a PUBLIC repo,
+# and a plaintext denylist publishes exactly what it exists to protect.
+#
+# Normalisation, matching scripts/check-skill-hygiene.py: NFKD, strip combining marks,
+# lowercase, collapse every character outside [a-z0-9@._/\-] to a single space, trim.
+# The checker hashes every 1..5 word n-gram of each line and looks it up here.
+#
+# Add a term:  python scripts/denylist-add.py "<term>" "<label>"
+#
+# <sha256>  <label describing the CLASS of term, never the term>
+
+4991c47202960c5755d6886af261b0d8f6ccc929551d867a6f557a9353d4f1c5  colleague name
+b4221b89194da4c3d77a96819c4abe87df58ff9b729ffaa91b13b936b3f65245  account name
+4b8f9c10941f87dd1b8c3ba4d70a12a5f9f0f22cb04360257b90bb1599d4e35c  email address
+4acef7d9ba651c1749aca7de09966b765eca6136b4ab3241c26a248da167116b  client name
+383844ed2e48fa88b1db5f3aa2ca0aecd06a928974e13013992e2020de59b6a8  client name
+e83d92a7559b2350e792e1dbe9d5761a6b077eedeb11aa7873966458e7429b1a  subscription offer id
+#
+# Deliberately NOT listed: 'PL Bridge Demo' and 'PL Switch Lab' are the fork
+# maintainer's own public demo projects, documented in examples/pl-switch-lab/.
+# Citing them makes a verified claim checkable rather than private.
