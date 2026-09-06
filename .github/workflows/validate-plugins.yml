@@ -8,6 +8,9 @@ on:
     paths:
       - 'plugins/**'
       - '.claude-plugin/**'
+      - 'scripts/**'
+      - 'LEARNINGS.md'
+      - '.github/denylist-*.txt'
       - '.github/workflows/validate-plugins.yml'
   pull_request:
     branches:
@@ -16,6 +19,9 @@ on:
     paths:
       - 'plugins/**'
       - '.claude-plugin/**'
+      - 'scripts/**'
+      - 'LEARNINGS.md'
+      - '.github/denylist-*.txt'
       - '.github/workflows/validate-plugins.yml'
 
 jobs:
@@ -34,5 +40,17 @@ jobs:
       - name: Install Claude Code
         run: npm install -g @anthropic-ai/claude-code
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
       - name: Validate plugins
         run: bash scripts/validate-plugins.sh
+
+      # Dated-claim rot, machine-path leakage, the personal-data denylist, and markdown
+      # link/anchor resolution. See LEARNINGS.md for the rules these enforce.
+      - name: Skill hygiene
+        run: python scripts/check-skill-hygiene.py --today "$(date -u +%Y-%m-%d)"
+
+      - name: Boundary rule in sync
+        run: python scripts/sync-boundary-rule.py --check

@@ -13,6 +13,9 @@ Issues and PRs are welcome in this repo for things that only exist here:
 - Broken links, typos, or errors in the fork's own docs (README, PERSONALIZING.md, FORK-CHANGES.md, this file)
 - Fixes to the fork-maintained skills: `pbi-verify-loop`, `power-bi-theme`, `claude-design-handoff` (reports), and `deneb-pbir` / `performant-matrix` (custom-visuals)
 - Problems with this fork's marketplace packaging (`marketplace.json`, plugin manifests)
+- The fork-only tooling: the Codespaces bootstrap (`.devcontainer/`), `LEARNINGS.md`, and the
+  `scripts/` helpers for hygiene, boundary-rule sync and learning capture. These have no upstream
+  equivalent, so they belong here rather than upstream.
 
 If you're unsure where something belongs, open an issue and ask.
 
@@ -21,4 +24,9 @@ If you're unsure where something belongs, open an issue and ask.
 - Test your change locally with `claude --plugin-dir /path/to/plugin` before submitting
 - Do not commit memory files (`.claude/`, `.cursor/`, `.github/instructions/`) or changes unrelated to your contribution
 - Do not bump plugin versions; the maintainer handles version bumps at release time via `scripts/bump_release_version.py`
+- Any statement that names an operating system, a shell, an installed binary or a tool version
+  carries its scope in the sentence, and a scoped **route** names its substitute in the same
+  sentence. A version-pinned claim needs a `Retest:` line. See [LEARNINGS.md](LEARNINGS.md).
+- `bash scripts/validate-plugins.sh` and `python scripts/check-skill-hygiene.py` must both pass. CI
+  runs them on every PR.
 - PRs should target `main` and have a concise title prefixed with `feat:`, `fix:`, `docs:`, etc.

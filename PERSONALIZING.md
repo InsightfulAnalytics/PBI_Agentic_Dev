@@ -8,43 +8,91 @@ This fork also **owns Tim's personal Power BI add-in skills**, migrated in from 
 
 ## How Claude actually loads these skills (important)
 
-Claude does **not** read skills live from this folder. When a plugin is installed, its files are copied into a per-commit cache:
+**Corrected 2026-09-07.** This section previously said skills are copied into a per-commit cache and
+that an edit does nothing until you commit and bump the version. That is true of a `github` or `git`
+source. It is **not** true of the `directory` source this fork is registered as, which is how the
+maintainer's machine runs it.
 
-```
-<your-claude-home>\plugins\cache\power-bi-agentic-dev\<plugin>\<commit-sha>\
-```
+A `directory`-source marketplace attaches its plugins **live from the folder**. Editing a file here
+takes effect on the next Claude Code start: no commit, no version bump, no `plugin update`.
 
-The cache is keyed by **git commit SHA**, and `claude plugin update` only re-copies when the plugin's **`version` changes**. So editing a file here does nothing until you **commit** the change **and bump the version**. This was verified end-to-end.
+The evidence, on a machine where all 10 plugins are loaded:
 
-> **If you move or rename this repo folder**, the marketplace registration breaks (Claude Code can no longer find the `directory` source and its plugins silently stop attaching). Fix the path in **two** places, then restart Claude Code:
-> - `~/.claude/settings.json` → `extraKnownMarketplaces."power-bi-agentic-dev".source.path`
-> - `~/.claude/plugins/known_marketplaces.json` → `"power-bi-agentic-dev"` → `source.path` **and** `installLocation`
+- `~/.claude/plugins/known_marketplaces.json` records `power-bi-agentic-dev` as
+  `{"source": "directory"}` with `installLocation` pointing at the repo folder itself, not at a cache.
+- `~/.claude/plugins/installed_plugins.json` contains **zero** `@power-bi-agentic-dev` entries, and
+  `settings.json` `enabledPlugins` lists none of them either. There is no install record, because
+  there was no install.
+- `custom-visuals`, `etl`, `fabric-admin` and `paginated-reports` have **no cache directory at all**,
+  and every one of their skills is loaded.
+- Six plugins do have a stale cache directory left over from an earlier `github`-source
+  registration. They are keyed by **version** (`reports/26.25`, `pbip/26.25.1`), not by commit SHA as
+  this file used to claim. The `reports` cache at `26.25` contains 5 skills; the repo has 9; all 9
+  are loaded. A plugin serving skills from a directory that does not contain them is not being
+  served from that directory.
+
+So there are two loading models, and which one applies depends on how the marketplace is registered:
+
+| Registered as | How skills load | To ship a change |
+|---|---|---|
+| `directory` (a local path) | live from the folder | save the file, restart Claude Code |
+| `github` or `git` | copied into `~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/` | commit, bump the version, `plugin update` |
+
+A Codespace bootstrapped by [`scripts/bootstrap-agent-env.sh`](scripts/bootstrap-agent-env.sh) clones
+the repo and registers it as a **`directory`** source, so it gets the live model too. That is
+deliberate: a live clone is a git working copy, which is what makes
+[`scripts/record-learning.sh`](scripts/record-learning.sh) able to commit a new learning at all.
+See [`.devcontainer/README.md`](.devcontainer/README.md).
+
+> **If you move or rename this repo folder**, the marketplace registration breaks (Claude Code can no
+> longer find the `directory` source and its plugins silently stop attaching). Fix the path in **two**
+> places, then restart Claude Code:
+> - `~/.claude/settings.json` -> `extraKnownMarketplaces."power-bi-agentic-dev".source.path`
+> - `~/.claude/plugins/known_marketplaces.json` -> `"power-bi-agentic-dev"` -> `source.path` **and**
+>   `installLocation`
 >
-> The per-commit cache under `~/.claude/plugins/cache/` lives outside the repo, so it survives the move — no re-install needed, just correct the path. (The local folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on 2026-07-12; the paths above were corrected then.)
+> With a `directory` source, `installLocation` **is** the repo folder, so both entries must change.
+> (The local folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on
+> 2026-07-12; the paths above were corrected then.)
 
-## The personalization loop (verified working)
+## Personalizing a skill
 
-To personalize a skill and have Claude pick it up:
+On this machine, with the `directory` registration:
 
-1. **Edit** the skill files under `plugins/<plugin>/skills/<skill>/` (e.g. `SKILL.md` and its supporting files).
-2. **Bump the version** in `plugins/<plugin>/.claude-plugin/plugin.json` — e.g. `"26.25"` → `"26.25.1"`. (This is the trigger; without it, `plugin update` no-ops.)
-3. **Commit** the change:
+1. **Edit** the skill files under `plugins/<plugin>/skills/<skill>/`.
+2. **Restart Claude Code.** That is the whole loop.
+3. Before committing, run the checks:
    ```powershell
-   cd "<local-clone-path>"
-   git add -A
-   git commit -m "Personalize <plugin>: <what you changed>"
+   bash scripts/validate-plugins.sh
+   python scripts/check-skill-hygiene.py
    ```
-4. **Refresh the marketplace and plugin:**
+
+Read [`LEARNINGS.md`](LEARNINGS.md) before adding a fact to a skill. It carries the rule for deciding
+whether something is portable product knowledge, platform- or version-scoped knowledge, or genuinely
+machine-local (in which case it does not belong in this public repo at all).
+
+## Publishing a change to consumers
+
+The version bump is not what makes a change reach *you*; it is what makes it reach anyone installing
+from GitHub, including a `github`-source Codespace.
+
+1. **Bump the version** in `plugins/<plugin>/.claude-plugin/plugin.json`, or run
+   `python scripts/bump_release_version.py <old> <new>` to move the marketplace, every plugin
+   manifest and every `SKILL.md` `version:` line together.
+2. **Commit and push.**
+3. Consumers pick it up with:
    ```powershell
    claude plugin marketplace update power-bi-agentic-dev
    claude plugin update <plugin>@power-bi-agentic-dev
    ```
-5. **Restart Claude Code** for the change to load.
 
-Only the plugin you bumped+updated is re-copied; the others are untouched.
+> `scripts/bump_release_version.py` exits 1 if no `SKILL.md` matched the old version, so the three
+> manifests currently at `26.25.1` while the `SKILL.md` files are at `26.25` need reconciling before
+> the next release bump.
 
-The 10 plugins (and their skill folders) you can personalize:
-`semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`, `fabric-admin`, `paginated-reports`, `etl`.
+The 10 plugins you can personalize:
+`semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`,
+`fabric-admin`, `paginated-reports`, `etl`.
 
 ## Using with OpenAI Codex
 

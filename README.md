@@ -121,6 +121,38 @@ Inside Copilot CLI:
 
 </details>
 
+### GitHub Codespaces and other Linux hosts
+
+Most of what these skills know is about TMDL, the PBIR JSON schemas, and the Fabric and Power BI
+REST APIs, none of which care about the operating system. A Codespace on this repository picks the
+skills up with no setup: [`.devcontainer/devcontainer.json`](.devcontainer/devcontainer.json)
+installs Claude Code and runs the bootstrap.
+
+For a Codespace on a **Power BI project** repository, which is the usual case, copy the
+`devcontainer.json` block from [`.devcontainer/README.md`](.devcontainer/README.md). To set an
+existing Linux or macOS machine up by hand:
+
+```bash
+git clone --depth 1 https://github.com/InsightfulAnalytics/PBI_Agentic_Dev.git ~/.pbi-agentic-dev
+bash ~/.pbi-agentic-dev/scripts/bootstrap-agent-env.sh
+```
+
+The bootstrap registers the marketplace, installs the toolchain that exists on the platform, and
+prints a capability report naming what does **not**, so an agent learns the limits before its first
+turn rather than by failing:
+
+| | Linux | Windows with Desktop |
+|---|---|---|
+| `fab`, `te`, `az`, the REST APIs | yes | yes |
+| TMDL validation (bundled `tmdl-validate` binary) | yes | yes |
+| Server-side report render (`ExportTo` to PDF, then pymupdf to PNG) | yes | yes |
+| ADOMD or TOM over XMLA against a **published** model | yes | yes |
+| `pbir` CLI | **no**, and there is no wheel or sdist to install | yes |
+| Power BI Desktop, local `msmdsrv`, DAX Studio, Tabular Editor 2 and 3 | **no** | yes |
+
+On Linux, author PBIR by hand from the `pbip:pbir-format` examples, publish with `fab import`, and
+verify by rendering server-side. [`.devcontainer/README.md`](.devcontainer/README.md) has the detail.
+
 ### OpenAI Codex
 
 Codex supports the same open [Agent Skills standard](https://learn.chatgpt.com/docs/build-skills) these plugins use, so the skills work there too — installed with a small script instead of a plugin marketplace:

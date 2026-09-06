@@ -31,3 +31,6 @@ codexproposal.docx
 codex-slides.md
 codex-slides.pptx
 codex-slides-plain.pptx
+
+# bootstrap capability report, regenerated on every container start
+.bootstrap-report.txt
