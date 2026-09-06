@@ -162,10 +162,10 @@ Fields are bound under `visual.query.queryState.dataset.projections`. Each proje
 | `field.*.Expression.SourceRef.Entity` | Table name |
 | `field.*.Property` | Column or measure name |
 | `queryRef` | Fully qualified reference (`Table.Column`) |
-| `nativeQueryRef` | Display name used in Vega specs |
-| `displayName` | Custom display name (if renamed) |
+| `nativeQueryRef` | The field's real native name in the model |
+| `displayName` | Display label shown in the visual (present when the field is renamed) |
 
-Field names in Vega-Lite encoding channels must match `nativeQueryRef` or `displayName`.
+Field names in Vega-Lite encoding channels must match the display label: `displayName` when set, otherwise `nativeQueryRef`.
 
 ### Sort Definition
 

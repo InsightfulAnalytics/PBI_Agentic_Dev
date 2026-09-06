@@ -565,7 +565,8 @@ def run_pbir_validate(report_dir: Path, result: Result) -> None:
     if not shutil.which("pbir"):
         result.add(INFO, "pbir_cli_absent",
                    "pbir CLI not found on PATH. Install for deeper .Report validation: "
-                   "`uv tool install pbir-cli`", None)
+                   "`uv tool install pbir-cli` (macOS and Windows only; there is no Linux "
+                   "build, so do not retry the install there)", None)
         return
     # pbir prints ✓/✗ glyphs; on a cp1252 Windows console the child process dies
     # with a charmap UnicodeEncodeError before it can report anything.

@@ -111,8 +111,8 @@ Each projection in `queryState` supports:
 | Property | Description |
 |----------|-------------|
 | `queryRef` | Fully qualified reference (`Table.Field`) -- used internally |
-| `nativeQueryRef` | Display label shown in visual |
-| `displayName` | Override display name (optional) |
+| `nativeQueryRef` | The field's real native name in the model |
+| `displayName` | Display label shown in the visual (optional; falls back to `nativeQueryRef` when absent) |
 | `active` | Whether hierarchy level is expanded (optional, boolean) |
 
 ## objects vs visualContainerObjects

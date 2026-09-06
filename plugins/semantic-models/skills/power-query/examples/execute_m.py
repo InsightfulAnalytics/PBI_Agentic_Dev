@@ -29,6 +29,7 @@ Usage:
 import argparse
 import io
 import json
+import shutil
 import subprocess
 import sys
 import urllib.request
@@ -48,8 +49,14 @@ def get_token():
     Raises RuntimeError if az CLI is not authenticated.
     """
 
+    # subprocess does not honour PATHEXT, so a bare "az" fails on Windows where the
+    # executable is az.cmd. Resolve it first.
+    az = shutil.which("az")
+    if az is None:
+        raise RuntimeError("az CLI not found. Install Azure CLI and run 'az login'.")
+
     result = subprocess.run(
-        ["az", "account", "get-access-token",
+        [az, "account", "get-access-token",
          "--resource", "https://api.fabric.microsoft.com",
          "--query", "accessToken", "-o", "tsv"],
         capture_output=True, text=True

@@ -51,6 +51,7 @@ import argparse
 import base64
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -78,9 +79,15 @@ def run_fab(args: list[str], check: bool = True) -> subprocess.CompletedProcess:
 
 def fabric_token() -> str:
     """Get a Fabric-audience bearer token from the current az login. Never logged."""
+    # subprocess does not honour PATHEXT, so a bare "az" fails on Windows where the
+    # executable is az.cmd. Resolve it first.
+    az = shutil.which("az")
+    if az is None:
+        print("Azure CLI (az) not found. Install it and run 'az login'.", file=sys.stderr)
+        sys.exit(1)
     try:
         res = subprocess.run(
-            ["az", "account", "get-access-token", "--resource", FABRIC_RESOURCE],
+            [az, "account", "get-access-token", "--resource", FABRIC_RESOURCE],
             capture_output=True, text=True, check=True,
         )
     except subprocess.CalledProcessError:

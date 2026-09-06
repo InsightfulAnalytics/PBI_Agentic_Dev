@@ -19,9 +19,11 @@ LIVY_BASE = f"https://api.fabric.microsoft.com/v1/workspaces/{WS_ID}/lakehouses/
 
 
 def get_token():
+    # On Windows, pass the whole command as ONE string with shell=True; list-form args get
+    # mangled. The list form is correct on Linux and macOS.
     result = subprocess.run(
-        ["az", "account", "get-access-token", "--resource", "https://api.fabric.microsoft.com"],
-        capture_output=True, text=True
+        "az account get-access-token --resource https://api.fabric.microsoft.com",
+        shell=True, capture_output=True, text=True
     )
     if result.returncode != 0:
         print("az CLI auth failed. Run 'az login' first.", file=sys.stderr)

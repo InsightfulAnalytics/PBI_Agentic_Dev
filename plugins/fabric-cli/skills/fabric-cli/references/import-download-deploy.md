@@ -85,7 +85,8 @@ pbir report merge-to-thick "./sales-pbip/Sales.Report" \
   "./sales-pbip/Sales.SemanticModel" --output ./sales-project
 ```
 
-This keeps report creation inside `pbir`; do not scaffold PBIR JSON manually. See the
+This keeps report creation inside `pbir`; do not scaffold PBIR JSON manually, except on
+Linux where `pbir` cannot be installed at all. See the
 [pbip](../../../../pbip/skills/pbip/SKILL.md) skill for project structure.
 
 ## Upload back to Fabric (import)

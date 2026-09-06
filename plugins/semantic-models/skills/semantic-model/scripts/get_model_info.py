@@ -32,6 +32,7 @@ TOKEN SECURITY:
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional
@@ -81,9 +82,14 @@ def fab_api(endpoint: str, audience: str = "powerbi") -> Optional[Dict]:
 
 def get_token() -> Optional[str]:
     """Obtain Power BI API token via Azure CLI. Never printed or logged."""
+    # subprocess does not honour PATHEXT, so a bare "az" fails on Windows where the
+    # executable is az.cmd. Resolve it first.
+    az = shutil.which("az")
+    if az is None:
+        return None
     try:
         result = subprocess.run(
-            ["az", "account", "get-access-token",
+            [az, "account", "get-access-token",
              "--resource", "https://analysis.windows.net/powerbi/api"],
             capture_output=True, text=True, timeout=30
         )

@@ -13,9 +13,11 @@ Bearer token with resource `https://api.fabric.microsoft.com`:
 ```python
 import subprocess, json
 
+# On Windows, pass the whole command as ONE string with shell=True; list-form args get
+# mangled. The list form is correct on Linux and macOS.
 result = subprocess.run(
-    ["az", "account", "get-access-token", "--resource", "https://api.fabric.microsoft.com"],
-    capture_output=True, text=True
+    "az account get-access-token --resource https://api.fabric.microsoft.com",
+    shell=True, capture_output=True, text=True
 )
 token = json.loads(result.stdout)["accessToken"]
 headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}

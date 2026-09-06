@@ -214,8 +214,7 @@ The most critical transformation. Legacy format uses `projections` (role -> quer
               }
             },
             "queryRef": "Table.Column",
-            "nativeQueryRef": "Column",
-            "active": true
+            "nativeQueryRef": "Column"
           }
         ]
       }
@@ -230,6 +229,8 @@ The most critical transformation. Legacy format uses `projections` (role -> quer
 3. Add `nativeQueryRef` (the property name portion of queryRef)
 4. Map `columnProperties` display names to `displayName` on projections
 5. Convert `prototypeQuery.OrderBy` to `sortDefinition`
+
+**Legacy `active` flags**: `active` belongs to `pivotTable` row and column levels, where it must be present on EVERY projection. Do not carry it onto a `tableEx` or chart `Values` projection: with `active` on only the first projection Desktop renders that one column and silently drops every later one, and `pbir validate` passes.
 
 **Combo chart roles**: `lineStackedColumnComboChart` and `lineClusteredColumnComboChart` use `Y` (column bars) and `Y2` (lines). Do not rename these to `ColumnY`/`LineY`.
 

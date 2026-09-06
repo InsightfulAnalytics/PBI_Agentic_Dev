@@ -7,7 +7,7 @@ description: Python visual creation and matplotlib/seaborn patterns for PBIR rep
 # Python Visuals in Power BI (PBIR)
 
 > **Report modification requires tooling.** Two paths exist:
-> 1. **`pbir` CLI (preferred)** -- use the `pbir` command and the `pbir-cli` skill. Install with `uv tool install pbir-cli` or `pip install pbir-cli`. Check availability with `pbir --version`.
+> 1. **`pbir` CLI (preferred)** -- use the `pbir` command and the `pbir-cli` skill. Install with `uv tool install pbir-cli` or `pip install pbir-cli` on macOS or Windows; neither works on Linux, where path 2 is the only option. Check availability with `pbir --version`.
 > 2. **Direct JSON modification** -- if `pbir` is not available, use the `pbir-format` skill (pbip plugin) for PBIR JSON structure and patterns. Validate every change with `jq empty <file.json>`.
 >
 > If neither the `pbir-cli` skill nor the `pbir-format` skill is loaded, ask the user to install the appropriate plugin before proceeding with report modifications.
@@ -44,7 +44,7 @@ plt.show()  # MANDATORY
 Critical rules:
 - `plt.show()` is **mandatory** as the final line -- nothing renders without it
 - `dataset` is auto-injected as a pandas DataFrame; do not create it
-- Column names match the `nativeQueryRef` (display name) from field bindings
+- Column names match the projection's display label (`displayName` when set, otherwise `nativeQueryRef`) from field bindings
 - Only the last `plt.show()` call renders; multiple figures not supported
 
 ### Step 2b: Review

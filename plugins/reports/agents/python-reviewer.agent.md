@@ -20,7 +20,7 @@ Review Python visual scripts for correctness and design quality.
 
 1. **`plt.show()` present**: Must be the final line -- nothing renders without it
 2. **`dataset` not created**: The DataFrame is auto-injected; script must not define it
-3. **Column names**: Match `nativeQueryRef` display names from field bindings
+3. **Column names**: Match the projection's display label (`displayName` when set, otherwise `nativeQueryRef`) from field bindings
 4. **Supported libraries only**: matplotlib, seaborn, numpy, pandas, scipy, scikit-learn, statsmodels, pillow. No plotly, bokeh, altair
 5. **No networking**: No URL fetches, API calls, or file downloads
 6. **Single plot**: Only the last `plt.show()` renders; multiple figures not supported

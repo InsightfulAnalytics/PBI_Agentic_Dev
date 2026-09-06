@@ -7,7 +7,7 @@ description: Deneb visual creation, Vega/Vega-Lite spec authoring, and Deneb bes
 # Deneb Visuals in Power BI (PBIR)
 
 > **Report modification requires tooling.** Two paths exist:
-> 1. **`pbir` CLI (preferred)** -- use the `pbir` command and the `pbir-cli` skill. Install with `uv tool install pbir-cli` or `pip install pbir-cli`. Check availability with `pbir --version`.
+> 1. **`pbir` CLI (preferred)** -- use the `pbir` command and the `pbir-cli` skill. Install with `uv tool install pbir-cli` or `pip install pbir-cli` on macOS or Windows; neither works on Linux, where path 2 is the only option. Check availability with `pbir --version`.
 > 2. **Direct JSON modification** -- if `pbir` is not available, use the `pbir-format` skill (pbip plugin) for PBIR JSON structure and patterns. Validate every change with `jq empty <file.json>`.
 >
 > If neither the `pbir-cli` skill nor the `pbir-format` skill is loaded, ask the user to install the appropriate plugin before proceeding with report modifications.
@@ -66,7 +66,7 @@ Create a Vega-Lite (or Vega) JSON spec file. Key difference:
 }
 ```
 
-See `examples/spec/` for complete spec files (Vega and Vega-Lite) and `examples/visual/` for full PBIR visual.json files. Field names in the spec must match the `nativeQueryRef` (display name) from the field bindings.
+See `examples/spec/` for complete spec files (Vega and Vega-Lite) and `examples/visual/` for full PBIR visual.json files. Field names in the spec must match the display label in the Values well: `displayName` when the projection sets one, otherwise `nativeQueryRef` (which is the field's real native name in the model).
 
 ### Step 3: Inject the Spec
 
@@ -199,7 +199,7 @@ Key fields: `__row__` (zero-based row index, replaces removed `__identity__`), `
 5. **Use `enter`/`update`/`hover`** encode blocks for clean state management (Vega only)
 6. **Enable tooltips** with `"tooltip": {"signal": "datum"}` on marks
 7. **Performance** -- aggregate in DAX first, prefer `renderMode: canvas` for many marks, and only then raise `dataLimit.override`. See `references/advanced-patterns.md` for the full lever order
-8. **Test field names** -- verify `nativeQueryRef` matches spec field references
+8. **Test field names** -- verify the projection's display label (`displayName` when set, otherwise `nativeQueryRef`) matches spec field references
 9. **Avoid external data** -- AppSource certification prevents loading external URLs
 10. **Escaping depends on context** -- double quotes in standalone specs, doubled single quotes in PBIR visual.json (see escaping rules above)
 

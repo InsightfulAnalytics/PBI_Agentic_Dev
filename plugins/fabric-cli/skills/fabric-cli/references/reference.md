@@ -363,7 +363,7 @@ fab rm "Dev.Workspace/OldLakehouse.Lakehouse" --hard -f
 
 #### Recovering deleted items
 
-`fab rm` is permanent unless the tenant **Fabric item recovery** setting (`ConfigureArtifactRetentionPeriod`) is on; retention is 7 to 90 days. When on, deleted items go to the workspace Recycle bin for the retention window; when off, deletion is immediate. Workspace deletion is not governed by this setting. To check or toggle the setting via `fab api`, see [admin.md > Tenant Settings](admin.md#tenant-settings).
+`fab rm` is permanent unless the tenant **Fabric item recovery** setting (`ConfigureArtifactRetentionPeriod`) is on; retention is 7 to 90 days. When on, deleted items go to the workspace Recycle bin for the retention window; when off, deletion is immediate. Workspace deletion is not governed by this setting. To check or toggle the setting via `fab api`, see [admin.md > Tenant Settings](admin.md#tenant-settings-security-groups-workspace-permissions).
 
 Recovery is available via the Recycle bin in the Fabric portal or the `recoverableItems` API:
 
@@ -1477,8 +1477,8 @@ fab api -X post "workspaces/<ws-id>/items" -i /tmp/payload.json --show_headers
 # Debug with headers
 fab api workspaces --show_headers
 
-# Save response to inspect
-fab api workspaces -o /tmp/debug.json
+# Save response to inspect (fab api has no -o flag; redirect stdout)
+fab api workspaces > /tmp/debug.json
 ```
 
 ## Performance Tips

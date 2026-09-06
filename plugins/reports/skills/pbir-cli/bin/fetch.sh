@@ -16,7 +16,7 @@ case "$(uname -s)" in
   Darwin) pattern="pbir-portable-macos-arm64.tar.gz" ;;
   MINGW* | MSYS* | CYGWIN*) pattern="pbir-portable-windows-x64.exe" ;;
   *)
-    echo "No portable build is published for $(uname -s). Use 'uv tool install pbir-cli' instead." >&2
+    echo "No portable build is published for $(uname -s), and pbir-cli has no wheel for it on PyPI either, so installing it will fail too. See README.md for the hand-authoring route." >&2
     exit 1
     ;;
 esac

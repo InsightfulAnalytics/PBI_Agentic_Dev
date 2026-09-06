@@ -354,7 +354,7 @@ Check reportExtensions.json to find available entities. For this example, we'll 
         {
           "name": "Alert Transparency",
           "displayFolder": "Formatting\\Visual Effects",
-          "dataType": "Int64",
+          "dataType": "Integer",
           "expression": "IF([_Helper Variance] < 0, 60, 0)",
           "description": "Returns 0-100 transparency for alert highlighting",
           "hidden": false
@@ -389,7 +389,7 @@ Extension measures support these primitive data types:
 | dataType | Use For | Return Examples |
 |----------|---------|----------------|
 | `"Text"` | **Colors**, icons, labels | `"good"`, `"bad"`, `"#FF0000"`, `"⬆"`, `"High"` |
-| `"Int64"` | Sizes, transparency, counts | `0`, `50`, `100` |
+| `"Integer"` | Sizes, transparency, counts | `0`, `50`, `100` |
 | `"Double"` | Decimal values, percentages | `0.5`, `85.5` |
 | `"Boolean"` | Show/hide toggles | `TRUE()`, `FALSE()` |
 
@@ -397,7 +397,9 @@ Extension measures support these primitive data types:
 
 ### All Available Types
 
-From schema: `Binary`, `Boolean`, `Date`, `DateTime`, `DateTimeZone`, `Decimal`, `Double`, `Duration`, `Integer`, `Int64`, `Json`, `None`, `Null`, `Text`, `Time`, `Variant`
+From schema: `Binary`, `Boolean`, `Date`, `DateTime`, `DateTimeZone`, `Decimal`, `Double`, `Duration`, `Integer`, `Json`, `None`, `Null`, `Text`, `Time`, `Variant`
+
+`"Int64"` is not in that enum despite appearing in some documentation; `pbir validate` rejects it and publish fails.
 
 ### Type Requirements by Property
 
@@ -409,11 +411,11 @@ From schema: `Binary`, `Boolean`, `Date`, `DateTime`, `DateTimeZone`, `Decimal`,
 - Can return empty string `""` to use default
 
 **Transparency:**
-- Use `"Int64"` or `"Double"`
+- Use `"Integer"` or `"Double"`
 - Return 0-100 (0 = opaque, 100 = fully transparent)
 
 **Sizes (fontSize, strokeWidth, etc.):**
-- Use `"Int64"` or `"Double"`
+- Use `"Integer"` or `"Double"`
 - Return numeric value (units depend on property)
 
 **Show/Hide properties:**
@@ -688,7 +690,7 @@ All reference the same measure → change logic once, applies everywhere.
 ```json
 {
   "name": "Highlight Transparency",
-  "dataType": "Int64",
+  "dataType": "Integer",
   "expression": "\n    // Fade out non-selected items\n    IF(\n        [Is Selected] = TRUE(),\n        0,    // Fully opaque\n        75    // Mostly transparent\n    )\n    "
 }
 ```
@@ -1040,7 +1042,7 @@ Check data type matches property:
 "dataType": "Text"  // NOT Int64 or Double
 
 // For transparency:
-"dataType": "Int64"  // NOT Text
+"dataType": "Integer"  // NOT Text
 ```
 
 Check return format:

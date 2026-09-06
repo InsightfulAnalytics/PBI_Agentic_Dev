@@ -6,7 +6,7 @@ description: Step-by-step workflow for creating complete Power BI reports from s
 
 # Creating Power BI Reports
 
-Create and scaffold Power BI reports using `pbir` CLI. Install with `uv tool install pbir-cli` or `pip install pbir-cli`. Load the `pbir-cli` and `pbi-report-design` skills alongside this one.
+Create and scaffold Power BI reports using `pbir` CLI. Install with `uv tool install pbir-cli` or `pip install pbir-cli` on macOS or Windows; on Linux neither command works and there is no build, so follow the `pbir-cli` skill's "When `pbir` is missing" route rather than retrying the install. Load the `pbir-cli` and `pbi-report-design` skills alongside this one.
 
 ## Vague or Underspecified Prompts
 

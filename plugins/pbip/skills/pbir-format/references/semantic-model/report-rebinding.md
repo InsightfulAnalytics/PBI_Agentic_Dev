@@ -75,7 +75,9 @@ Use the manual steps below only as a fallback when `pbir` is not installed.
 
 ### Manual steps (without pbir CLI)
 
-1. **Download semantic model** to local directory using [download-model.py](../../scripts/download-model.py)
+1. **Download the semantic model** to a local directory:
+   `fab export "WorkspaceName.Workspace/ModelName.SemanticModel" -o .`
+   Export omits `definition.pbism`; write `{"version":"4.2","settings":{}}` to the item root before reusing the folder.
 
 2. **Update `definition.pbir`** - Change `datasetReference` from `byConnection` to `byPath`:
 
@@ -171,6 +173,6 @@ pbir report rebind "Report.Report" "WorkspaceName.Workspace/ModelName.SemanticMo
 
 ## See Also
 
-- [definition.pbir](../definition-pbir.md) - Connection types (byPath vs byConnection)
+- [pbir-structure.md](../pbir-structure.md) - Connection types (byPath vs byConnection)
 - [Finding Fields](finding-fields.md) - Validate fields exist in target model
 - [Field References](field-references.md) - Update field references in visuals

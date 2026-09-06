@@ -184,7 +184,7 @@ Available in `objects` property:
 
 **IMPORTANT:** This is the canvas itself, NOT the wallpaper behind it.
 - For wallpaper (area behind/around canvas), use `outspace` (see [wallpaper.md](./wallpaper.md))
-- For image visuals placed ON the canvas, see [visual-types/image.md](./visual-types/image.md)
+- For image visuals placed ON the canvas, see [images.md](./images.md)
 
 **Visual Hierarchy (bottom to top):**
 1. **outspace** (wallpaper) - Behind everything

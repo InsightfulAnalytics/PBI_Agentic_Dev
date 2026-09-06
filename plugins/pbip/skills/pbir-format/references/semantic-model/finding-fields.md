@@ -187,7 +187,7 @@ fab api -A powerbi "groups/$WS_ID/datasets/$MODEL_ID/executeQueries" \
 
 See [filter-pane.md](../filter-pane.md) for more DAX patterns for value discovery.
 
-See [script docs](../../scripts/README.md#query-modelpy) for details.
+See [model-queries.md](./model-queries.md) for the full set of query routes.
 
 ## See Also
 

@@ -324,9 +324,9 @@ Always compare before you deploy, then capture the operation for audit afterward
 The Fabric API returns per-item diff state inside the operation's execution plan. To preview a diff without deploying, either compare stage item lists directly or (simpler) dry-run in the portal.
 
 ```bash
-# Flat list comparison via items endpoints
-fab api "deploymentPipelines/$PIPELINE_ID/stages/$DEV_STAGE/items" -o /tmp/dev.json
-fab api "deploymentPipelines/$PIPELINE_ID/stages/$TEST_STAGE/items" -o /tmp/test.json
+# Flat list comparison via items endpoints (fab api has no -o flag; redirect stdout)
+fab api "deploymentPipelines/$PIPELINE_ID/stages/$DEV_STAGE/items" > /tmp/dev.json
+fab api "deploymentPipelines/$PIPELINE_ID/stages/$TEST_STAGE/items" > /tmp/test.json
 diff \
   <(jq -S 'sort_by(.itemDisplayName)' /tmp/dev.json) \
   <(jq -S 'sort_by(.itemDisplayName)' /tmp/test.json)
@@ -667,8 +667,8 @@ fab api -X post "deploymentPipelines/$PIPELINE_ID/stages/$PROD_STAGE/assignWorks
   -i '{"workspaceId": "<prod-ws-id>"}'
 
 # 3. Compare Dev and Test before deploying
-fab api "deploymentPipelines/$PIPELINE_ID/stages/$DEV_STAGE/items"  -o /tmp/dev.json
-fab api "deploymentPipelines/$PIPELINE_ID/stages/$TEST_STAGE/items" -o /tmp/test.json
+fab api "deploymentPipelines/$PIPELINE_ID/stages/$DEV_STAGE/items"  > /tmp/dev.json
+fab api "deploymentPipelines/$PIPELINE_ID/stages/$TEST_STAGE/items" > /tmp/test.json
 diff <(jq -S 'sort_by(.itemDisplayName)' /tmp/dev.json) \
      <(jq -S 'sort_by(.itemDisplayName)' /tmp/test.json)
 

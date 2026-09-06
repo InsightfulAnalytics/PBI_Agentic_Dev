@@ -214,8 +214,8 @@ fab api workspaces --show_headers
 # Verbose output
 fab get "Production.Workspace/Item" -v
 
-# Save responses for debugging
-fab api workspaces -o /tmp/workspaces.json
+# Save responses for debugging (fab api has no -o flag; redirect stdout)
+fab api workspaces > /tmp/workspaces.json
 ```
 
 

@@ -96,6 +96,7 @@ Usage:
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import requests
@@ -210,9 +211,15 @@ def get_fabric_token() -> Optional[str]:
     Requires:
         Azure CLI installed and logged in (az login)
     """
+    # subprocess does not honour PATHEXT, so a bare "az" fails on Windows where the
+    # executable is az.cmd. Resolve it first.
+    az = shutil.which("az")
+    if az is None:
+        print("Error: Azure CLI (az) not found. Install it and run 'az login'.", file=sys.stderr)
+        return None
     try:
         result = subprocess.run(
-            ["az", "account", "get-access-token", "--resource", "https://analysis.windows.net/powerbi/api"],
+            [az, "account", "get-access-token", "--resource", "https://analysis.windows.net/powerbi/api"],
             capture_output=True,
             text=True,
             timeout=30

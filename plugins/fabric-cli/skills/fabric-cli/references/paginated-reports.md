@@ -90,16 +90,13 @@ The `importState` field transitions through `Publishing` to `Succeeded` or `Fail
 
 ## Download / Export .rdl Definition
 
-Download the raw .rdl file for a paginated report:
+Download the raw .rdl file for a paginated report. The response is a binary stream and `fab api` corrupts binary bodies, so fetch it over raw HTTP with a bearer token:
 
 ```bash
-fab api -A powerbi "groups/$WS_ID/reports/$REPORT_ID/Export"
-```
-
-The response is the .rdl file content (binary stream). Redirect output to a file to save:
-
-```bash
-fab api -A powerbi "groups/$WS_ID/reports/$REPORT_ID/Export" > SalesReport.rdl
+TOKEN=$(az account get-access-token --resource https://analysis.windows.net/powerbi/api --query accessToken -o tsv)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://api.powerbi.com/v1.0/myorg/groups/$WS_ID/reports/$REPORT_ID/Export" \
+  -o SalesReport.rdl
 ```
 
 Required scopes: `Report.ReadWrite.All` or both `Report.Read.All` and `Dataset.Read.All`.
@@ -249,11 +246,13 @@ Status values: `NotStarted`, `Running`, `Succeeded`, `Failed`.
 
 ### Step 3: Download Exported File
 
-Once status is `Succeeded`, download the rendered file:
+Once status is `Succeeded`, download the rendered file. It is a binary body, so use raw HTTP rather than `fab api`:
 
 ```bash
-fab api -A powerbi \
-  "groups/$WS_ID/reports/$REPORT_ID/exports/$EXPORT_ID/file" > report.pdf
+TOKEN=$(az account get-access-token --resource https://analysis.windows.net/powerbi/api --query accessToken -o tsv)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://api.powerbi.com/v1.0/myorg/groups/$WS_ID/reports/$REPORT_ID/exports/$EXPORT_ID/file" \
+  -o report.pdf
 ```
 
 The download URL remains valid for 24 hours after export completion.
@@ -453,9 +452,10 @@ done
 
 # Step 3: Download
 if [ "$STATUS" = "Succeeded" ]; then
-  fab api -A powerbi \
-    "groups/$WS_ID/reports/$REPORT_ID/exports/$EXPORT_ID/file" \
-    > invoice-2026-03.pdf
+  TOKEN=$(az account get-access-token --resource https://analysis.windows.net/powerbi/api --query accessToken -o tsv)
+  curl -s -H "Authorization: Bearer $TOKEN" \
+    "https://api.powerbi.com/v1.0/myorg/groups/$WS_ID/reports/$REPORT_ID/exports/$EXPORT_ID/file" \
+    -o invoice-2026-03.pdf
 fi
 ```
 

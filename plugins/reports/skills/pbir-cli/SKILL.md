@@ -7,7 +7,7 @@ description: This skill should be used whenever the user mentions "pbir", "pbir-
 
 CLI for exploring, building, managing, formatting Power BI reports. All commands use `pbir`.
 
-**IMPORTANT:** ALWAYS use `pbir` CLI commands to inspect and modify reports. NEVER write, replace, copy, or patch report JSON files directly. If the CLI does not expose a required mutation, stop and report the missing capability; do not fall back to file editing. Reading JSON through `pbir cat`, `pbir get`, or read-only examples is allowed.
+**IMPORTANT:** ALWAYS use `pbir` CLI commands to inspect and modify reports. NEVER write, replace, copy, or patch report JSON files directly on Windows or macOS. If the CLI does not expose a required mutation, stop and report the missing capability; do not fall back to file editing. Reading JSON through `pbir cat`, `pbir get`, or read-only examples is allowed. The sole exception is Linux, where `pbir` cannot be installed at all and hand-authoring is the only route; see "When `pbir` is missing".
 
 **IMPORTANT:** FIRST Read and adhere to the mental model in [MENTAL-MODEL.md](important/MENTAL-MODEL.md).
 
@@ -16,11 +16,24 @@ CLI for exploring, building, managing, formatting Power BI reports. All commands
 Install it with `uv tool install pbir-cli` (or `pip install pbir-cli`). That is the route to
 use in every ordinary case, including when the command is missing entirely.
 
-`bin/fetch.sh` downloads a self-contained portable build instead. Reach for it **only** when
-`pbir` is not installed *and* installing it is not possible: no network access to PyPI, no
-Python, or a locked-down machine that forbids installs. A portable build does not update with
-`uv tool upgrade`, so preferring it when a normal install would have worked leaves the user on
-a stale CLI. If an install failed, fix the install rather than routing around it.
+Not on Linux. Every `pbir-cli` release publishes exactly two wheels, `macosx_11_0_arm64` and
+`win_amd64`, and no sdist, so both commands fail there with "No matching distribution found
+for pbir-cli". There is no Linux build to fall back to, so do not retry the install. Work
+without the CLI instead: hand-author PBIR JSON from the `pbip:pbir-format` skill's
+`examples/visuals/` templates, check every file's JSON syntax with `jq empty` and its
+structure against that skill's `references/validation.md`, then with the user's permission
+publish the report to a sandbox workspace with `fab import` (byConnection reports only;
+always pass `-f`, see the `fabric-cli` skill's `references/import-download-deploy.md`), and
+inspect the rendering by exporting it server-side through the Power BI ExportTo API (the
+submit, poll and download sequence in that skill's `references/paginated-reports.md` applies
+to Power BI reports too).
+
+`bin/fetch.sh` downloads a self-contained portable build as an alternative to installing
+(macOS and Windows only). Reach for it **only** when `pbir` is not installed *and* installing
+it is not possible: no network access to PyPI, no Python, or a locked-down machine that
+forbids installs. A portable build does not update with `uv tool upgrade`, so preferring it
+when a normal install would have worked leaves the user on a stale CLI. If an install failed,
+fix the install rather than routing around it.
 
 ## Keeping the Fabric CLI current
 
@@ -40,7 +53,7 @@ Keep entries concise and generalizable. The memory file is not a change log. Pru
 
 ### General workflow
 
-1. Explore the report. The report must be in PBIR format: pbip, pbir-only, or pbix-with-PBIR-metadata. Prefer pbir or pbip. Whenever the user mentions Power BI Desktop or says the report is open in Desktop, run `pbir desktop list` FIRST: it maps each running instance to the file it has open (locating the report on disk) and confirms the bridge works before any edits begin. `pbir desktop` is Windows-only; on macOS and Linux do not use it (every invocation fails). Instead deploy with `pbir publish` to a sandbox workspace in Fabric and verify the rendered report in the browser via the Chrome MCP tools.
+1. Explore the report. The report must be in PBIR format: pbip, pbir-only, or pbix-with-PBIR-metadata. Prefer pbir or pbip. Whenever the user mentions Power BI Desktop or says the report is open in Desktop, run `pbir desktop list` FIRST: it maps each running instance to the file it has open (locating the report on disk) and confirms the bridge works before any edits begin. `pbir desktop` is Windows-only; on macOS and Linux do not use it (every invocation fails). On macOS, deploy with `pbir publish` to a sandbox workspace in Fabric instead and verify the rendered report in the browser via the Chrome MCP tools. On Linux there is no `pbir` at all (see "When `pbir` is missing"): with the user's permission publish the byConnection report to a sandbox workspace with `fab import`, then verify by rendering it server-side through the Power BI ExportTo API.
 2. Identify the model. Reports generally should be thin reports connected to a remote model in Power BI or Fabric.
 3. Clarify intent. For vague or open-ended instructions, consult **`references/vague-prompts.md`** and use `AskUserQuestion` to understand expectations and report context before mutating anything.
 4. Plan changes. For new reports, pages, or visuals, draft a wireframe or mock-up for the user to approve before building.
@@ -78,13 +91,13 @@ Follow all rules below.
 
 1. **CHECK references before starting work.** Identify relevant [references](references/) and [examples](examples/) that can help you understand the user requirements
 
-2. **NEVER edit report JSON files directly.** Always use `pbir` CLI commands. Use `pbir cat` or `pbir get` to inspect JSON or properties; use `pbir set` for any property not covered by a dedicated command.
+2. **NEVER edit report JSON files directly on Windows or macOS.** Always use `pbir` CLI commands. Use `pbir cat` or `pbir get` to inspect JSON or properties; use `pbir set` for any property not covered by a dedicated command. The sole exception is Linux, where `pbir` cannot be installed at all and hand-authoring is the only route (see "When `pbir` is missing").
 
 3. **Discover before setting.** Run `pbir schema describe <type>` to list a visual type's objects, then `pbir schema describe <type> <object>` for property names, types, ranges, and enums before formatting. Do not guess property names
 
 4. **Theme-first formatting.** Check `pbir visuals format` before applying bespoke formatting; the theme may already set the property. Prefer `pbir theme set-formatting` for changes that apply to all visuals of a type. Reserve `pbir visuals title/background/border` for one-off overrides
 
-5. **Validate proportionally.** Mutating commands already validate their writes. Run `pbir validate "Report.Report"` after each coherent batch and before completion. Use `--qa` for overlap/overflow checks, `--fields` for model field verification, and `--all` for the final confidence pass
+5. **Validate proportionally.** Mutating commands already validate their writes. Run `pbir validate "Report.Report"` after each coherent batch and before completion. Use `--qa` for overlap/overflow checks, `--fields` for model field verification, and `--all` for the final confidence pass. On Linux, where `pbir` cannot be installed, check every changed file with `jq empty` and against the `pbip:pbir-format` skill's `references/validation.md` instead
 
 6. **Verify rendering through the Desktop bridge.** When the report is open in Power BI Desktop, run `pbir desktop refresh` after every change unless the user asks not to, then `pbir desktop screenshot` and inspect the PNG after every meaningful change. Validation cannot catch rendering problems (overlap, truncation, wrong field, illegible formatting); the screenshot is the only proof a change rendered as intended. When a request involves many changes, ask the user up front whether to refresh after each step (so they watch progress in the canvas) or once at the end. Check availability once with `pbir desktop list` before starting the loop; if the bridge is unavailable, do not retry it after every change (see "When the bridge is unavailable" below)
 
@@ -156,7 +169,7 @@ The edit-verify loop: mutate with `pbir set`/`add`, then `pbir desktop refresh`,
 
 Screenshots need the Desktop window in the Report view. Refreshing an instance with unsaved changes makes Desktop save first, rewriting the whole definition on disk. PBIX files support screenshot but not refresh. For requirements, multi-instance behavior, and troubleshooting, consult **`references/desktop-integration.md`**.
 
-**When the bridge is unavailable.** `pbir desktop` commands are Windows-only: on macOS and Linux do not use them at all; every invocation fails before reaching Desktop. On Windows, `pbir desktop list` distinguishes the cases: the bridge is unreachable when the preview feature is off ("Enable external tool access to Power BI Desktop through secure local APIs" under File > Options and settings > Options > Preview features, then restart Desktop), and it reports when no running instance has the target report open. If the preview feature is off, relay the enable steps to the user once and ask whether they want to turn it on; do not keep retrying bridge commands meanwhile. Until the bridge works, and always on macOS and Linux, verify with `pbir validate --all`, then with the user's permission deploy with `pbir publish` to a sandbox workspace in Fabric and inspect the rendered report in the browser through the Chrome MCP tools.
+**When the bridge is unavailable.** `pbir desktop` commands are Windows-only: on macOS and Linux do not use them at all; every invocation fails before reaching Desktop. On Windows, `pbir desktop list` distinguishes the cases: the bridge is unreachable when the preview feature is off ("Enable external tool access to Power BI Desktop through secure local APIs" under File > Options and settings > Options > Preview features, then restart Desktop), and it reports when no running instance has the target report open. If the preview feature is off, relay the enable steps to the user once and ask whether they want to turn it on; do not keep retrying bridge commands meanwhile. Until the bridge works, and always on macOS, verify with `pbir validate --all`, then with the user's permission deploy with `pbir publish` to a sandbox workspace in Fabric and inspect the rendered report in the browser through the Chrome MCP tools. On Linux `pbir` cannot be installed at all, so check the changed JSON with `jq empty` and against the `pbip:pbir-format` skill's `references/validation.md`, then with the user's permission publish the byConnection report to a sandbox workspace with `fab import` (always pass `-f`), and inspect the rendering by exporting it server-side through the Power BI ExportTo API.
 
 ### Creating Reports
 
@@ -505,5 +518,5 @@ examples/visuals/formatted/*.json: read-only examples of formatting, CF, filters
 ## Related Skills
 
 - `pbi-report-design`: Use for design best practices and guidelines for reports
-- `pbip-format`: Use for understanding PBIP structure, not for bypassing `pbir` report mutations
+- `pbip-format`: Use for understanding PBIP structure, not for bypassing `pbir` report mutations, except on Linux where `pbir` cannot be installed and hand-authoring is the only route
 - `create-pbi-report`: Use to follow step-by-step instructions for creating new reports

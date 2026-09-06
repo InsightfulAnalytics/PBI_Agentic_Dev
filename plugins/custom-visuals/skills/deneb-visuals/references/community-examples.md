@@ -66,7 +66,7 @@ Key elements:
 **To inject into PBIR visual.json programmatically:**
 
 1. Strip `usermeta` from the JSON
-2. Replace placeholder keys (`__0__`, `__1__`) with actual field display names from your model (matching `nativeQueryRef`)
+2. Replace placeholder keys (`__0__`, `__1__`) with the display labels of your projections (`displayName` when set, otherwise `nativeQueryRef`)
 3. Stringify the spec and wrap in single quotes for `jsonSpec` literal value (see escaping rules in SKILL.md Step 3)
 4. Extract `config` separately for `jsonConfig`
 

@@ -25,6 +25,7 @@ Requirements:
 
 import argparse
 import json
+import shutil
 import subprocess
 import sys
 import time
@@ -58,9 +59,15 @@ def run_fab_command(args: list[str]) -> str:
 
 def get_token() -> str:
     """Mint a Fabric access token from the current az login; kept in memory only."""
+    # subprocess does not honour PATHEXT, so a bare "az" fails on Windows where the
+    # executable is az.cmd. Resolve it first.
+    az = shutil.which("az")
+    if az is None:
+        print("Error: az CLI not found. Install Azure CLI and run 'az login'.", file=sys.stderr)
+        sys.exit(1)
     try:
         result = subprocess.run(
-            ["az", "account", "get-access-token", "--resource", TOKEN_RESOURCE,
+            [az, "account", "get-access-token", "--resource", TOKEN_RESOURCE,
              "--query", "accessToken", "-o", "tsv"],
             capture_output=True, text=True, check=True,
         )

@@ -28,7 +28,7 @@ Review Deneb visual specs for correctness and design quality.
 
 1. **Schema**: `$schema` points to valid Vega or Vega-Lite schema URL
 2. **Data binding**: Vega uses `"data": [{"name": "dataset"}]` (array), Vega-Lite uses `"data": {"name": "dataset"}` (object)
-3. **Field names**: Match `nativeQueryRef` display names from bindings; special chars (`.[]\"`) become `_`, spaces preserved
+3. **Field names**: Match the projection's display label (`displayName` when set, otherwise `nativeQueryRef`); special chars (`.[]\"`) become `_`, spaces preserved
 4. **Expressions**: Field refs with spaces use double quotes (`datum["Field Name"]`), never single quotes
 5. **Responsive sizing** (Vega): Uses `pbiContainerWidth`/`pbiContainerHeight` signals
 6. **Config**: Includes `autosize: fit`, `view.stroke: transparent`, `font: Segoe UI`

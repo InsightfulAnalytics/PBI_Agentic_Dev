@@ -449,9 +449,11 @@ The API requires a token from `az account get-access-token --resource https://ap
 ```python
 import subprocess, json
 
+# On Windows, pass the whole command as ONE string with shell=True; list-form args get
+# mangled. The list form is correct on Linux and macOS.
 result = subprocess.run(
-    ["az", "account", "get-access-token", "--resource", "https://api.fabric.microsoft.com"],
-    capture_output=True, text=True
+    "az account get-access-token --resource https://api.fabric.microsoft.com",
+    shell=True, capture_output=True, text=True
 )
 token = json.loads(result.stdout)["accessToken"]
 ```
