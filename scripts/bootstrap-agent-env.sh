@@ -179,7 +179,7 @@ report() {
   [ "$PLATFORM" = "windows" ] && tv="$tv.exe"
 
   local avail=""
-  for t in fab te az python node jq claude git gh; do have "$t" && avail="$avail $t"; done
+  for t in fab pbir te az python node jq claude git gh; do have "$t" && avail="$avail $t"; done
   python -c "import fitz" >/dev/null 2>&1 && avail="$avail pymupdf"
   [ -x "$tv" ] && avail="$avail tmdl-validate"
 
