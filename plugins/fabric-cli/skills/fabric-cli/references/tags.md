@@ -153,5 +153,5 @@ For tenant-wide tag audits, loop over workspaces from `admin/workspaces` and fil
 - Deleting a tag is irreversible and unapplies it from every item and workspace in a single operation; there is no dry run
 - Hitting the 10-tag per item or per workspace cap returns `400`; the request does not partially apply
 - Tag `displayName` is case-insensitive unique within its scope; domain-scoped tags can repeat across domains but cannot collide with a tenant tag name
-- `fab api -q <jmespath>` filters run against `{status_code, text}`, so paths start with `text.value[...]` (list endpoints) or `text.tags[...]` (bulkCreateTags response)
+- `fab api -q <jmespath>` filters run against `{status_code, text}`, so paths start with `text.value[...]` (list endpoints) or `text.tags[...]` (bulkCreateTags response); see [fab-api.md > Output shape and flags](./fab-api.md#output-shape-and-flags)
 - Apply and unapply return `200` with `Content-Length: 0`; `fab api`'s JSON parser handles this cleanly, but `-q` on the empty body returns `None`

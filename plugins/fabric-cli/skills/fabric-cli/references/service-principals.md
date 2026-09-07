@@ -20,6 +20,8 @@ APP_ID=$(az ad app create --display-name "<name>" --sign-in-audience AzureADMyOr
 SP_OBJECT_ID=$(az ad sp create --id "$APP_ID" --query id -o tsv)
 
 # Client secret (rotate periodically; --years defaults to 1)
+# WARNING: without --append this REPLACES every existing secret on the app. Safe on a
+# brand-new registration; on an app already in use, add --append (see Gotchas).
 CLIENT_SECRET=$(az ad app credential reset --id "$APP_ID" --display-name "<purpose-tag>" --years 1 --query password -o tsv)
 ```
 
@@ -103,9 +105,10 @@ This is the right tool for a one-off "does this SP actually work" check run from
 ## Gotchas
 
 - **`FAB_TOKEN` audience must be `https://analysis.windows.net/powerbi/api`**, not `https://api.fabric.microsoft.com`. The wrong audience produces `[UnexpectedError]` with a debug-log line reading "Audience doesn't match" rather than a normal auth failure - easy to mistake for a broken secret or missing permission when it's actually just the wrong resource in the token request.
-- **Freshly created client secrets need roughly 60-75 seconds to propagate** through Entra before the token endpoint accepts them. A token request failing or returning empty right after `az ad app credential reset` is propagation delay, not a bad secret - wait and retry rather than immediately regenerating.
+- **Freshly created client secrets need roughly 60-75 seconds to propagate** through Entra before the token endpoint accepts them. A token request failing or returning empty right after `az ad app credential reset` is propagation delay, not a bad secret - the error text is `AADSTS7000215: Invalid client secret`, which asserts the opposite, so wait and retry rather than immediately regenerating. A script that mints a secret and consumes it in the same pass needs a retry loop that polls the token endpoint (or the connection PATCH) until it succeeds, not a fixed sleep.
 - **`fab auth login` under a HOME override fails on macOS** with a keychain error (`-25307`) because fab's credential storage expects the real login keychain to be reachable. Don't try to sandbox a test login by faking `$HOME` - use the env-token method above instead, which has no keychain dependency.
 - **A valid workspace role is not sufficient on its own.** Skipping the tenant-setting group membership (step 3) is the single most common cause of `[Unauthorized] Access is unauthorized` on an SP that otherwise looks correctly configured - the workspace ACL says it should work and the token is valid, so it's easy to burn time double-checking the wrong thing.
+- **`az ad app credential reset` without `--append` removes the app's existing secrets** and creates one. It is a reset, not an add. When two consumers must share a secret, mint it **once** and patch both in the same pass: resetting again between the two patches silently invalidates the first consumer. Nothing errors at reset time, so the breakage surfaces later and somewhere else, as a failed refresh or a 401 on a connection that was working an hour ago.
 - **`az ad app credential reset --append`** adds a new secret without invalidating existing ones, which is the right call when testing a secret without breaking whatever is already using the app in production. Clean up test secrets afterward: `az ad app credential list --id "$APP_ID" --query "[].keyId" -o tsv`, then `az ad app credential delete --id "$APP_ID" --key-id <keyId>` for each one you no longer need.
 
 ## SP lifecycle management

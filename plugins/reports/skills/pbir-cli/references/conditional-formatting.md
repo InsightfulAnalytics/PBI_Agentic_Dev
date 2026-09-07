@@ -9,6 +9,14 @@ Two surfaces share one model:
 
 The old `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all` flags are **deprecated** and redirect to `pbir set`/`pbir get`. See the [Deprecated Flags](#deprecated-flags) section.
 
+**If a flag on this page is rejected as an unknown flag, run `pbir --version` before concluding the
+page is wrong.** Part of this surface arrived in a CLI release: `--target-field`, the `--image`
+family, and the `Conditional formatting:` footer on `pbir schema describe`. An older build accepts
+none of them, and the error reads like a syntax mistake. Upgrading the CLI is the fix; see
+"Keeping `pbir` current" in `SKILL.md`. [Documented against pbir 0.9.29, where these flags are
+present; absent on 0.9.25. Installed build verified 2026-09-07.]
+Retest: `pbir visuals cf --help`
+
 ## CF Types
 
 | Type | Description | Expression |
@@ -216,7 +224,14 @@ Verify published CF in the service reading view on a fresh load. An open edit-mo
 
 Error bars can silently disable per-point `dataPoint.fill` CF on the same visual: bars fall back to the theme default color, and removing the `error` container restores the CF in the same publish cycle. Not every chart is affected (a single-measure bar chart can carry both). After adding error bars to a visual with measure-driven fill, re-check the rendering; where they conflict, choose the target tick or the per-point fill, and carry the measure signal on the data labels instead.
 
-`pbir validate --qa` flags static text colors with poor contrast (`LOW_TEXT_CONTRAST`, WCAG ratio below 3:1) on axis labels, data labels, and titles, and static or theme-default data-point fills with poor contrast (`LOW_FILL_CONTRAST`, same 3:1 threshold) on visuals with a `dataPoint.defaultColor` slot; `--contrast-against visual|page|effective` picks the background layer for both. Measure-driven colors are skipped, so verify CF ink and fill contrast by rendering.
+`pbir validate --qa` flags static text colors with poor contrast (`LOW_TEXT_CONTRAST`, WCAG ratio below 3:1) on axis labels, data labels, and titles, and static or theme-default data-point fills with poor contrast (`LOW_FILL_CONTRAST`, same 3:1 threshold) on visuals with a `dataPoint.defaultColor` slot; `--contrast-against visual|page|effective` picks the background layer for both on builds that carry it (see the caveat below). Measure-driven colors are skipped, so verify CF ink and fill contrast by rendering.
+
+`--contrast-against` is documented ahead of the CLI. Confirm the installed build accepts it before
+scripting it (`pbir validate --help | grep contrast`). Where it does not, run bare `--qa` and read
+which codes it actually emits; the two contrast codes may be missing from that build as well, in
+which case contrast has to be judged from a render. [Absent from `pbir validate --help` on pbir
+0.9.29. A newer release exists on PyPI and was not checked. Verified 2026-09-07.]
+Retest: `pbir validate --help | grep contrast`
 
 ### Category axis labels cannot be colored per category
 

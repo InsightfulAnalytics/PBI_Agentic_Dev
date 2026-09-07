@@ -18,6 +18,10 @@ Report-level DAX measures and visual calculation placeholders.
 
 ## Extension Measures
 
+The `references` block on a measure takes exactly two keys: `measures` (an array of
+`{schema?, entity, name}`) and `unrecognizedReferences` (a boolean). There is no `columns` array, so
+a measure that depends only on columns declares `{"unrecognizedReferences": true}` and nothing else.
+
 See [measures.md](./measures.md) for complete documentation including:
 - File structure and schema
 - Measure properties (name, dataType, expression, references, formatString, etc.)

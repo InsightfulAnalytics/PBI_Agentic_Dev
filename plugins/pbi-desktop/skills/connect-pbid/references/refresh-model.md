@@ -170,6 +170,27 @@ $server.Execute('{ "refresh": { "type": "calculate", "objects": [{ "database": "
 Or use a single TMSL command with `"type": "full"` on the entire database, which handles dependencies automatically.
 
 
+## Hand-Authored PBIP: No Data on First Open
+
+Power BI Desktop shows "Some of the tables have incomplete or no data" and does **not** auto-import on
+the first open of a PBIP whose model was written by hand. The data image has never been built and
+nothing in the open sequence builds it, so the model looks broken when it is only empty.
+
+Do not go looking for a Desktop command to fix it. Where the secure-local-APIs preview is off,
+`pbir desktop refresh` is unavailable and synthesised ribbon clicks do not land. Refresh through TOM
+against the running instance instead:
+
+```powershell
+$server.Connect("Data Source=localhost:$port")
+$model = $server.Databases[0].Model
+$model.RequestRefresh([Microsoft.AnalysisServices.Tabular.RefreshType]::Full)
+$model.SaveChanges()
+```
+
+The same applies to a table created through TOM: after `SaveChanges()` it carries metadata only, and
+a full refresh is what executes its M expression and loads data into VertiPaq.
+
+
 ## Important Notes
 
 - **PBI Desktop refreshes are synchronous** -- `Execute()` blocks until the refresh completes

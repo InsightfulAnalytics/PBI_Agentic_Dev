@@ -149,12 +149,15 @@ Once enabled, deletes land in `workspaces/{workspaceId}/recoverableItems`; see [
 
 ### Gotchas
 
-- `fab api -q <jmespath>` runs against the full `{status_code, text}` envelope, so filters must start with `text.` (e.g. `text.tenantSettings[?...]`, `text.value[?...]`). Queries that forget the prefix silently return `None`.
+- `fab api -q <jmespath>` runs against the full `{status_code, text}` envelope, so filters must start with `text.` (e.g. `text.tenantSettings[?...]`, `text.value[?...]`). Queries that forget the prefix silently return `None`. Full envelope, flag and binary-body behaviour: [fab-api.md > Output shape and flags](./fab-api.md#output-shape-and-flags).
+- `admin/tenantsettings` returns **`(Empty)`** under `-A powerbi`. That is the wrong audience, not an empty tenant and not a permissions problem: the settings array only comes back under the default `fabric` audience. If a tenant-settings call comes back empty, check the audience flag before checking admin rights. The opposite rule applies to the Scanner APIs, which need `-A powerbi` and return 404 under `fabric`.
 - Empty-body POSTs to endpoints that return `202 null` (e.g. `recoverableItems/.../recover`) can occasionally surface `[UnexpectedError] Expecting value: line 1 column 1 (char 0)` from `fab api`'s JSON parser. The operation still succeeds; verify with a follow-up `fab exists` or list call and retry if necessary.
+- A setting reported as `enabled: true` can still be off for the calling principal, because `enabledSecurityGroups` scopes it to a group. The Scanner API shows this as a **200 with empty results** rather than an error, so an inventory job produces a plausible-looking empty answer; read `dataRetrievalState` before trusting a scan (see [Scanner gotchas](#scanner-gotchas)).
 - API setting names differ from admin portal UI titles; always list first.
 - `enabled: false` on update does not preserve prior `properties`; resend them if needed.
 - Updating a parent setting does not retroactively rewrite existing capacity/domain/workspace overrides; adjust overrides explicitly.
 - Security-group-scoped settings require `canSpecifySecurityGroups: true` and a valid `graphId` in `enabledSecurityGroups` / `excludedSecurityGroups`.
+- For some of those settings the group scope is mandatory, not optional: a body of `{"enabled": true}` comes back as a bare **400** with nothing naming the group scope. When the setting reports `canSpecifySecurityGroups: true`, resend with `enabledSecurityGroups` populated before suspecting permissions or a malformed body. Confirmed on `AllowServicePrincipalsUseReadAdminAPIs`; `canSpecifySecurityGroups: true` alone does not prove a setting behaves this way. Group membership and red-flag analysis: the `fabric-admin:audit-tenant-settings` skill's `references/security-groups.md`.
 - Service principals hit 401 on write endpoints unless the **Service principals can access admin APIs used for updates** tenant setting is on, even with `Tenant.ReadWrite.All`.
 
 ## Cross-Workspace Item Discovery
@@ -325,6 +328,11 @@ done
 
 # 4. Fetch results
 fab api -A powerbi "admin/workspaces/scanResult/$SCAN_ID" > /tmp/scan-result.json
+
+# 5. Check the result is complete before using it. A scan that returns 200 with
+#    tables: [] because a tenant setting is scoped away from you looks identical
+#    to a tenant with no models.
+grep -o '"dataRetrievalState":"[^"]*"' /tmp/scan-result.json | sort -u
 ```
 
 ### Incremental scan
@@ -339,6 +347,7 @@ fab api -A powerbi "admin/workspaces/modified" \
 
 ### Scanner gotchas
 
+- **A setting reported as `enabled: true` can still be off for the calling principal.** `enabledSecurityGroups` scopes a tenant setting to a group, so the setting is on for the tenant and off for anyone outside that group. The Scanner API shows this without ever failing: `getInfo` with `datasetSchema=true&datasetExpressions=true` returns **200** with `tables: []` and `dataRetrievalState: "DatasetSchemaDisabledByAdmin; DatasetExpressionsDisabledByAdmin"`. An inventory or lineage job built on that produces an empty but plausible-looking result. Read `dataRetrievalState` before trusting a scan, and check `enabledSecurityGroups` plus the calling principal's membership before concluding a setting is off.
 - Semantic models that haven't been refreshed or republished return lineage only, no subartifact schema.
 - DirectQuery-only semantic models need at least one report interaction before subartifact metadata is populated.
 - Shared-workspace semantic models over 1 GB return no subartifact metadata (Premium/Fabric capacities have no limit).
@@ -429,6 +438,17 @@ fab start .capacities/{capacity-name}
 # Reassign a stranded workspace to a healthy capacity (preferred: native)
 fab assign .capacities/{capacity-name} -W ws.Workspace -f
 ```
+
+### Querying the Fabric Capacity Metrics app
+
+The Capacity Metrics app ships a semantic model, and that model answers the standard `executeQueries` endpoint like any other, so CU consumption, throttling and item-level usage are reachable in DAX without the report.
+
+**Confirm the capacity is present in `Capacities` before drawing any conclusion from a query.** The app only reports the capacities its dataset was configured and refreshed for. A capacity you administer does not appear until the app's model refreshes, and a query scoped to it returns a successful, simply incomplete, result rather than an error.
+
+- `Capacities`, `Timepoints` and `Items` query cleanly.
+- `INFO.TABLES()` and the fact tables often return 400. That is the model's shape, not an auth failure, so do not chase permissions over it.
+
+See [querying-data.md](./querying-data.md) for the `executeQueries` mechanics and [`scripts/execute_dax.py`](../scripts/execute_dax.py).
 
 ## Gateways and Data Sources
 

@@ -75,6 +75,23 @@ After resolving groups, re-read the `audit-tenant-settings.py` output. For each 
 - Red-flag list (empty / stale / dynamic / guest / nested-SP / unowned)
 - The tenant settings that also reference this SG (so the admin sees the blast radius of any membership change)
 
+## 6. Settings that refuse an org-wide enable
+
+For some tenant settings the group scope is not a posture choice, it is mandatory. Turning one on for the whole organisation is rejected service-side, and the only signal is a bare **400** with nothing that points at the group scope.
+
+The diagnostic: the setting reports `canSpecifySecurityGroups: true` in `admin/tenantsettings`, and a body of `{"enabled": true}` returns 400. That combination means the group scope is required, so add `enabledSecurityGroups` before suspecting a permissions problem or a malformed body:
+
+```json
+{
+  "enabled": true,
+  "enabledSecurityGroups": [{"graphId": "<sg-object-id>", "name": "<sg-name>"}]
+}
+```
+
+`AllowServicePrincipalsUseReadAdminAPIs` is the confirmed instance. Treat it as one verified example, not as a known set: `canSpecifySecurityGroups: true` on its own does not prove a setting refuses an org-wide enable, and no list of the others has been established. Do not record a guess in the metadata baseline.
+
+The write itself goes through `POST admin/tenantsettings/{settingName}/update` (the `fabric-cli:fabric-cli` skill's `references/admin.md`). Reading the 400 does not authorise the change; tenant-setting writes are still never auto-applied from this skill.
+
 ## Prerequisites for SG work
 
 - `az login` with at least `Group.Read.All`, `User.Read.All`, `Directory.Read.All`, and `RoleManagement.Read.Directory` scopes. Verify with `az account show`.

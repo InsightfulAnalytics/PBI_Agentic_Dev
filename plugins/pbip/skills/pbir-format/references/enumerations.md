@@ -276,7 +276,11 @@ Common fonts (to be confirmed):
 ## Object-Specific Properties
 
 ### categoryAxis / valueAxis
-- showAxisTitle: boolean
+- showAxisTitle: boolean (visibility only; it does not carry the text)
+- titleText: string (the axis title text; there is no `axisTitle` property)
+- titleFontSize: numeric
+- titleColor: color expression
+- titleFontFamily: string
 - gridlineStyle: string (see above)
 - concatenateLabels: boolean (categoryAxis only)
 - show: boolean (y2Axis, valueAxis)

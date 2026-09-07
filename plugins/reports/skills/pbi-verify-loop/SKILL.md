@@ -1,7 +1,7 @@
 ---
 name: pbi-verify-loop
 version: 26.25
-description: Visually verify Power BI report edits against a running Power BI Desktop instance — refresh the canvas from disk, wait until rendering is stable (no guessed sleeps), screenshot the page, and optionally diff against a mockup. Use after ANY edit to PBIR visual.json / pages / theme when Desktop is open, and whenever the user asks to "check the report", "verify the change", "screenshot the page", or a mockup comparison is needed. Replaces hand-rolled refresh + Start-Sleep + screenshot loops.
+description: Visually verify Power BI report edits against a running Power BI Desktop instance: refresh the canvas from disk, wait until rendering is stable (no guessed sleeps), screenshot the page, and optionally diff against a mockup. Use after ANY edit to PBIR visual.json / pages / theme when Desktop is open, and whenever the user asks to "check the report", "verify the change", "screenshot the page", or a mockup comparison is needed. Replaces hand-rolled refresh + Start-Sleep + screenshot loops.
 ---
 
 # PBI verify loop
@@ -13,13 +13,15 @@ python "${CLAUDE_PLUGIN_ROOT}/skills/pbi-verify-loop/scripts/verify_page.py" \
   "MyReport.Report/ReportSection1.Page" -o "<scratchpad>/page.png"
 ```
 
-The script refreshes the report from disk, then captures repeatedly (every 3s, up to 45s) until two consecutive screenshots are byte-identical — that is the "settled" signal. It prints JSON (`output`, `captures`, `stable`) and exits 0 when stable, 2 on timeout (last capture still written — inspect it anyway).
+The script refreshes the report from disk, then captures repeatedly (every 3s, up to 45s) until two consecutive screenshots are byte-identical. That is the "settled" signal. It prints JSON (`output`, `captures`, `stable`, `changed_from_baseline`) and exits 0 when stable, 2 on timeout (the last capture is still written, so inspect it anyway).
+
+`changed_from_baseline` compares the final capture against a screenshot taken *before* the refresh, so a two-identical-captures loop cannot settle on the pre-edit canvas. `false` means the refresh produced a pixel-identical page: the edit may not have reached disk, or Desktop did not pick it up, so check that before reporting the change as verified. It is `null` under `--no-refresh`, where there is no baseline to compare against.
 
 ## Options
 
 | Flag | Use |
 |---|---|
-| `--model` | Also re-apply the TMDL model (`refresh -m`) — needed after model.tmdl/measure edits |
+| `--model` | Also re-apply the TMDL model (`refresh -m`); needed after model.tmdl/measure edits |
 | `--no-refresh` | Just settle+capture (e.g. after the user changed something in Desktop) |
 | `--compare mockup.png` | Diff final capture vs a reference; writes `<out>-vs-ref.png` side-by-side and reports `diff_ratio` + `diff_bbox` |
 | `--region x,y,w,h` | Crop both images to a region before comparing (verify one visual, ignore the rest) |
@@ -31,12 +33,12 @@ The script refreshes the report from disk, then captures repeatedly (every 3s, u
 1. Edit PBIR/TMDL files on disk (the `pbip` plugin's `tmdl` and `pbir-format` skills cover the hand-authoring rules and gotchas).
 2. Run `pbir validate` if visual.json was touched.
 3. Run this script; **Read the output PNG** and judge the change visually before telling the user it's done.
-4. For mockup-driven work (Claude Design), pass `--compare` with the mockup and check `diff_ratio` — but always eyeball the side-by-side too; pixel diffs can't judge intent.
+4. For mockup-driven work (Claude Design), pass `--compare` with the mockup and check `diff_ratio`, but always eyeball the side-by-side too; pixel diffs can't judge intent.
 
 ## Preconditions & gotchas
 
-- Power BI Desktop must be running with the report open, and the preview feature **"external tool access to Power BI Desktop through secure local APIs"** enabled (Options → Preview features, restart Desktop). Check with `pbir desktop list` — if it errors or shows nothing, tell the user to enable/restart rather than retrying.
-- **`pbir desktop list` first, always**: if the instance shows `Unsaved: yes`, a refresh reloads from disk and can clobber the user's unsaved in-Desktop tweaks — use `--no-refresh` or ask them to save first.
+- Power BI Desktop must be running with the report open, and the preview feature **"external tool access to Power BI Desktop through secure local APIs"** enabled (Options → Preview features, restart Desktop). Check with `pbir desktop list`. If it errors or shows nothing, tell the user to enable/restart rather than retrying.
+- **`pbir desktop list` first, always**: if the instance shows `Unsaved: yes`, a refresh reloads from disk and can clobber the user's unsaved in-Desktop tweaks, so use `--no-refresh` or ask them to save first.
 - Page path form is `Report.Report/PageName.Page` (folder names from `definition/pages/`), not display names. Omit the page to capture the first page.
 - Full-flag reference for `pbir desktop`: the `pbir-cli` skill's `references/cli-reference.md` (Desktop Operations section). Key gotchas: the screenshot output flag is `-o/--output` (there is no `--out`), and `--settle` applies only with `--all`.
-- If the capture never stabilizes (exit 2), something is animating or Desktop is stuck refreshing — check `pbir desktop list` for unsaved/busy state instead of raising the timeout blindly.
+- If the capture never stabilizes (exit 2), something is animating or Desktop is stuck refreshing. Check `pbir desktop list` for unsaved/busy state instead of raising the timeout blindly.

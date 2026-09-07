@@ -34,6 +34,55 @@ pbir model "Report.Report" -d -o model.json
 pbir model "Report.Report" -d | grep -i "revenue"
 ```
 
+### When the model schema will not load
+
+`pbir model -d` can fail with `failed to load model schema` or `Could not retrieve model
+definition`. For a report bound to a **published** model (`byConnection`), the schema is fetched by
+shelling out to the Fabric CLI, `fab get <model> -q definition -f`. A `fab` build that does not
+accept `-f` answers `unknown shorthand flag: -f`, and that is what `pbir` is reporting. Putting a
+`fab` shim earlier on PATH does not intercept the call, because `pbir` resolves the real
+executable.
+
+**Scope correction, and the reason not to abandon the task: this only bites `byConnection`
+reports.** For a local `byPath` PBIP, `pbir` reads the model's TMDL straight off disk. `pbir model
+-d` prints the full schema and `pbir validate --fields` resolves every projection, measures and
+columns alike, with no `fab` call at all. Column-bound visuals are blocked only when the report
+points at a workspace model.
+
+When it does bite, the damage is uneven. `pbir add visual` still works for **measure**-bound
+visuals such as cards and chart `Y`, because extension measures are read from
+`reportExtensions.json` without the model schema. It fails for any **column**-bound projection:
+slicers, table columns, chart `Category` and axis fields. `--skip fields` and `--rawdog` do not
+help, and reaching for them is the wrong reflex here: the schema *load* is what authoring a column
+reference requires, and that is a different step from validation. `pbir publish` is unaffected,
+because the import path never loads the schema.
+
+Work through it in this order:
+
+1. **Check the Fabric CLI first.** `fab --version`, then upgrade (`uv tool upgrade
+   ms-fabric-cli`) and retry. A `fab` that accepts `-f` on `get` fixes the root cause and every
+   column binding starts working again.
+2. **Verify the field names you need with the DAX path**, which works even when `-d` does not:
+   `pbir model "Report.Report" -q "EVALUATE TOPN(5, 'Sales')"`, or `EVALUATE VALUES('Geography'[Region])`
+   for one column. Do this before authoring anything, so every name that reaches a visual is
+   known-good rather than guessed.
+3. **Bind against the local model instead.** If the semantic model is available on disk, point the
+   report at it and the `fab` route drops out entirely: `pbir report rebind "Report.Report" --local
+   "../Model.SemanticModel"`, or `pbir report merge-to-thick` for a full thick PBIP. Both are in
+   `converting-reports.md`. Rebind back to the workspace model before publishing.
+4. **Only if none of that applies**, and the report must stay `byConnection` on a `fab` that cannot
+   move, say so rather than patching JSON from here: this skill's rule against editing report JSON
+   directly still stands. Hand-authoring a projection is the `pbip:pbir-format` skill's job, and
+   `references/semantic-model/field-references.md` there carries the column contract
+   (`Column` expression, `queryRef`, `nativeQueryRef`); do not reach for this skill's own
+   `examples/visuals/default/` templates and write the file from here instead. If that skill does
+   write one, its `$schema` line should be read out of a visual `pbir` created in the same report
+   rather than hard-coded to a version, and the file then comes back here for `pbir validate` and
+   the render check.
+
+[`fab get --help` lists no `-f` flag on fab 0.1.10. Verified 2026-09-07.]
+Retest: `fab get --help`
+
 ### DAX Queries (Values and Verification)
 
 Query the model to verify field values, check cardinality, and understand data before binding.

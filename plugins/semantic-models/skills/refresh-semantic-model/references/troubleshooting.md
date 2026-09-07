@@ -7,10 +7,52 @@ Common refresh failures, their causes, and resolutions for diagnosing refresh is
 
 | Error | Cause | Resolution |
 |-------|-------|------------|
-| `DatasourceHasNoCredentialError` | Data source credentials missing or not configured | Set credentials in dataset settings (Power BI service); for cloud connections, re-authenticate via OAuth |
+| `DatasourceHasNoCredentialError` | Data source credentials missing or not configured | Set credentials in dataset settings (Power BI service); for cloud connections, re-authenticate via OAuth. Neither route is available headlessly: over a Fabric source, use [Refreshing over a Fabric source with no gateway](#refreshing-over-a-fabric-source-with-no-gateway) |
 | `OAuthTokenRefreshFailedError` | OAuth token expired during refresh (common with Entra ID sources like SharePoint, Dynamics) | Token expires after ~1 hour; reduce data volume per query or switch to a service principal |
 | Access forbidden / 403 | Insufficient workspace permissions | Verify workspace contributor role or higher |
 | Credentials not carried after `fab cp` | Personal or gateway-bound credentials don't transfer when copying a model to a new workspace | Re-authenticate in dataset settings; only shared cloud connections carry over automatically |
+| `uses a default data connection without explicit connection credentials` | The model's Fabric source resolved to the SSO default data connection; no explicit connection is bound to it | Create a shareable cloud connection backed by the workspace identity and bind it: [Refreshing over a Fabric source with no gateway](#refreshing-over-a-fabric-source-with-no-gateway) |
+| `The credentials provided for the SQL source are invalid` / `The specified Power BI workspace ('X') is not found` | A workspace identity exists but was never granted a workspace role. The second string is a permission error, not a name typo | Assign the identity a workspace role, then retry: [Refreshing over a Fabric source with no gateway](#refreshing-over-a-fabric-source-with-no-gateway) |
+
+
+## Refreshing over a Fabric source with no gateway
+
+VERIFIED 2026-07-29. The full route for making an Import model refresh against a Fabric source (a lakehouse or warehouse SQL analytics endpoint, or XMLA to another semantic model) with no gateway and no browser consent flow. OAuth2 connections cannot be created through the API, so **WorkspaceIdentity** is the way through. Watch the audience flag: the identity and connection calls are `-A fabric`, the dataset calls are `-A powerbi`.
+
+Retest: `fab api -A fabric "connections/supportedConnectionTypes?showAllCreationMethods=true"`, then check the creation-method names and `supportsSkipTestConnection` against step 5.
+
+1. **The symptom you are solving.** A model whose source is a Fabric item defaults to an SSO "default data connection" and fails refresh with: *"uses a default data connection without explicit connection credentials. Please replace the default data connection ... with an explicit cloud or gateway data connection."* The fix is an explicit **shareable cloud connection (SCC)**, not credentials applied to the existing datasource.
+
+2. **Fix the parameters first.** Shipped solution accelerators bake the *author's* tenant endpoints into `IsParameterQuery` expressions:
+
+   ```bash
+   fab api -A powerbi "groups/$WS_ID/datasets/$MODEL_ID/Default.UpdateParameters" -X post \
+     -i '{"updateDetails":[{"name":"<param>","newValue":"<value>"}]}'
+   ```
+
+   Changing a parameter **re-creates the datasource object** (new or absent `datasourceId`), so re-list `fab api -A powerbi "groups/$WS_ID/datasets/$MODEL_ID/datasources"` afterwards. Old orphaned connections disappear from `GET connections`.
+
+3. **Provision a workspace identity.** `fab api -A fabric "workspaces/$WS_ID/provisionIdentity" -X post` returns 202 and is ready within seconds; poll `fab api -A fabric "workspaces/$WS_ID"` for `workspaceIdentity`. Requires an F SKU or trial capacity.
+
+4. **Grant the identity a workspace role. It is NOT implicit.**
+
+   ```bash
+   fab api -A fabric "workspaces/$WS_ID/roleAssignments" -X post \
+     -i '{"principal":{"id":"<servicePrincipalId>","type":"ServicePrincipal"},"role":"Contributor"}'
+   ```
+
+   Skipping this step is the cause of both *"The credentials provided for the SQL source are invalid"* (SQL sources) and *"The specified Power BI workspace ('X') is not found"* (AnalysisServices sources). The second one is a **permission** error, not a name error, so do not go hunting for a typo in the workspace name.
+
+5. **Create the SCC.** `fab api -A fabric "connections" -X post` with `connectivityType: ShareableCloud` and `credentialDetails.credentials.credentialType: WorkspaceIdentity`. Check `fab api -A fabric "connections/supportedConnectionTypes?showAllCreationMethods=true"` first: creation-method names are case-sensitive (`Sql` for type `SQL`, `AnalysisServices` for type `AnalysisServices`). Both types report `supportsSkipTestConnection: false`, so the connection is live-tested at create time. A 201 proves the identity really can reach the source.
+
+6. **Bind the model.**
+
+   ```bash
+   fab api -A powerbi "groups/$WS_ID/datasets/$MODEL_ID/Default.BindToGateway" -X post \
+     -i '{"gatewayObjectId":"<gatewayId returned on the SCC>","datasourceObjectIds":["<connection id>"]}'
+   ```
+
+   The SCC's `gatewayId` is the shared cloud cluster and is the same for every SCC in the tenant, so it is not an identifier worth hunting for separately.
 
 
 ## Data Source and Gateway Errors
@@ -85,6 +127,8 @@ fab api -A powerbi "groups/$WS_ID/datasets/$MODEL_ID/refreshes?\$top=5"
 ```
 
 Look at `status` and `serviceExceptionJson` for the specific error message and which table/partition failed.
+
+**Refresh history is append-only.** The failed-refresh badge against an item in the workspace list is derived from that history. There is no API to reset or clear it and no flag that dismisses the badge, so only a **successful** refresh of the model clears it. A model deliberately left unrefreshable (a demo, a decommissioned source) keeps the badge for good; do not spend time looking for a clear-history endpoint.
 
 ### 2. Isolate the failing table
 

@@ -50,7 +50,7 @@ pbir connect MyWorkspace MyReport
 
 Create a project folder first, then the report inside it. Default format is PBIP. New reports include:
 - The **sqlbi** theme out of the box -- do NOT run `pbir theme apply-template` unless the user requests a different theme
-- A default **Page 1** with a **textbox** visual for the page title at position (20,20) height 90 -- do NOT add a new textbox. **Place all visuals at y:120 or below** to avoid overlapping the title.
+- A default **Page 1** with a **textbox** visual for the page title at position (20,20) height 90 -- do NOT add a new textbox. **Place all visuals at y:120 or below** to avoid overlapping the title. The textbox ships **1880px wide**, sized for a 1920px canvas
 
 ```bash
 # Create project folder and report
@@ -67,6 +67,43 @@ mkdir -p sales-dashboard && cd sales-dashboard
 pbir new report "Sales.Report" -c "Workspace/Model.SemanticModel" --from-template executive
 pbir new report --list-templates                  # See available templates
 ```
+
+**Pass an absolute report path.** An earlier `pbir connect` can redirect a relative path to the
+active report's project. See `cli-reference.md` under "Report Creation and Management".
+
+**Resize the title textbox on any canvas narrower than 1920px.** At its default 1880px it runs off
+the edge and `pbir validate --qa` reports `VISUAL_OVERFLOW`. Resize rather than deleting and
+re-adding it; the usable width is `page_width - 2 * margin`, so 1232 on a 1280 canvas with a 24px
+margin. Pass `--no-title` to `pbir new report` instead when the user wants a clean canvas.
+
+```bash
+pbir visuals resize "Sales.Report/Overview.Page/textbox.Visual" --width 1232 --height 56
+```
+
+`VISUAL_UNDERSIZED`, which the same `--qa` run raises on cards below 280x140, is advisory rather
+than a defect. Leave it alone where the layout deliberately uses small cards.
+
+**`pbir new report` always needs a tenant connection.** `--connection` is validated against the
+tenant, and the command prints the real workspace list on a miss; omitting it gives `Thin reports
+require a connection`. There is no `byPath` option, so the command cannot be pointed at a local
+sibling `.SemanticModel` folder.
+
+That is not a dead end for a thick local PBIP. Create the report against the workspace copy of the
+model, then move the reference to the local model:
+
+```bash
+pbir new report "Sales.Report" -c "MyWorkspace/Sales.SemanticModel"
+pbir report rebind "Sales.Report" --local "../Sales.SemanticModel"   # byPath reference
+# or, to fold report and model into one thick PBIP project:
+pbir report merge-to-thick "Sales.Report" "Sales.SemanticModel"
+```
+
+Both are documented in `converting-reports.md`. Validate afterwards (`pbir validate "Sales.Report"
+--fields`), because a local model whose table or column names differ from the workspace copy breaks
+the bindings. Only when no workspace copy of the model exists at all does the report `definition/`
+have to be hand-authored, and that is the `pbip:pbir-format` skill's job, not this one. Note before
+starting that a hand-written `report.json` needs a populated `themeCollection` block, which the
+scaffolding would otherwise have supplied; the shape is in that skill's `references/report.md`.
 
 ### 4. Rename Default Page and Add More Pages
 
@@ -145,9 +182,9 @@ Similarly, hide axis titles when the axis label is self-evident from context (e.
 **Example layout** (1280x720, margin=24, gap=16):
 
 ```bash
-# Page title textbox -- already exists from report creation, no need to add one
-# To resize the existing textbox if needed:
-# pbir visuals resize "Sales.Report/Overview.Page/textbox.Visual" --width 1232 --height 56
+# Page title textbox -- already exists from report creation, no need to add one.
+# It ships 1880px wide (1920 canvas), so resize it to the usable width on a narrower page:
+pbir visuals resize "Sales.Report/Overview.Page/textbox.Visual" --width 1232 --height 56
 
 # KPI visuals with targets and trend lines (y=88, h=160)
 # 3 KPIs: each w=400, gaps: 24 + 400 + 16 + 400 + 16 + 400 + 24 = 1280

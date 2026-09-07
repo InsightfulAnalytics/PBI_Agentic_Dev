@@ -30,6 +30,8 @@ Arguments:
 - `dest` - Destination model: Workspace.Workspace/Model.SemanticModel
 - `-t, --table` - Table in schema.table format (required)
 
+A Direct Lake model created this way, or by `fab import`, can arrive with an unbound datasource: the first refresh then fails with `We cannot access the source Delta table '<t>' referenced by table '<t>'`, which accuses the lakehouse when the binding is what is missing. Fix and re-bind steps: [import-download-deploy.md](../references/import-download-deploy.md#a-direct-lake-model-created-by-fab-import-arrives-unbound).
+
 ### execute_dax.py
 
 Execute DAX queries against semantic models.
@@ -199,4 +201,5 @@ Options:
 
 - Python 3.10+
 - `fab` CLI installed and authenticated
+- `az` CLI installed and logged in, for the scripts that need a bearer token. They resolve it with `shutil.which("az")` because a bare `subprocess.run(["az", ...])` does not honour `PATHEXT` and fails on Windows even where `az` works; see [fab-vs-az-cli.md](../references/fab-vs-az-cli.md#calling-az-from-a-script)
 - For lakehouse file downloads: `azure-storage-file-datalake`, `azure-identity`

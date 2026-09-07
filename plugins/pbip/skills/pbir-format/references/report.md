@@ -4,7 +4,7 @@ Report-level configuration: theme, filters, settings, and resource packages.
 
 **Location:** `Report.Report/definition/report.json`
 
-**Schema:** `report/3.0.0` (current) or `report/2.1.0` (older reports)
+**Schema:** `report/3.3.0` (current); `report/3.0.0` and `report/2.1.0` on older reports
 
 ## Top-Level Properties
 
@@ -12,8 +12,14 @@ Real report.json files have these top-level keys (no `config` wrapper):
 
 ```json
 {
-  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.0.0/schema.json",
-  "themeCollection": {},
+  "$schema": "https://developer.microsoft.com/json-schemas/fabric/item/report/definition/report/3.3.0/schema.json",
+  "themeCollection": {
+    "baseTheme": {
+      "name": "Fluent2-CY26SU07",
+      "type": "SharedResources",
+      "reportVersionAtImport": {"visual": "2.9.0", "report": "3.3.0", "page": "2.1.0"}
+    }
+  },
   "filterConfig": {},
   "objects": {},
   "settings": {},
@@ -21,6 +27,10 @@ Real report.json files have these top-level keys (no `config` wrapper):
   "annotations": []
 }
 ```
+
+An empty `"themeCollection": {}` is valid only on schema 3.0.0 and older. On 3.3.0 it is required,
+it must name a real base theme, and that theme needs a matching `resourcePackages` entry. Copy the
+shape from "Hand-authoring report.json" below rather than from an older report.
 
 ### themeCollection
 
@@ -45,6 +55,42 @@ Defines which theme files the report uses. References files in `StaticResources/
 - `RegisteredResources` -- custom themes in `StaticResources/RegisteredResources/`
 - `customTheme` is optional; omit if using only the base theme
 - `reportVersionAtImport` can be a string (`"5.59"`) in older schema 2.x reports
+- `reportVersionAtImport` is **required on both** `baseTheme` and `customTheme`. Omitting it is one
+  of the failures `pbir validate` does catch, so it fails fast
+
+### Hand-authoring report.json
+
+Older `report.json` files carry `"themeCollection": {}` and pass. Schema `report/3.3.0` makes
+`themeCollection` **required**, so a hand-authored file at that schema needs a real `baseTheme` block
+plus the matching `resourcePackages` entry:
+
+```json
+"themeCollection": {
+  "baseTheme": {
+    "name": "Fluent2-CY26SU07",
+    "type": "SharedResources",
+    "reportVersionAtImport": {"visual": "2.9.0", "report": "3.3.0", "page": "2.1.0"}
+  }
+},
+"resourcePackages": [
+  {
+    "name": "SharedResources",
+    "type": "SharedResources",
+    "items": [
+      {"name": "Fluent2-CY26SU07", "path": "BaseThemes/Fluent2-CY26SU07.json", "type": "BaseTheme"}
+    ]
+  }
+]
+```
+
+Whether the base theme JSON exists on disk depends on where the report came from. A report Desktop
+has saved writes its base theme into `StaticResources/SharedResources/BaseThemes/`, which is why the
+K201 example ships `CY24SU10.json`. A report authored from scratch references a base theme that
+Desktop ships and that is absent from the project; reference it and leave it absent rather than
+fabricating the file.
+
+Base theme names and `reportVersionAtImport` values both move with the monthly schema releases.
+Copy them out of a report Desktop has recently saved rather than hard-coding the values above.
 
 ### resourcePackages
 

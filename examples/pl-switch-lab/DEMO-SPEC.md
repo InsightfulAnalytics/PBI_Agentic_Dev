@@ -194,7 +194,7 @@ Folder `PL Bridge Demo.SemanticModel\`: .platform (displayName `PL Bridge Demo`,
 definition.pbism 4.2, database.tmdl 1606, model.tmdl (crib the old lab's header: culture en-US,
 defaultPowerBIDataSourceVersion powerBI_V3, sourceQueryCulture en-AU, dataAccessOptions;
 `annotation __PBI_TimeIntelligenceEnabled = 0`), relationships.tmdl, tables\*.tmdl, culture
-en-US.tmdl cribbed. Read `~/.claude/rules/tmdl-pbir-authoring.md` first. Fresh lineageTags
+en-US.tmdl cribbed. Read the `pbip:tmdl` skill's `references/authoring-gotchas.md` first. Fresh lineageTags
 everywhere (uuid4, or uuid5 in generators for determinism).
 
 ### Imported tables (M partitions, mode import)
@@ -340,9 +340,10 @@ Dates Selected); the P&L Lines→Accounts relationship must show CrossFilteringB
 ## 4. Report (report agent)
 
 Folder `PL Bridge Demo.Report\`; definition.pbir byPath `../PL Bridge Demo.SemanticModel`;
-.platform displayName `PL Bridge Demo`, new GUID. Read
-`~/.claude/rules/tmdl-pbir-authoring.md` + `~/.claude/rules/pbir-cli.md` first: column-bound
-projections must be hand-authored visual.json (pbir CLI cannot author them on this machine).
+.platform displayName `PL Bridge Demo`, new GUID. Read the `pbip:tmdl` skill's
+`references/authoring-gotchas.md` and the `reports:pbir-cli` skill's `references/fields-and-bindings.md`
+first. Where the pbir CLI cannot load the model schema, column-bound projections have to be
+hand-authored in visual.json.
 Crib visual JSON shapes from the old lab report (tableEx) and the Claude Theme report
 (cardVisual, advancedSlicerVisual, slicer). New GUIDs for every page/visual/filter name.
 

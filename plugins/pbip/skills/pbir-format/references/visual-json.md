@@ -98,11 +98,16 @@ Six patterns for referencing fields in queries and expressions:
 | scatterChart | Category, X, Y, Size, Tooltips |
 | gauge | Y, TargetValue |
 | kpi | Indicator, Goal, TrendLine |
+| decompositionTreeVisual | Analyze, ExplainBy |
 | textbox | (none -- uses objects.general.paragraphs) |
 | shape / actionButton / image | (none -- uses objects for shape/icon/image config) |
 | scriptVisual / pythonVisual | Values |
 | `PBI_CV_<GUID>` (custom visuals) | varies by visual (Category, Value, etc.) |
 | `deneb<GUID>` (Deneb/Vega) | dataset |
+
+**Role names are exact.** The decomposition tree takes `Analyze` and `ExplainBy`, not the plausible
+`Analysis` and `Explain`. With the wrong names the projections land nowhere and the visual renders
+empty, with nothing to diagnose from the JSON. Verified 2026-08-05.
 
 ### Projection Properties
 
@@ -111,9 +116,72 @@ Each projection in `queryState` supports:
 | Property | Description |
 |----------|-------------|
 | `queryRef` | Fully qualified reference (`Table.Field`) -- used internally |
-| `nativeQueryRef` | The field's real native name in the model |
-| `displayName` | Display label shown in the visual (optional; falls back to `nativeQueryRef` when absent) |
-| `active` | Whether hierarchy level is expanded (optional, boolean) |
+| `nativeQueryRef` | The field's real native name in the model. Not a rename: changing it does not relabel anything |
+| `displayName` | The caption the visual renders (optional; falls back to `nativeQueryRef` when absent) |
+| `active` | Grid and hierarchy level state. Read the per-visual-type rule below before setting it |
+
+**Table and matrix column captions come from `displayName`.** A projection without one renders its
+header as the raw model column name (`ReportWorkspaceName`, not "Workspace"). Because
+`nativeQueryRef` is the native name rather than a rename, setting it does not change the caption.
+Set `displayName` on every projection whose header text should differ from the model name.
+Verified 2026-08-05.
+
+#### `active` by visual type
+
+`active` behaves in opposite ways on the two grid visuals, and neither failure raises an error
+anywhere. `pbir validate` passes both, and the only detector is the rendered visual, so check a
+grid's columns after any hand edit to its `queryState`.
+
+- **`tableEx`:** never put `active: true` on a projection, and no `showAll` on the Values bucket.
+  With `active` on only the first projection, Desktop renders **only that column** and silently
+  drops every later one. Desktop-serialized tables carry no `active` at all; `examples/visuals/default/tableEx.json`
+  and the K201 `Table_TopCenter.Visual` both omit it. Verified 2026-08-23.
+- **`pivotTable`:** row and column levels need `active` on **every** projection. With it on only the
+  first, the matrix collapses to one column with expanders instead of a column per level. See
+  `examples/visuals/default/pivotTable.json`, where a collapsed level carries `active: false` rather
+  than dropping the key. Verified 2026-08-05.
+- **Chart grouping roles** (`Category`, `Series`, a slicer's `Values`): `active: true` is what
+  Desktop emits and is the normal shape. Carry it through when converting a legacy visual.
+
+Fuller notes on the two grid visuals live in [Matrix/Table Features](#matrixtable-features).
+
+## Field Parameters
+
+A **measure** field parameter dispatches only from a measure well: Values, or a chart's value axis.
+Dropped on matrix `Rows` it behaves as a plain text column and the visual fails with "Can't
+determine relationships between the fields".
+
+The binding contract, verified 2026-08-23 against Desktop-serialized visuals: the role bucket holds
+the **expanded concrete projections**, each carrying `displayName` set to the parameter label, plus
+a sibling `fieldParameters` array on the same role bucket.
+
+```json
+"Values": {
+  "projections": [
+    {"field": {"Measure": {"Expression": {"SourceRef": {"Entity": "Sales"}}, "Property": "Revenue"}},
+     "queryRef": "Sales.Revenue", "nativeQueryRef": "Revenue", "displayName": "Revenue"},
+    {"field": {"Measure": {"Expression": {"SourceRef": {"Entity": "Sales"}}, "Property": "Margin"}},
+     "queryRef": "Sales.Margin", "nativeQueryRef": "Margin", "displayName": "Margin"}
+  ],
+  "fieldParameters": [
+    {"parameterExpr": {"Column": {"Expression": {"SourceRef": {"Entity": "Metric Parameter"}},
+                                  "Property": "Metric"}},
+     "index": 0,
+     "length": 2}
+  ]
+}
+```
+
+- `parameterExpr` is a Column reference to the parameter's **display** column
+- `index` is where the expanded projections start in the bucket
+- `length` is how many of them the parameter owns
+
+Values-as-rows layout on a matrix is a separate setting: `objects.values[0].properties.valuesOnRow`
+set to `true`.
+
+Neither `pbir add visual` nor the bundled examples produce this shape, so a field parameter has to
+be hand-authored. Binding the parameter's display column directly instead gives a text column, which
+is the failure above.
 
 ## objects vs visualContainerObjects
 
@@ -181,6 +249,9 @@ Direction: `"Ascending"` or `"Descending"`. See [sort-visuals.md](./sort-visuals
 }
 ```
 
+Nesting it inside `visual` gives `SCHEMA_ERROR ... ('filterConfig' was unexpected)`. This is one of
+the few structural mistakes `pbir validate` does catch, so it fails fast rather than silently.
+
 Filter types: `"Categorical"`, `"Advanced"`. See [filter-pane.md](./filter-pane.md) for all filter types and patterns.
 
 ## Slicer Default Selected Values
@@ -223,6 +294,28 @@ To set a slicer's default selected values (what it opens with pre-selected), sto
 **Key distinction:**
 - `filterConfig.filters[]` — filter pane filters that constrain the data feeding the slicer
 - `objects.general.properties.filter` — the slicer's pre-selected default values
+
+## Slicer Formatting
+
+**Dropdown mode lives under `data`, not `general`.** Set `objects.data[0].properties.mode` to
+`'Dropdown'`. Setting `mode` on `general` leaves the slicer as a vertical list, with no error
+anywhere.
+
+```json
+"objects": {
+  "data": [{"properties": {"mode": {"expr": {"Literal": {"Value": "'Dropdown'"}}}}}]
+}
+```
+
+The slicer's **formatting** object set is `data`, `date`, `dateRange`, `header`, `items`,
+`numericInputStyle`, `pendingChangesIcon`, `searchBox`, `selection`, `slider`. `general` does exist
+on a slicer, but it carries the pre-selected values and nothing else (see "Slicer Default Selected
+Values" above), so a formatting property put there is simply dropped.
+
+Two companions from the same build: give a slicer its own `header.text` rather than a visual title,
+and at least **76px** of height, or the header or the selector clips. Verified 2026-08-05.
+
+See `examples/visuals/default/slicer-dropdown.json` for the whole shape.
 
 ## Slicer Sync Groups
 
@@ -386,6 +479,26 @@ Common chart formatting properties in `objects`. These use the standard expr wra
 
 `labelDisplayUnits`: `0D` (auto), `1D` (none), `1000D` (thousands), `1000000D` (millions), `1000000000D` (billions).
 
+### Axis Titles
+
+On `categoryAxis` and `valueAxis` the property that sets the axis title is `titleText`.
+
+```json
+"valueAxis": [{
+  "properties": {
+    "showAxisTitle": {"expr": {"Literal": {"Value": "true"}}},
+    "titleText": {"expr": {"Literal": {"Value": "'Revenue (AUD)'"}}},
+    "titleFontSize": {"expr": {"Literal": {"Value": "10D"}}}
+  }
+}]
+```
+
+With the wrong name Power BI ignores the value and falls back to the auto-generated concatenation of
+every measure on that axis, which is how an axis ends up labelled "Revenue and Cost and Margin". The
+fallback looks deliberate rather than broken, so it survives review. Companion properties:
+`titleFontSize`, `titleColor`, `titleFontFamily`. `showAxisTitle` only toggles visibility; it does
+not carry text. Verified 2026-07-29.
+
 ### Markers (line/area charts)
 
 ```json
@@ -412,6 +525,20 @@ Common chart formatting properties in `objects`. These use the standard expr wra
 ```
 
 `lineChartType`: `'smooth'`, `'straight'`, `'stepped'`.
+
+**Markers without a line** (a scatter out of a `lineChart`): set `strokeWidth` to `0D` and
+`showMarker` to true on a per-series entry.
+
+```json
+"lineStyles": [{
+  "properties": {"strokeWidth": {"expr": {"Literal": {"Value": "0D"}}},
+                 "showMarker": {"expr": {"Literal": {"Value": "true"}}}},
+  "selector": {"metadata": "Sales.Revenue"}
+}]
+```
+
+The `metadata` selector is what makes it per series; without it the setting applies to every series
+on the chart. Verified 2026-07-29.
 
 ### Bar/Column Borders
 
@@ -503,6 +630,11 @@ Error bars can use measure-driven bounds via `errorRange.explicit.lowerBound` / 
 | `anomalyDetection` | yes | -- | -- | -- | -- |
 
 ## Matrix/Table Features
+
+Two render-layer behaviours that are not visible in the JSON: a grid drops or collapses columns when
+`active` is wrong on its projections (see "`active` by visual type" above), and a table trims leading
+ASCII spaces from row labels, so indented row hierarchies need U+00A0 instead. The indentation rule
+is in `reports:pbi-report-design`, `references/tables-and-matrices.md`.
 
 ### Expansion States (pivotTable)
 

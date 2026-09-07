@@ -39,6 +39,11 @@ Both are referenced in `report.json`:
 <Report>.Report/StaticResources/SharedResources/BaseThemes/<ThemeName>.json
 ```
 
+A report Desktop has saved writes its base theme to that path, which is why the K201 example ships
+`CY24SU10.json`. A `report.json` written from scratch instead references a base theme that Desktop
+ships and that is absent from the project; reference it and leave the file absent rather than
+fabricating one. See [report.md](./report.md), "Hand-authoring report.json".
+
 **Custom Theme:**
 ```
 <Report>.Report/StaticResources/RegisteredResources/<CustomThemeName>.json

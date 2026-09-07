@@ -224,6 +224,62 @@ $kpi.TrendExpression = 'IF([Revenue vs Target] > [Revenue vs Target PY], 1, -1)'
 **Note:** KPIs are a legacy SSAS feature. Power BI visuals ignore them; use conditional formatting measures instead.
 
 
+## Testing a Rewritten Measure Before Desktop Picks Up the Disk Edit
+
+Power BI Desktop holds its own in-memory copy of the model. A measure rewritten in TMDL on disk is
+not visible to a query against the local Analysis Services port until Desktop reloads the project, so
+an `EVALUATE` issued straight after the edit returns the **old** result and looks like the rewrite did
+nothing. Agents misread this as a failed edit and rewrite the measure again.
+
+Do not reload to find out. Redefine the candidate inside the query with `DEFINE MEASURE` and select
+the live measure and the candidate side by side in a single `ROW()`:
+
+```dax
+DEFINE
+    MEASURE 'Sales'[Margin % new] =
+        DIVIDE ( [Total Margin], [Total Revenue] )
+EVALUATE
+ROW (
+    "old", [Margin %],
+    "new", [Margin % new]
+)
+```
+
+The query-scoped `DEFINE MEASURE` shadows nothing and persists nothing, so this proves the fix
+against real data with zero risk to the model. One query returns both numbers under an identical
+filter context, which is what makes the comparison trustworthy: running the two definitions as
+separate queries invites a context difference to be read as a behaviour difference.
+
+Scale it up when a single scalar is not enough by putting both measures on an axis:
+
+```dax
+DEFINE
+    MEASURE 'Sales'[Margin % new] =
+        DIVIDE ( [Total Margin], [Total Revenue] )
+EVALUATE
+ADDCOLUMNS (
+    VALUES ( 'Date'[Year] ),
+    "old",   [Margin %],
+    "new",   [Margin % new],
+    "delta", [Margin % new] - [Margin %]
+)
+```
+
+Only once the candidate agrees, or disagrees in exactly the intended way, is it worth landing the
+TMDL edit and reloading.
+
+Two caveats:
+
+- If the measure under test uses `ALLSELECTED`, do not narrow the axis with `FILTER ( VALUES ( ... ) )`
+  inside the test query. That filter propagates into `ALLSELECTED` and changes the answer. Build the
+  full axis with `ADDCOLUMNS ( VALUES ( ... ), ... )` first, then filter the result table. See
+  [dax-pitfalls.md](./dax-pitfalls.md#traps-in-the-test-query-itself).
+- Power BI Desktop 26.08+ has an **Apply external changes** banner that reloads a PBIP in place, so a
+  full close-and-reopen is no longer the only way to make a disk edit visible
+  ([desktop-lifecycle.md](./desktop-lifecycle.md)). The side-by-side comparison is still the cheaper
+  and safer first step: it costs one query and cannot disturb Desktop's unsaved state.
+
+
 ## Summary: Validation Patterns
 
 Before saving any DAX expression, test it against the live model:
@@ -236,3 +292,4 @@ Before saving any DAX expression, test it against the live model:
 | RLS filter | `EVALUATE CALCULATETABLE(ROW("@OK", 1), <expr>)` |
 | Format string | `EVALUATE ROW("@Fmt", <expr>)` -- check it returns a string |
 | Detail rows | `EVALUATE <expr>` -- check it returns a table |
+| Rewrite of an existing measure | `DEFINE MEASURE 'T'[X new] = <expr>` then `EVALUATE ROW("old", [X], "new", [X new])` -- proves the number, not just that it parses (see above) |

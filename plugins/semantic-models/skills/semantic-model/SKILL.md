@@ -53,6 +53,7 @@ Audit against the categories below and produce prioritized findings with file lo
 - **Memory & size**: high-cardinality dictionaries, auto attribute hierarchies (`isAvailableInMDX` on hidden / high-cardinality columns), unsplit DateTime, auto date/time tables, wrong data types, calc columns that should be measures, unused objects
 - **Data reduction**: unfiltered fact history (no incremental refresh), unnecessary columns, detail grain not needed for reporting, logic better pushed upstream
 - **DAX correctness**: filtering tables not columns in CALCULATE, unguarded division, context-blind calc columns, variable time-shift bugs (`references/dax-authoring.md`; for query tuning use the `dax-optimisation` skill)
+- **Calculation groups**: row measures that carry their own scenario filter (the swap silently returns the same number in every column), format strings on a lower-precedence group that never fire, explicit `ordinal:` lines a save will strip (`references/calculation-groups.md`)
 - **Measure hygiene**: implicit measures, report-scoped measures that belong in the model, ambiguous duplicates
 - **Documentation & AI**: missing descriptions (Copilot truncates after 200 characters), missing display folders, missing synonyms, inconsistent naming (use `standardize-naming-conventions`)
 - **Design**: star-schema violations, mis-marked date table, many-to-many without a bridge, dead inactive relationships
@@ -77,7 +78,7 @@ Audit against the categories below and produce prioritized findings with file lo
 references/dimensional-modeling.md:    star schema, SCD2, junk / degenerate dimensions, header-detail, bridges
 references/relationships.md:           cardinality, limited relationships, ambiguity, active / inactive, USERELATIONSHIP
 references/time-intelligence.md:       classic vs calendar TI, mark-as-date traps, week-based / 4-4-5
-references/calculation-groups.md:      precedence, sideways recursion, selection expressions, the variant trap
+references/calculation-groups.md:      when a second measure axis forces one, precedence (whose format string wins, where item order comes from), one shared format string through a UDF, scenario-agnostic row measures, sideways recursion, selection expressions, the variant trap
 references/parameters.md:              field parameters, what-if parameters, dynamic titles
 references/security.md:                RLS validation + defensive filters, bidirectional + RLS, OLS restrictions
 references/query-semantic-model.md:    querying a model with DAX, INFO functions, output formats, probing

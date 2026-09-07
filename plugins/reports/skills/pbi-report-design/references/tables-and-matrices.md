@@ -93,6 +93,20 @@ Unlike KPI cards, tables should show **more precision** -- this is where readers
 - Do NOT apply display units (thousands/millions) in tables -- show full values
 - Align numbers right, text left (Power BI default)
 
+### Row Label Indentation
+
+Table and matrix visuals **trim leading ASCII spaces** from a label. This is render-layer behaviour, not a style choice: the indented string round-trips through the model intact, and then the visual draws every row flush left with no error anywhere. P&L-style hierarchy indentation must therefore use **U+00A0 non-breaking spaces**.
+
+The indentation string has to be byte-for-byte identical everywhere the label appears:
+
+- the source CSV, and any M literal that builds or patches the label (the `semantic-models:power-query` skill owns partition M)
+- every `SWITCH` branch string that reproduces the label in DAX (`pbip:tmdl` `references/authoring-gotchas.md` for the TMDL side)
+- every visual-level or report-level filter that selects on it (`pbip:pbir-format` `references/filter-pane.md` for the filter JSON)
+
+A mismatch fails silently. Two U+00A0 characters in the model against two ASCII spaces in a filter is simply not a match, so the filter returns nothing and no message is raised. That is the diagnosis to reach for when a P&L table renders correctly but a filter over its row labels comes back with zero rows. Verified 2026-08-23.
+
+Retest: put two U+00A0 characters in a table row label and filter on the same two-character string.
+
 ## Conditional Formatting
 
 Conditional formatting is the primary tool for offloading cognitive work from the reader's memory to visual perception. But it must be applied strategically -- formatting on every column creates visual overload where nothing stands out.
@@ -217,6 +231,7 @@ columnWidth.value = <pixels>               -> fixed width (only when autoSize is
 | Conditional formatting on every column | Visual overload, nothing stands out | Apply data bars to primary measure, color to variance only |
 | Heavy gridlines + banded rows | Visual noise competes with data | Remove gridlines, use whitespace to separate rows |
 | Display units in tables | Loses the detail readers came for | Show full precision |
+| ASCII-space row indentation | Leading spaces are trimmed on render, and filters on the label stop matching | Indent with U+00A0, byte-identical in the model, in SWITCH branches and in filters |
 | Same title as page title | Redundant information | Use differentiating title (e.g., "by Account and Product") |
 | Unformatted data dump | Creates unused reports; nobody scans raw number walls | Apply the full formatting workflow |
 | Showing actual + target + variance | Redundant when variance alone answers the question | Show variance; remove actual/target if not needed |
@@ -232,6 +247,7 @@ columnWidth.value = <pixels>               -> fixed width (only when autoSize is
 - [ ] Data bars on primary measure column for magnitude scanning
 - [ ] Color scales on variance columns only (not on every column)
 - [ ] Number formatting shows appropriate detail (no display units)
+- [ ] Indented row labels use U+00A0, matched byte-for-byte in the model, in SWITCH branches and in every filter
 - [ ] Sparklines added where temporal context matters
 - [ ] Subtitle hidden
 - [ ] Title differentiates from page title

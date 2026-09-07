@@ -38,19 +38,11 @@ if ($Port -gt 0) {
         exit 1
     }
 
-    $ports = @()
-    $netstat = netstat -ano | Select-String "LISTENING"
-    foreach ($line in $netstat) {
-        $parts = ($line -split "\s+") | Where-Object { $_ -ne "" }
-        # $pid is a read-only automatic variable in PowerShell; use another name
-        $ownerPid = $parts[-1]
-        if ($pids -contains [int]$ownerPid) {
-            $portNum = ($parts[1] -split ":")[-1]
-            if ($ports -notcontains $portNum) {
-                $ports += $portNum
-            }
-        }
-    }
+    # Get-NetTCPConnection returns a typed OwningProcess and LocalPort, so there is no
+    # text splitting and no IPv4/IPv6 de-duplication to do.
+    $ports = @(Get-NetTCPConnection -State Listen |
+        Where-Object { $pids -contains $_.OwningProcess } |
+        Select-Object -ExpandProperty LocalPort -Unique)
 
     if ($ports.Count -eq 0) {
         Write-Error "Found msmdsrv.exe but could not determine listening ports."

@@ -87,6 +87,34 @@ Patterns that execute without error but produce wrong results. These account for
 | Implicit measures (auto-sum) | Numeric columns auto-aggregate in visuals; bypasses explicit measure logic | Disable via model property or set `SummarizeBy = None` on columns that shouldn't auto-aggregate |
 
 
+## Traps in the Test Query Itself
+
+The traps above make the measure wrong. These make the *measurement* wrong, which is worse: a
+correct measure looks broken and a broken one can look correct, with no error either way.
+
+**Do not narrow the axis with `FILTER ( VALUES ( ... ) )` when the measure under test uses
+`ALLSELECTED`.** That filter is part of the query's filter context, so it propagates into
+`ALLSELECTED` and changes the answer the measure returns. Sampling a few rows to keep the output
+readable silently redefines what is being tested.
+
+Build the full axis first, then filter the result table:
+
+```dax
+EVALUATE
+FILTER (
+    ADDCOLUMNS ( VALUES ( 'Date'[Month] ), "@v", [Measure With ALLSELECTED] ),
+    'Date'[Month] = "January"
+)
+```
+
+`ADDCOLUMNS` evaluates over the whole axis, so `ALLSELECTED` sees what the visual would see, and the
+outer `FILTER` only trims the rows that come back.
+
+The same reasoning applies to any measure whose result depends on the surrounding filter context
+rather than only on the current row: `ALLSELECTED`, `ALLEXCEPT`, ratios against a visual total,
+`RANKX` over `ALLSELECTED`. Change what the harness filters and you change the number.
+
+
 ## CALCULATE Modifiers Reference
 
 Functions used as filter arguments inside CALCULATE / CALCULATETABLE. They modify the filter context rather than returning values. Misusing them produces the most common visual symptoms reported on community forums.

@@ -11,6 +11,7 @@ Drive a running Power BI Desktop instance from the CLI: reload the on-disk repor
 - [PBIX Support and Limits](#pbix-support-and-limits)
 - [Multiple Desktop Instances](#multiple-desktop-instances)
 - [Caveats and Troubleshooting](#caveats-and-troubleshooting)
+- [Desktop Writes Back: Re-read Positions at Task Start](#desktop-writes-back-re-read-positions-at-task-start)
 
 ## Requirements
 
@@ -45,6 +46,10 @@ pbir desktop screenshot "C:\Reports\Flash.pbix"      # Absolute path to an open 
 ```
 
 Default screenshot file name derives from the page display name (forbidden characters replaced); default scale is 2, clamped to 1-3 (values outside the range are pinned, not rejected). `--all` captures every page; pages land in `./screenshots` unless `--output-dir` overrides it, and `--settle <ms>` delays the first capture so the canvas finishes rendering before shooting. Captures follow Desktop's current canvas zoom, which reloads can change; for pixel-level checks, capture at `--scale 3` and crop, or move the visual under test to the page's top-left first. `refresh -m` (`--model`) re-applies the model definition alongside the report, useful after editing TMDL in a thick report. Use `pbir desktop list` to confirm bridge availability and inspect the target instance.
+
+Two flag names in that list are traps: there is no `--out` (the single-page flag is `-o/--output`),
+and `--settle` is inert without `--all`. Both are stated in full in `cli-reference.md` under Desktop
+Operations, which is the canonical flag list.
 
 ## The Edit-Verify Loop
 
@@ -100,8 +105,31 @@ Each open report is a separate Desktop process with its own bridge endpoint and 
 ## Caveats and Troubleshooting
 
 - **Refresh reloads the definition, not themes.** `file.reload` re-reads pages and visuals from disk but not StaticResources: theme changes made through `pbir` only render after closing and reopening the file in Desktop. Desktop also resolves base themes by name from its internal store; the materialized `BaseThemes/*.json` is a snapshot it writes, not a file it reads (verified empirically; custom themes in `RegisteredResources` are read at open).
-- **Refresh on a dirty instance saves first.** If the report has unsaved changes in Desktop, `file.reload` makes Desktop save before reloading; the whole definition is rewritten (re-indented, schema versions bumped, active page recorded). Expect git churn; commit or stash before iterating on a report a user has open with edits.
+- **Refresh on a dirty instance saves first.** If the report has unsaved changes in Desktop, `file.reload` makes Desktop save before reloading; the whole definition is rewritten (re-indented, schema versions bumped, active page recorded). Expect git churn; commit or stash before iterating on a report a user has open with edits. That save is also how a user's canvas edits reach disk, which is the subject of the next section.
 - **"Report view is not active"**: switch the Desktop window to the Report view and retry the screenshot.
 - **Transient errors right after a refresh** (HostNotReady): handled automatically; the CLI honors the bridge's retry protocol.
 - **Bridge unreachable**: enable the preview feature (see Requirements) and restart Desktop.
 - **ADOMD client not found** when querying a local model: install DAX Studio or set `PBIR_ADOMD_DIR`.
+
+## Desktop Writes Back: Re-read Positions at Task Start
+
+Drift runs in both directions. Refresh pushes the disk definition into the canvas; a Desktop save
+pushes the canvas back to disk. A user with the report open nudges a visual, resizes a card,
+reorders a page, and the next save writes all of it into `visual.json`.
+
+So **read `position` and the rest of the visual definition off disk at the start of every task**,
+and again after any pause in which the user had the file open:
+
+```bash
+pbir desktop list                                 # Is the report open, and does it have unsaved changes?
+pbir pages json "Report.Report/Page.Page"         # Page width/height
+pbir cat "Report.Report/Page.Page"                # Current positions and sizes
+```
+
+Never reuse coordinates remembered from earlier in a conversation, and never reuse a definition
+captured before the user last had the file open. A layout edit computed from stale coordinates
+silently undoes the hand adjustments the user just made, and nothing reports it: the write
+succeeds, `pbir validate` passes, and only the screenshot shows the layout has moved back.
+
+Where Desktop is not running, this cannot happen. The disk copy is the only copy, and a definition
+read once in the task stays current.

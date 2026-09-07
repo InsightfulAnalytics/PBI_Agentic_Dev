@@ -14,7 +14,7 @@ Expert guidance for authoring and editing TMDL (Tabular Model Definition Languag
 > - No Tabular Editor CLI or MCP server is installed
 > - Making quick text-level fixes (descriptions, format strings, display folders) where a full tool chain is overkill
 >
-> Direct TMDL editing does not validate DAX syntax, check referential integrity, or verify that property values are valid. Errors will only surface when the model is next loaded in Power BI Desktop or deployed via XMLA. Use the **`pbip-validator`** agent to check TMDL files for syntax issues, indentation errors, and referential integrity before opening in PBI Desktop.
+> Direct TMDL editing does not validate DAX syntax, check referential integrity, or verify that property values are valid. Errors will only surface when the model is next loaded in Power BI Desktop or deployed via XMLA. The **`pbip-validator`** agent can review TMDL before a Desktop open, but it inspects the files by reading them: its deterministic validators do not parse TMDL. Treat its report as a review, not a parse. For the checks that do settle a TMDL change, and for the failure modes that pass every cheap check, see **`references/authoring-gotchas.md`**.
 
 ## When to Use This Skill
 
@@ -30,9 +30,11 @@ Activate only when the Tabular Editor CLI, Power BI MCP server, or `connect-pbid
 
 ## Critical
 
-- **`///` (triple-slash) sets the `Description` property** on the object that immediately follows it. A `///` line must be immediately followed by a declaration (`measure`, `column`, `table`, etc.); never by a blank line or another `///`. Use `//` for regular comments.
-- **Indentation is semantic.** TMDL uses whitespace indentation where depth equals nesting level ([TMDL spec — Indentation](https://learn.microsoft.com/en-us/analysis-services/tmdl/tmdl-overview#indentation)). PBIP files use a single tab per level because Power BI Desktop and the TOM `TmdlSerializer` default to `IndentationMode.Tabs`. Spaces are also valid (`IndentationMode.Spaces`, default 4 per level), but be consistent within a file; mixed or incorrect indentation will break the model. Properties of a table are indented one level; properties of a column (which belongs to a table) are indented two levels.
+- **`///` (triple-slash) sets the `Description` property** on the object that immediately follows it. A `///` line must be immediately followed by a declaration (`measure`, `column`, `table`, etc.), at the same indent as that declaration, and never by a blank line or another `///`. `//` is not a TMDL line at all: keep it inside a DAX or M expression body (`references/authoring-gotchas.md`).
+- **Indentation is semantic.** TMDL uses whitespace indentation where depth equals nesting level ([TMDL spec: Indentation](https://learn.microsoft.com/en-us/analysis-services/tmdl/tmdl-overview#indentation)). PBIP files use a single tab per level because Power BI Desktop and the TOM `TmdlSerializer` default to `IndentationMode.Tabs`. Spaces are also valid (`IndentationMode.Spaces`, default 4 per level), but be consistent within a file. Mixed or incorrect indentation breaks the model, and some depth mistakes corrupt it silently rather than failing the parse (see `references/authoring-gotchas.md`). Properties of a table are indented one level; properties of a column (which belongs to a table) are indented two levels.
 - **Name quoting rules:** Only quote names that contain spaces, special characters, or start with a digit. Simple names and underscore-prefixed names are unquoted. See the Name Quoting section for details.
+- **A calculation group requires `discourageImplicitMeasures` on the model.** Add the flag to the `model` object in `model.tmdl` in the same edit that adds the calculation group. Without it Power BI Desktop refuses to load the **whole project**, not just the calculation group. The flag also turns implicit aggregation off model-wide, so any report visual bound to a bare column projection needs an explicit measure.
+- **Some TMDL mistakes parse clean and corrupt the model silently.** A measure expression written at the depth of its properties deletes the format string; a generator that slices by line position duplicates half a table. Read **`references/authoring-gotchas.md`** before hand-authoring or generating TMDL, and again when a project will not open.
 - **M expressions and tables share a namespace.** A name declared by `expression <name>` in `expressions.tmdl` and a name declared by `table <name>` in `tables/*.tmdl` collide; Power BI Desktop fails the load with `'duplicate member <name>'`. Pick distinct names; the conventional fix is to suffix the M expression with ` Query` or ` Source` and have partitions reference it via `source = #"<Name> Query"`. `validate_pbip.py` enforces this as an ERROR.
 
 ## TMDL File Types
@@ -43,7 +45,7 @@ Activate only when the Tabular Editor CLI, Power BI MCP server, or `connect-pbid
 | `database.tmdl` | Compatibility level, model ID | `definition/` |
 | `relationships.tmdl` | All relationships between tables | `definition/` |
 | `expressions.tmdl` | Shared M expressions and parameters | `definition/` |
-| `functions.tmdl` | DAX user-defined functions (reusable parameterized DAX) | `definition/` |
+| `functions.tmdl` | DAX user-defined functions (reusable parameterized DAX); requires `compatibilityLevel: 1702` in `database.tmdl` and Power BI Desktop 26.06+, see `references/authoring-gotchas.md` | `definition/` |
 | `roles/<RoleName>.tmdl` | One file per security role (RLS filters, role members, OLS) | `definition/roles/` |
 | `perspectives/<Name>.tmdl` | One file per perspective (object membership) | `definition/perspectives/` |
 | `dataSources.tmdl` | Legacy data source definitions (if present) | `definition/` |
@@ -81,25 +83,40 @@ Root-level objects (indent 0 only): `model`, `database`, `table`, `relationship`
 TMDL uses **whitespace indentation** where depth equals nesting level. PBIP files use a single tab per level (the TOM `TmdlSerializer` default), so all examples below use tabs:
 
 ```tmdl
-table Product                              // depth 0: top-level declaration
-	lineageTag: abc-123                    // depth 1: table property
+table Product
+	lineageTag: abc-123
 
-	measure '# Products' =                // depth 1: measure declaration
-			COUNTROWS (                    // depth 3: DAX expression body (one deeper than properties)
-			    VALUES ( Product[Name] )   // depth 3: continued
-			)                              // depth 3: continued
-		formatString: #,##0               // depth 2: measure property
-		displayFolder: Measures            // depth 2: measure property
-		lineageTag: def-456               // depth 2: measure property
+	measure '# Products' =
+			COUNTROWS (
+			    VALUES ( Product[Name] )
+			)
+		formatString: #,##0
+		displayFolder: Measures
+		lineageTag: def-456
 
-	column 'Product Name'                  // depth 1: column declaration
-		dataType: string                   // depth 2: column property
-		lineageTag: ghi-789               // depth 2: column property
-		summarizeBy: none                  // depth 2: column property
-		sourceColumn: Product Name         // depth 2: column property
+	column 'Product Name'
+		dataType: string
+		lineageTag: ghi-789
+		summarizeBy: none
+		sourceColumn: Product Name
 
-		annotation SummarizationSetBy = Automatic  // depth 2: column annotation
+		annotation SummarizationSetBy = Automatic
 ```
+
+Depth of each line above. The depths are listed here rather than annotated in the snippet because
+TMDL has no comment line of its own: a trailing `// note` on a declaration line fails the parse with
+`Unexpected line type: Other!` (see `references/authoring-gotchas.md`).
+
+| Line | Depth | What it is |
+|------|-------|------------|
+| `table Product` | 0 | top-level declaration |
+| `lineageTag: abc-123` | 1 | table property |
+| `measure '# Products' =` | 1 | measure declaration |
+| `COUNTROWS (` through `)` | 3 | DAX expression body, one level deeper than the measure's properties |
+| `formatString`, `displayFolder`, `lineageTag` | 2 | measure properties |
+| `column 'Product Name'` | 1 | column declaration |
+| `dataType`, `lineageTag`, `summarizeBy`, `sourceColumn` | 2 | column properties |
+| `annotation SummarizationSetBy = Automatic` | 2 | column annotation |
 
 **Key rules:**
 - Use tabs in PBIP files (Power BI Desktop's default); see the Critical section above for the spaces alternative
@@ -112,48 +129,64 @@ table Product                              // depth 0: top-level declaration
 
 Triple-slash sets the `Description` property on the **next** declaration. This is native TMDL syntax (not a Tabular Editor extension); the TMDL spec treats `///` as first-class description support.
 
+The snippets below are fragments inside a `table` block, shown at real depth: the `///` line and the declaration at one tab, properties at two, the DAX body at three.
+
 ```tmdl
-/// Count of distinct products in the current filter context.
-measure '# Products' =
-		COUNTROWS ( VALUES ( Product[Product Name] ) )
-	formatString: #,##0
-	lineageTag: abc-123
+	/// Count of distinct products in the current filter context.
+	measure '# Products' =
+			COUNTROWS ( VALUES ( Product[Product Name] ) )
+		formatString: #,##0
+		lineageTag: abc-123
 ```
 
 **Rules:**
 - `///` must be immediately followed by a declaration on the next line
+- `///` carries the **same indent** as the declaration it describes; a `///` at column 0 above a tab-indented `measure` fails the parse and the error names the `measure` line
 - No blank line between `///` and the declaration
 - Multiple `///` lines concatenate into a single description
 - `///` applies to the next `measure`, `column`, `table`, `hierarchy`, or `level`
 
-**Common mistake:**
+**Common mistakes.** Wrong, a blank line between the `///` and the declaration (`Unexpected line type: Empty!`):
+
 ```tmdl
-// WRONG: blank line between /// and declaration
-/// This is a description.
+	/// This is a description.
 
-measure 'My Measure' = 1
-
-// WRONG: /// used as a separator comment
-///
-measure 'My Measure' = 1
-
-// RIGHT: /// immediately before declaration
-/// This is a description.
-measure 'My Measure' = 1
-
-// RIGHT: // used for regular comments
-// This is just a comment, not a description.
-measure 'My Measure' = 1
+	measure 'My Measure' = 1
 ```
+
+Wrong, `///` used as a standalone separator:
+
+```tmdl
+	///
+	measure 'My Measure' = 1
+```
+
+Right, `///` directly above the declaration and at the same indent:
+
+```tmdl
+	/// This is a description.
+	measure 'My Measure' = 1
+```
+
+Do not answer `Unexpected line type: Empty!` by stripping blank lines wholesale. Blank lines between
+sibling objects are canonical and Power BI Desktop emits them on save; only two placements break. See
+`references/authoring-gotchas.md`, `## Blank lines: only two spots break`, for the triage.
 
 ### Comments (`//`)
 
-Double-slash is a regular comment with no semantic effect:
+`//` is not a TMDL construct. It is the comment syntax of the embedded expression languages, DAX and M,
+so it is safe **inside an expression body** and nowhere else, and it travels with the expression text:
 
 ```tmdl
-// This is a comment — it does not set any property
-measure 'My Measure' = 1
+	measure 'My Measure' =
+			// a DAX comment, stored as part of the expression
+			1
 ```
+
+A `//` line of its own between TMDL declarations is a different thing, and the TOM deserializer rejects
+it with `Unexpected line type: Other!` at every indent, column 0 included. A `//` trailing a declaration
+fails the same way. Use `///` for a description and keep commentary inside the expression body.
+`references/authoring-gotchas.md` carries the full placement table and the retest.
 
 ### Property Ordering
 
@@ -186,41 +219,46 @@ Do not quote names that are simple identifiers:
 
 ### Examples
 
-```tmdl
-table Product                    // unquoted: simple name
-table _Measures                  // unquoted: underscore prefix
-table 'Budget Rate'              // quoted: contains space
-table 'Invoice Document Type'    // quoted: contains spaces
-table '1) Selected Metric'       // quoted: starts with digit
-table 'On-Time Delivery'         // quoted: contains space
-```
+Annotated in a table rather than in a snippet, because a trailing `// note` on a declaration line fails
+the parse with `Unexpected line type: Other!` (see Comments above).
+
+| Declaration | Why |
+|-------------|-----|
+| `table Product` | unquoted: simple name |
+| `table _Measures` | unquoted: underscore prefix |
+| `table 'Budget Rate'` | quoted: contains a space |
+| `table 'Invoice Document Type'` | quoted: contains spaces |
+| `table '1) Selected Metric'` | quoted: starts with a digit |
+| `table 'On-Time Delivery'` | quoted: contains a space |
 
 ## Column Definitions
 
 For complete column examples (basic, hidden, key, sortByColumn, description), see **`references/tmdl-file-examples.md`**. For full property reference, see **`references/column-properties.md`**.
 
-Key column pattern:
+Key column pattern (a fragment inside a `table` block):
 
 ```tmdl
-column 'Product Name'
-	dataType: string
-	displayFolder: 1. Product Hierarchy
-	lineageTag: abc-123
-	summarizeBy: none
-	sourceColumn: Product Name
+	column 'Product Name'
+		dataType: string
+		displayFolder: 1. Product Hierarchy
+		lineageTag: abc-123
+		summarizeBy: none
+		sourceColumn: Product Name
 
-	annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = Automatic
 ```
 
 ## Measure Definitions
 
+The examples below are fragments inside a `table` block: the `measure` declaration at one tab, its properties at two, a multi-line DAX body at three, a `formatStringDefinition` body at four.
+
 ### Single-Line DAX
 
 ```tmdl
-measure '# Products' = COUNTROWS ( VALUES ( Product[Product Name] ) )
-	formatString: #,##0
-	displayFolder: Measures
-	lineageTag: abc-123
+	measure '# Products' = COUNTROWS ( VALUES ( Product[Product Name] ) )
+		formatString: #,##0
+		displayFolder: Measures
+		lineageTag: abc-123
 ```
 
 ### Multi-Line DAX
@@ -232,71 +270,71 @@ Two syntaxes for multi-line DAX:
 **2. Triple-backtick block** -- DAX enclosed in `` ``` `` fences, useful for expressions with complex indentation:
 
 ```tmdl
-measure Percentage = ```
-		VAR _Total = CALCULATE( SUM ( 'Table'[Quantitative] ), REMOVEFILTERS ( ) )
-		RETURN
-		DIVIDE ( SUM ( 'Table'[Quantitative] ), _Total )
-		```
-	formatString: 0.0%;-0.0%;0.0%
-	lineageTag: abc-123
+	measure Percentage = ```
+			VAR _Total = CALCULATE( SUM ( 'Table'[Quantitative] ), REMOVEFILTERS ( ) )
+			RETURN
+			DIVIDE ( SUM ( 'Table'[Quantitative] ), _Total )
+			```
+		formatString: 0.0%;-0.0%;0.0%
+		lineageTag: abc-123
 ```
 
 **Indented block syntax** (standard approach) -- indented two extra tabs from the measure's parent (table) level:
 
 ```tmdl
-measure 'Actuals MTD' =
-		CALCULATE (
-		    [Actuals],
-		    CALCULATETABLE (
-		        DATESMTD ( 'Date'[Date] ),
-		        'Date'[IsDateInScope]
-		    )
-		)
-	formatString: #,##0
-	displayFolder: 2. MTD\Actuals
-	lineageTag: abc-123
+	measure 'Actuals MTD' =
+			CALCULATE (
+			    [Actuals],
+			    CALCULATETABLE (
+			        DATESMTD ( 'Date'[Date] ),
+			        'Date'[IsDateInScope]
+			    )
+			)
+		formatString: #,##0
+		displayFolder: 2. MTD\Actuals
+		lineageTag: abc-123
 ```
 
 ### Measure with Description
 
 ```tmdl
-/// Number of workdays elapsed month-to-date, considering only dates in scope.
-measure '# Workdays MTD' =
-		CALCULATE(
-		    MAX( 'Date'[Workdays MTD] ),
-		    'Date'[IsDateInScope] = TRUE
-		)
-	formatString: #,##0
-	displayFolder: 5. Weekday / Workday\Measures\# Workdays
-	lineageTag: abc-123
+	/// Number of workdays elapsed month-to-date, considering only dates in scope.
+	measure '# Workdays MTD' =
+			CALCULATE(
+			    MAX( 'Date'[Workdays MTD] ),
+			    'Date'[IsDateInScope] = TRUE
+			)
+		formatString: #,##0
+		displayFolder: 5. Weekday / Workday\Measures\# Workdays
+		lineageTag: abc-123
 ```
 
 ### Measure with formatStringDefinition (Dynamic Format)
 
 ```tmdl
-measure 'Sales Target MTD vs. Actuals (%)' =
-		Comparison.RelativeToTarget (
-		    [Actuals MTD],
-		    [Sales Target MTD]
-		)
-	displayFolder: 2. MTD\Sales Target
-	lineageTag: abc-123
-
-	formatStringDefinition =
-			FormatString.Comparison.RelativeToTarget (
-			    "SUFFIX",
-			    1,
-			    "ARROWS",
-			    "",
-			    ""
+	measure 'Sales Target MTD vs. Actuals (%)' =
+			Comparison.RelativeToTarget (
+			    [Actuals MTD],
+			    [Sales Target MTD]
 			)
+		displayFolder: 2. MTD\Sales Target
+		lineageTag: abc-123
+
+		formatStringDefinition =
+				FormatString.Comparison.RelativeToTarget (
+				    "SUFFIX",
+				    1,
+				    "ARROWS",
+				    "",
+				    ""
+				)
 ```
 
-**Note:** `formatStringDefinition` replaces `formatString` when the format is computed dynamically via a DAX expression (often a calculation group format function).
+**A measure may not carry both `formatString` and `formatStringDefinition`.** Power BI Desktop refuses the whole project with `not supported scenario` when it finds both. `formatStringDefinition` is a child object holding the DAX that computes the format (often a calculation group format function): when you add it, delete the static `formatString:` in the same edit, and when you revert to a static format, delete the `formatStringDefinition`. Placement and the three valid body shapes are in `references/authoring-gotchas.md`.
 
 ## Other Object Types
 
-For complete examples of calculated columns, roles (RLS/OLS), calculation groups, date table marking, hierarchies, partitions, relationships, shared expressions, and model configuration, see **`references/tmdl-file-examples.md`**.
+For complete examples of calculated columns, roles (RLS/OLS), calculation groups, date table marking, hierarchies, partitions, relationships, shared expressions, and model configuration, see **`references/tmdl-file-examples.md`**. A calculation group also needs `discourageImplicitMeasures` on the `model` object in `model.tmdl`, in the same edit; without it Power BI Desktop refuses to load the whole project (`references/authoring-gotchas.md`).
 
 
 ## Common Data Quality Patterns
@@ -312,24 +350,28 @@ For complete examples of calculated columns, roles (RLS/OLS), calculation groups
 | Additive numeric facts (amounts, quantities) | `sum` | Default aggregation is SUM |
 | Non-additive numeric facts (rates, percentages) | `none` | Cannot be meaningfully summed |
 
-**Common fix pattern** — changing `summarizeBy: sum` to `summarizeBy: none` for key columns:
+**Common fix pattern**, changing `summarizeBy: sum` to `summarizeBy: none` for key columns:
+
+Before, wrong, a key column set to sum:
 
 ```tmdl
-// Before (wrong - key column should not sum)
-column 'Customer Key'
-	dataType: int64
-	isHidden
-	lineageTag: abc-123
-	summarizeBy: sum
-	sourceColumn: Customer Key
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		lineageTag: abc-123
+		summarizeBy: sum
+		sourceColumn: Customer Key
+```
 
-// After (correct)
-column 'Customer Key'
-	dataType: int64
-	isHidden
-	lineageTag: abc-123
-	summarizeBy: none
-	sourceColumn: Customer Key
+After, correct:
+
+```tmdl
+	column 'Customer Key'
+		dataType: int64
+		isHidden
+		lineageTag: abc-123
+		summarizeBy: none
+		sourceColumn: Customer Key
 ```
 
 ### formatString Patterns
@@ -347,16 +389,16 @@ column 'Customer Key'
 Power BI Desktop may add a `PBI_FormatHint` annotation alongside `formatString`:
 
 ```tmdl
-column Amount
-	dataType: decimal
-	formatString: #,##0.00
-	lineageTag: abc-123
-	summarizeBy: sum
-	sourceColumn: Amount
+	column Amount
+		dataType: decimal
+		formatString: #,##0.00
+		lineageTag: abc-123
+		summarizeBy: sum
+		sourceColumn: Amount
 
-	annotation SummarizationSetBy = Automatic
+		annotation SummarizationSetBy = Automatic
 
-	annotation PBI_FormatHint = {"isGeneralNumber":true}
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
 ```
 
 **Do not fight this annotation.** Power BI tooling re-adds it automatically. When setting a `formatString`, leave any existing `PBI_FormatHint` in place. If Power BI re-adds a removed `PBI_FormatHint`, accept it.
@@ -391,7 +433,7 @@ For the complete property reference for every object type, see **`references/obj
 | Column | `expression` | DAX expression | For calculated columns |
 | Measure | `formatString` | format pattern | e.g., `#,##0`, `0.00%` |
 | Measure | `displayFolder` | folder path string | Use `\` for nesting |
-| Measure | `formatStringDefinition` | DAX expression block | Dynamic format string (replaces `formatString`) |
+| Measure | `formatStringDefinition` | DAX expression block | Dynamic format string; the measure must not also carry `formatString` |
 | Measure | `isHidden` | (flag, no value) | Hide the measure |
 | Measure | `isSimpleMeasure` | (flag, no value) | Simple implicit-style measure |
 | Measure | `dataCategory` | string | Semantic data category |
@@ -430,6 +472,7 @@ For the complete property reference for every object type, see **`references/obj
 - **`references/column-properties.md`** - Column-specific property guide with `summarizeBy` rules, `formatString` patterns, `PBI_FormatHint` behavior
 - **`references/naming-conventions.md`** - SQLBI naming conventions, display folder conventions, measure table conventions, and calculation group naming
 - **`references/bim-to-tmdl.md`** - Converting between `model.bim` (TMSL) and `definition/` (TMDL) via Tabular Editor CLI or TOM TmdlSerializer
+- **`references/authoring-gotchas.md`** - Failure modes a syntax check does not catch: the calculation group flag, the `///` indent trap, which blank lines are safe and which two placements break, the expression depth that silently deletes format strings, `formatStringDefinition` placement, generator idempotency, what offline validation proves, and DAX UDFs at compatibility level 1702. It is also the in-repo home for new TMDL failure modes: its closing `## Adding to this file` section sets the shape a new entry takes
 - **`references/tmdl-file-examples.md`** - Complete examples for every TMDL file type (model, database, expressions, relationships, roles, perspectives, tables, cultures) including backtick-enclosed expressions, field parameters, calculation groups, and date tables
 
 ### Fetching Docs
@@ -439,7 +482,7 @@ To retrieve current TMDL reference docs, use `microsoft_docs_search` + `microsof
 ### Example Model
 
 - **`examples/SpaceParts.SemanticModel/`** -- Complete real-world TMDL model (SpaceParts) with 40 tables, 152 measures, 8 calculation groups, 8 RLS roles, 2 perspectives, DAX UDFs (functions.tmdl), shared M expressions, relationships, and cultures. Covers every TMDL file type. Key files to study:
-  - `definition/functions.tmdl` -- DAX user-defined functions with parameters, types, and multi-line expressions
+  - `definition/functions.tmdl` -- DAX user-defined functions with parameters, types, and multi-line expressions. The model sets `compatibilityLevel: 1702` for these; an older AMO/TOM assembly throws `UnsupportedObjectType` on `function` when reading it (`references/authoring-gotchas.md`)
   - `definition/tables/Z04CG1 - Time Intelligence.tmdl` -- Calculation group with triple-backtick DAX
   - `definition/tables/__Measures.tmdl` -- Measures table with calculation group references
   - `definition/tables/Invoices.tmdl` -- Large fact table (51 measures, 18 columns)

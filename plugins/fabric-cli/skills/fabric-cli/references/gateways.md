@@ -383,6 +383,15 @@ fab api -A powerbi "datasets/$DS_ID/datasources"
 
 The response includes `gatewayId` and `datasourceId` for each datasource.
 
+#### A `gatewayId` is not proof of a gateway
+
+A datasource can carry a `gatewayId` that belongs to the cluster holding **personal cloud connections** (the local `File` and `Folder` paths a Power BI Desktop publish creates), or to the shared cloud cluster that backs every shareable cloud connection in the tenant. Neither is an enterprise gateway, and chasing one wastes the search. Two checks settle it:
+
+- `fab api -A powerbi gateways` returning `[]` proves no on-premises gateway exists in the tenant, even while a datasource still reports a `gatewayId`.
+- `fab api -A powerbi "groups/$WS_ID/datasets/$DS_ID"` and read **`isOnPremGatewayRequired`**. That is the reliable per-model answer to "does this model actually need a gateway".
+
+The shared cloud cluster id is also what a shareable cloud connection reports as its own `gatewayId`, and it is the same for every SCC in the tenant, so seeing it repeated across unrelated models means nothing.
+
 ### Discover Compatible Gateways
 
 ```bash
@@ -432,6 +441,20 @@ fab api -A powerbi -X patch "gateways/<gw-id>/datasources/<ds-id>" -i '{
 ```
 
 For cloud datasources, the calling user must be the datasource owner. Transfer ownership using the semantic model TakeOver API if needed.
+
+#### Sub-flow: a published dataset's `PowerPlatformDataflows` source
+
+Setting an OAuth2 credential on a dataflow or dataset datasource is the same `PATCH gateways/{gw}/datasources/{dsid}`, with `credentialType: OAuth2` and `credentialData: [{name: accessToken, value: <tok>}]`. For the **published dataset's** `PowerPlatformDataflows` source there are two extra steps, and skipping them makes the PATCH return 401 `DMTS_NotEnoughPermissionToManageDatasource`, which reads as a missing permission on the caller and sends the search to RBAC. Verified 2026-07-05.
+
+1. Take over the dataset:
+
+```bash
+fab api -A powerbi -X post "groups/$WS_ID/datasets/$DS_ID/Default.TakeOver"
+```
+
+2. **Re-list `/datasources`. The datasource ids change after the takeover**, so a PATCH against the id read before it targets something that no longer exists.
+
+3. Then PATCH the credential as above.
 
 ---
 

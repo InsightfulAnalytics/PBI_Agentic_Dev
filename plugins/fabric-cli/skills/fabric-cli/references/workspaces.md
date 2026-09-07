@@ -119,6 +119,16 @@ fab find 'sales' -l --output_format json
 
 Fields returned per item: `name`, `type`, `workspace`, `description`. With `-l`, also `id` and `workspace_id`.
 
+**If `fab find` errors as an unknown command, check `fab --version` before assuming a syntax problem.** The subcommand does not exist below the version floor above, and upgrading (`uv tool upgrade ms-fabric-cli`) is the fix. Where the version is pinned and cannot move, discover items per workspace instead, looping `fab ls` over the workspace list:
+
+```bash
+fab ls                          # the workspace list
+fab ls "<ws>.Workspace" -l      # per workspace, looped over that list
+```
+
+[`fab find --help` still reports an unknown command on fab 0.1.10. Verified 2026-09-07.]
+Retest: `fab find --help`
+
 ### Governance search via DataHub V2 (`scripts/search_across_workspaces.py`)
 
 `scripts/search_across_workspaces.py` wraps the undocumented DataHub V2 API. The API is internal Microsoft surface area and may break without notice; reach for this script only when you need fields that `fab find` does not return. The script's table, JSON, and detailed output put the DataHub-only fields first to make the value-add visible.

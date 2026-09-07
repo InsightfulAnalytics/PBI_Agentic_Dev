@@ -91,7 +91,28 @@ Both are inside `visual`, not at the root of visual.json:
 **Forgetting to override theme defaults:** The theme may set `title.show: true` and `border.show: true` for all visuals via wildcards. If you create a textbox programmatically without explicitly setting `title.show: false` in `visualContainerObjects`, you'll get an unwanted title bar with empty text taking up space.
 
 **Omitting the state selector on state-based visuals:** The modern `shape` visual (and other visuals with default/hover/press/selected states) resolves colours per state. A bare
-`objects.fill[0].properties.fillColor` is ignored and the shape renders in theme colour 1 — bright blue, not your hex. It needs a **second** entry carrying the same colour with `"selector": {"id": "default"}`. Same for `outline.lineColor`. Let pbir write both: `pbir set "<Visual>.fill.default.fillColor" --value "#RRGGBB"`. Note `pbir set` rejects position edits made one axis at a time ("cannot be placed there") — edit the `position` block directly for those.
+`objects.fill[0].properties.fillColor` is ignored and the shape renders in theme colour 1, bright blue rather than your hex. It needs a **second** entry carrying the same colour with `"selector": {"id": "default"}`. Same for `outline.lineColor`. Let pbir write both: `pbir set "<Visual>.fill.default.fillColor" --value "#RRGGBB"`. Note `pbir set` rejects position edits made one axis at a time ("cannot be placed there"); edit the `position` block directly for those. The same rule catches `cardVisual`'s `value` and `label` objects; see [selectors.md](./schema-patterns/selectors.md), "A state-based visual ignores a property with no selector".
+
+**Nesting a sibling property inside `show`:** Sibling format properties must sit **beside** `show`,
+not inside it. Nested, they are swallowed and the setting never takes effect. Suspect this first
+whenever a format setting "does nothing".
+
+```json
+"title": [{"properties": {"show": {"expr": {"...": "..."}, "text": {"...": "..."}}}}]
+```
+
+Correct, with every property a sibling of `show`:
+
+```json
+"title": [{"properties": {
+  "show": {"expr": {"Literal": {"Value": "true"}}},
+  "text": {"expr": {"Literal": {"Value": "'Revenue by Region'"}}},
+  "fontSize": {"expr": {"Literal": {"Value": "14D"}}}
+}}]
+```
+
+`pbir validate` passes on the broken version and Desktop opens without complaint, so the only
+detector is the render. Verified 2026-07-29.
 
 **Shape drop shadows inset the shape:** `shadow.show: true` makes the shape draw ~8px inside its own bounds to leave room for the shadow, so it no longer lines up with another shape sharing the same rect (e.g. a card and its header band). Use a 1px `outline` instead when two shapes must align.
 

@@ -91,6 +91,8 @@ For systematic benchmarking across multiple queries and cache states, consider t
 
 For AI-assisted query optimization, consider the [DAXPerformanceTunerMCPServer](https://github.com/microsoft/fabric-toolbox/tree/main/tools/DAXPerformanceTunerMCPServer) which identifies anti-patterns and suggests optimizations with semantic equivalence checking.
 
+Every route above times the query. None of them evaluates a dynamic format string, which a rendered visual pays once per cell, so a visual can cost materially more than the benchmark reports. Re-time the visual before trusting a clean query profile: `semantic-models:dax-optimisation`, `references/dax-performance-optimization.md`, Trace Capture Methods.
+
 For DAX optimization, use the [`dax-optimisation` skill](../../dax-optimisation/).
 
 ## Performance Targets

@@ -250,19 +250,31 @@ MODEL_ID=$(fab get "Production.Workspace/Sales.SemanticModel" -q "id")
 # Get current schedule
 fab api -A powerbi "datasets/$MODEL_ID/refreshSchedule"
 
-# Update schedule (daily at 2 AM)
+# Update schedule (daily at 2 AM). The body is wrapped in "value"; an unwrapped
+# body is rejected.
 fab api -A powerbi "datasets/$MODEL_ID/refreshSchedule" -X patch -i '{
-  "enabled": true,
-  "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
-  "times": ["02:00"],
-  "localTimeZoneId": "UTC"
+  "value": {
+    "enabled": true,
+    "days": ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"],
+    "times": ["02:00"],
+    "localTimeZoneId": "UTC"
+  }
 }'
 
-# Disable schedule
+# Disable schedule (nothing else in the body; see the constraints below)
 fab api -A powerbi "datasets/$MODEL_ID/refreshSchedule" -X patch -i '{
-  "enabled": false
+  "value": {"enabled": false}
 }'
 ```
+
+### refreshSchedule constraints
+
+The body is wrapped in `value`: `{"value": {...}}`, not the schedule object at the top level. The dataflow endpoint takes the same shape, [dataflows.md > Update Refresh Schedule](./dataflows.md#update-refresh-schedule).
+
+Two further rules, each enforced with a 400 that rejects the whole PATCH rather than the offending field. Both are documented against semantic models and have not been tested on the dataflow endpoint.
+
+- **Times must be on the hour or the half hour**, `HH:00` or `HH:30`. Anything else returns `Refresh schedule time must be full or half hour`. Round generated times to the half hour before sending them, including times computed from a source system or a cron-style expression; the examples above comply by accident, so a generator gets no warning.
+- **Disabling must be a standalone call.** Any other field alongside `enabled: false` returns `Refresh schedule disable should not modify other settings`. To disable *and* change something like `notifyOption`, send two PATCHes: the options with `enabled: true` first, then the standalone disable.
 
 ## Copying Models
 
@@ -295,6 +307,10 @@ fab export "$DEV_WS/$MODEL_NAME" -o /tmp/deployment
 # Open /tmp/deployment/Sales/*.pbip in Power BI Desktop
 
 # 3. Import to production
+#    fab export does not write definition.pbism, and fab import requires it. Write it
+#    before importing or the import fails Workload_FailedToParseFile. See
+#    import-download-deploy.md > Export output structure.
+echo '{"version":"4.2","settings":{}}' > /tmp/deployment/$MODEL_NAME/definition.pbism
 fab import "$PROD_WS/$MODEL_NAME" -i /tmp/deployment/$MODEL_NAME
 
 # 4. Trigger refresh in production

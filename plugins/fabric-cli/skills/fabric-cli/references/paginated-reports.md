@@ -257,6 +257,8 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 
 The download URL remains valid for 24 hours after export completion.
 
+These same three steps render a **Power BI** report as well as a paginated one, which is the substitute for a Power BI Desktop screenshot wherever Desktop is unavailable: [reports.md > Server-side render for headless visual verification](./reports.md#server-side-render-for-headless-visual-verification).
+
 ### Configuration Object
 
 The `paginatedReportConfiguration` object controls rendering:

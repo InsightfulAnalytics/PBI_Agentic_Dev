@@ -216,8 +216,9 @@ Tables require deliberate design -- "easy to create" differs from "easy to read.
 - Apply **color scales** to variance columns only -- formatting everything means formatting nothing
 - Add sparklines where temporal context ("improving or declining?") matters
 - Show full precision (no display units) -- tables are where readers go for detail
+- Indent hierarchy row labels with **U+00A0**; leading ASCII spaces are trimmed on render, and filters on the label then stop matching
 
-For complete guidance on table vs matrix selection, formatting philosophy, conditional formatting techniques, sparklines, hierarchy design, and anti-patterns, consult **`references/tables-and-matrices.md`**.
+For complete guidance on table vs matrix selection, formatting philosophy, conditional formatting techniques, sparklines, hierarchy design, row-label indentation, and anti-patterns, consult **`references/tables-and-matrices.md`**.
 
 ### Slicers
 
@@ -312,7 +313,7 @@ Before declaring a design done, run the closing gate in **`references/quality-ga
 - **`references/anti-patterns.md`** -- Cross-cutting defaults to refuse (gauge-as-KPI, monochrome bars, missing sort, card walls, raw titles, inline hex, off-grid, dual-axis, 3D, oversized pie) with the repair
 - **`references/quality-gate.md`** -- The design gate: closing checks (identity propagated, one intent per page, equal spacing, evidence-backed callouts, accessibility) in issue/location/severity/fix form
 - **`references/cards-and-kpis.md`** -- KPI card design: targets, gaps, trends, formatting hierarchy, icons, accessible palettes, anti-patterns, review checklist
-- **`references/tables-and-matrices.md`** -- Table and matrix design: decision-making framework, subtract-don't-add philosophy, conditional formatting, sorting, sparklines, matrix hierarchies, anti-patterns
+- **`references/tables-and-matrices.md`** -- Table and matrix design: decision-making framework, subtract-don't-add philosophy, conditional formatting, sorting, sparklines, matrix hierarchies, row-label indentation (U+00A0), anti-patterns
 - **`references/layout-guidelines.md`** -- Canvas dimensions, spacing tiers (intra-group/inter-group/margin), alignment rules, performance cost model
 - **`references/visual-colors.md`** -- Color principles, CF basis decision (gradient vs rules vs field-value vs icons), semantic tokens, accessibility
 - **`references/page-titles.md`** -- Title implementation, accessible title wording, hidden-title/alt-text rule

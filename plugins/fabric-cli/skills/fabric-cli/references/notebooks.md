@@ -262,6 +262,18 @@ Lakehouse and warehouse can coexist:
 
 Get the GUIDs with `fab get "ws.Workspace/Item.Type" -q "id"`.
 
+### An empty `dependencies` block is worse than no `dependencies` key
+
+A notebook whose `metadata.dependencies.lakehouse` block exists but has every field empty imports and deploys without complaint, and is then unrunnable through the job API. The run fails at `NotStarted` with:
+
+```
+Exception: LakehouseWorkspaceId is not a valid GUID:
+```
+
+Either attach a real lakehouse (populated `default_lakehouse` and `default_lakehouse_workspace_id`) or strip the `dependencies` key from the notebook metadata entirely and push it again with `updateDefinition`. An empty stub is the one shape that fails.
+
+Importing and running the same notebook through the portal does not reproduce this, so a notebook that "works in the UI" can still be unrunnable through the API. Shipped solution accelerators are a common source of the empty block. Verified 2026-08-07.
+
 ## Creating and Importing Notebooks
 
 ### Directory Structure
@@ -293,6 +305,19 @@ fab job run "ws.Workspace/MyNotebook.Notebook"
 
 `fab import` takes 25-60s here because it polls the create/update LRO at the server's `Retry-After: 20`, not because the work is slow (it finishes in ~1s). For any notebook definition change, prefer [`scripts/deploy_notebook.py`](../scripts/deploy_notebook.py), which tight-polls (~0.3s, tunable via `--poll-interval`) and deploys in ~1-2s; it auto-detects create vs update. The poll interval is the single biggest performance lever for definition changes. See [import-download-deploy.md](./import-download-deploy.md#fast-definition-changes-the-poll-interval-is-the-biggest-lever).
 
+If a helper script reports `Azure CLI (az) not found` on Windows while `az` works fine in both PowerShell and Git Bash, that is `PATHEXT`, not a missing install: [fab-vs-az-cli.md > Calling `az` from a script](./fab-vs-az-cli.md#calling-az-from-a-script). The scripts in this skill resolve `az` with `shutil.which` for that reason. The safety net if a script is unusable is plain `fab import`, at the cost of the 25-60s LRO poll.
+
+#### If `fab import --format .ipynb` returns `[InvalidInput]`
+
+Try the plain folder-form `fab import` above first. If a `--format .ipynb` import returns `[InvalidInput]` and creates nothing, that is the CLI, not the notebook: create the item through the REST API instead, which works first try.
+
+```
+POST workspaces/{ws}/notebooks
+```
+
+with `definition.format: "ipynb"` and a single definition part named `notebook-content.ipynb` supplied as `InlineBase64`. [Observed on fab 0.1.10. Verified 2026-08-07.]
+Retest: `fab import "ws.Workspace/Test.Notebook" -i ./Test.Notebook --format .ipynb -f`
+
 ### Common Import Failures
 
 | Error | Cause | Fix |
@@ -302,6 +327,8 @@ fab job run "ws.Workspace/MyNotebook.Notebook"
 | "failed without detail error" (~40s) | Code error; no detail via CLI | Open in portal (`fab open`) to see Spark/Python traceback |
 | `NameError: spark` | No lakehouse attached (PySpark only) | Add `default_lakehouse` to dependencies |
 | `module has no attribute` | Wrong API name | Check `notebookutils.data.help()` for correct methods |
+| `[InvalidInput]` on `fab import --format .ipynb` | CLI import path, not the notebook | Create via `POST workspaces/{ws}/notebooks` (above) |
+| `LakehouseWorkspaceId is not a valid GUID:` at job run | All-empty `dependencies.lakehouse` stub; import itself succeeded | Populate the block or remove the `dependencies` key |
 
 ## Reading and Writing Data
 
@@ -393,7 +420,7 @@ Requires Runtime 1.3+. Known to fail with opaque errors from `fab job run`; use 
 # Synchronous (wait for completion)
 fab job run "ws.Workspace/ETL.Notebook"
 
-# With timeout
+# With timeout (see the poller note below before using --timeout)
 fab job run "ws.Workspace/ETL.Notebook" --timeout 600
 
 # Asynchronous
@@ -409,6 +436,15 @@ fab job run "ws.Workspace/ETL.Notebook" -C '{
   "conf": {"spark.sql.shuffle.partitions": "200"}
 }'
 ```
+
+**If `--timeout` crashes with `'<' not supported between instances of 'int' and 'str'`, do not resubmit.** That is the synchronous poller failing client-side; the job was already created server-side and is running. Capture the job instance id printed before the crash and poll it separately, or drop `--timeout` and poll from the start:
+
+```bash
+fab job run-status "<ws>/<item>.Notebook" --id <job-id>
+```
+
+[Observed on fab 0.1.10. Verified 2026-08-07.]
+Retest: `fab job run "<ws>/<item>.Notebook" --timeout 600`
 
 A `Completed` status means the process finished, **not** that the ETL succeeded -- a notebook can catch its own exception and exit a failure payload while still reporting `Completed`. Read the notebook's exit value to get its real verdict (see [The notebook's exit value](#the-notebooks-exit-value-the-only-reliable-success-signal)), or run it through [`scripts/run_notebook_checked.py`](../scripts/run_notebook_checked.py).
 

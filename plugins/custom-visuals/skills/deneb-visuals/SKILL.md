@@ -66,7 +66,7 @@ Create a Vega-Lite (or Vega) JSON spec file. Key difference:
 }
 ```
 
-See `examples/spec/` for complete spec files (Vega and Vega-Lite) and `examples/visual/` for full PBIR visual.json files. Field names in the spec must match the display label in the Values well: `displayName` when the projection sets one, otherwise `nativeQueryRef` (which is the field's real native name in the model).
+See `examples/spec/` for complete spec files (Vega and Vega-Lite) and `examples/visual/` for full PBIR visual.json files. Field names in the spec must match the display label in the Values well: `displayName` when the projection sets one, otherwise `nativeQueryRef` (which is the field's real native name in the model). See the field-naming contract in `references/pbir-structure.md`.
 
 ### Step 3: Inject the Spec
 
@@ -184,9 +184,21 @@ Key fields: `__row__` (zero-based row index, replaces removed `__identity__`), `
 
 - **Cross-filtering OUT of a Deneb visual does not behave like a native visual.** An in-visual "slicer" built from Vega signals will not filter the rest of the report. For report-level filtering, place a native slicer next to the Deneb visual and treat Deneb selection as internal to the visual unless `enableSelection` is explicitly configured and tested.
 - **Deneb's native tooltip cannot be styled per-point.** For colored/conditional tooltips, build custom Vega tooltip marks inside the spec.
-- **`jq empty` / `pbir validate` is necessary but not sufficient.** The final check is Desktop/Service rendering — use the `pbi-verify-loop` skill when Desktop is open.
+- **`jq empty` / `pbir validate` is necessary but not sufficient.** The final check is Desktop/Service rendering; use the `pbi-verify-loop` skill when Desktop is open.
 - **Editing an existing spec: use round-trip tooling, not hand-edits.** The spec is a single-quote-wrapped PBIR literal (embedded `'` doubled). Extract → edit → offline-render → embed via the `deneb-pbir` skill's `deneb_spec.py` + offline renderer; never hand-edit the literal string.
-- **Vega-Lite: the `xOffset`/`yOffset` *encoding channel* re-anchors marks to the start of the band.** Any layer carrying an offset encoding is positioned from the band's edge instead of its centre, so it drifts half a band away from its own axis labels — and away from any layer that lacks the offset. `axis.bandPosition: 0`, `y.band: 0.5` and `"scale": null` on the offset all fail to correct it. Use **`mark.xOffset` / `mark.yOffset` with a datum expression** instead — `{"expr": "(datum.Rank - (datum.N + 1) / 2) * 11"}` — which is a plain pixel shift with no re-anchoring, and is resolution-independent so it survives Deneb's autosize. This is the way to dodge tied points apart so none hides behind another.
+- **Vega-Lite: the `xOffset`/`yOffset` *encoding channel* re-anchors marks to the start of the band.** Any layer carrying an offset encoding is positioned from the band's edge instead of its centre, so it drifts half a band away from its own axis labels, and away from any layer that lacks the offset. `axis.bandPosition: 0`, `y.band: 0.5` and `"scale": null` on the offset all fail to correct it. Use **`mark.xOffset` / `mark.yOffset` with a datum expression** instead, `{"expr": "(datum.Rank - (datum.N + 1) / 2) * 11"}`, which is a plain pixel shift with no re-anchoring, and is resolution-independent so it survives Deneb's autosize. This is the way to dodge tied points apart so none hides behind another.
+- **Vega-Lite: `fontWeight` is a mark property, not an encoding channel.** Put it inside an `encoding` block and the spec compiles with only a warning, then the channel is silently dropped: the text renders at the default weight, and no error appears in Deneb, in Desktop, or in an offline render. In full Vega it is a normal mark property inside an `encode` block, which is why `references/vega-patterns.md` sets `"fontWeight": {"value": "bold"}` legitimately; the restriction is Vega-Lite's alone. To make weight depend on the data, split the text mark into two layers and filter each:
+
+  ```json
+  "layer": [
+    {"transform": [{"filter": "datum.isTotal"}],
+     "mark": {"type": "text", "fontWeight": "bold"}},
+    {"transform": [{"filter": "!datum.isTotal"}],
+     "mark": {"type": "text", "fontWeight": "normal"}}
+  ]
+  ```
+
+  The layer split is required, not a workaround to tidy away into `"mark": {"type": "text", "fontWeight": {"expr": "datum.isTotal ? 'bold' : 'normal'"}}`: a Vega-Lite mark-property expression has no per-row `datum` in scope, so that form cannot see the field it tests.
 - **Don't put `width`/`height` in a Deneb spec.** With `autosize: fit` in the config, Deneb sizes the view from the container; explicit dimensions fight it and produce a scrollbar inside the visual. Keep the spec size-free and inject dimensions only when rendering offline.
 - **Report-page tooltips: `visualTooltip.type` is `'Canvas'`, not `'ReportPage'`.** See the `pbir-format` skill's `references/page.md`. Deneb honours the Power BI tooltip service, but with the wrong enum value nothing ever appears.
 
@@ -218,7 +230,7 @@ Deneb is the preferred choice for **advanced custom visuals** that need interact
 - **`references/community-examples.md`** -- 170+ community templates organized by chart type, with author citations and direct links
 - **`references/vega-patterns.md`** -- Vega chart patterns (bar, line, scatter, donut, stacked, heatmap, area, lollipop, bullet, KPI card), standard config, transforms and scales reference
 - **`references/vega-lite-patterns.md`** -- Vega-Lite chart patterns (for editing existing Vega-Lite visuals only)
-- **`references/pbir-structure.md`** -- PBIR JSON structure (literal encoding, query state, interactivity example)
+- **`references/pbir-structure.md`** -- PBIR JSON structure (literal encoding, query state, the field-naming contract of `displayName` vs `nativeQueryRef` and its all-blank-skeleton failure, interactivity example)
 - **`references/capabilities.md`** -- Full Deneb object properties reference and template format (`usermeta` schema)
 - **`references/advanced-patterns.md`** -- Advanced cross-filtering signals (Vega `pbiCrossFilterApply`/`pbiCrossFilterClear`), performance engineering lever order, and community template round-trip from the terminal
 - **`examples/visual/bullet-chart.json`** -- PBIR visual.json: faceted bullet chart with conditional indicators and cross-filtering (Vega-Lite)

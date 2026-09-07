@@ -28,6 +28,12 @@ pbir add visual image "Report.Report/Page.Page" --image https://example.com/logo
 pbir add visual image "Report.Report/Page.Page" --image _Fmt.ProductImage --title "Product"
 ```
 
+A measure source has to satisfy the renderer's contract: **Text data type and `dataCategory` set to
+`ImageUrl`**. Without the data category the visual shows the raw URL or the raw SVG markup instead
+of the picture. The full contract, shared with `pbir visuals cf --image` on cards and grids, is in
+`conditional-formatting.md` under "Measure-driven images and SVG"; set the data category on the
+measure before binding it.
+
 ### List image resources
 
 ```bash

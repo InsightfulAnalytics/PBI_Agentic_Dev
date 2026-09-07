@@ -1,7 +1,7 @@
 ---
 name: dax-optimisation
 version: 26.25
-description: DAX performance optimization for semantic models. Automatically invoke when the user asks to "optimize DAX", "fix slow DAX", "DAX performance", "tune a measure", "debug a measure", "DAX anti-patterns", or mentions slow queries or server timings. This skill is for DAX tuning and measurement only, not authoring new measures.
+description: DAX performance optimization for semantic models. Automatically invoke when the user asks to "optimize DAX", "fix slow DAX", "DAX performance", "tune a measure", "debug a measure", "DAX anti-patterns", or mentions slow queries, server timings, or a visual that is slower than its DAX query.
 ---
 
 # DAX Optimisation
@@ -25,6 +25,8 @@ Trace capture and performance profiling:
 - **Local models (Power BI Desktop):** Use the Tabular Editor CLI `te query` (see the [`te-cli` skill](../../../tabular-editor/skills/te-cli/)) first; as an alternative, the [`connect-pbid` skill](../../../pbi-desktop/skills/connect-pbid/) covers FE/SE timing (`performance-profiling.md`) and intermediate result inspection (`evaluateandlog-debugging.md`).
 - **Remote models (Fabric Service / XMLA):** Run DAX with the Tabular Editor CLI `te query` (`-s <workspace> -d <model>`) against the workspace XMLA endpoint; see the [`te-cli` skill](../../../tabular-editor/skills/te-cli/) (tabular-editor plugin).
 - **Power BI Modeling MCP:** also available for trace and query if you prefer an MCP tool; reach for it after the options above.
+
+Every capture route above times the DAX query. None of them evaluate a dynamic format string, which a rendered visual pays once per cell, so a visual can cost materially more than the query the harness measures. See [`references/dax-performance-optimization.md`](./references/dax-performance-optimization.md), Trace Capture Methods.
 
 ## Related Skills
 

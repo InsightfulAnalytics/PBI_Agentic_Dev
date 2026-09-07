@@ -53,11 +53,11 @@ Controls the default aggregation behavior when the column is used in a visual wi
 - Additive fact columns (sales amount, quantity, line total)
 - Columns where implicit SUM makes business sense
 
-**General rule:** When in doubt, use `none`. It's always safe — users should create explicit measures for aggregation rather than relying on implicit aggregation.
+**General rule:** When in doubt, use `none`. It's always safe: users should create explicit measures for aggregation rather than relying on implicit aggregation.
 
-**Example fix — year number column incorrectly set to sum:**
+**Example fix, a year number column incorrectly set to sum.** Before, wrong, because a year number should not be summed:
+
 ```tmdl
-// Before (wrong: year number should not be summed)
 column 'Calendar Year Number (ie 2021)'
 	displayFolder: 1. Year
 	lineageTag: abc-123
@@ -66,8 +66,11 @@ column 'Calendar Year Number (ie 2021)'
 	sourceColumn: [Calendar Year Number (ie 2021)]
 
 	annotation SummarizationSetBy = Automatic
+```
 
-// After (correct)
+After, correct:
+
+```tmdl
 column 'Calendar Year Number (ie 2021)'
 	displayFolder: 1. Year
 	lineageTag: abc-123
@@ -133,14 +136,18 @@ measure '# Workdays MTD' =
 
 ### sourceColumn
 
-References the Power Query output column that feeds this column:
+References the Power Query output column that feeds this column.
+
+When the column name matches the source name:
 
 ```tmdl
-// When column name matches source name
 column 'Product Name'
 	sourceColumn: Product Name
+```
 
-// When column is name-inferred (auto-generated from source)
+When the column is name-inferred, auto-generated from the source:
+
+```tmdl
 column Date
 	isNameInferred
 	sourceColumn: [Date]
@@ -165,7 +172,7 @@ The sort column must be in the same table and should have a one-to-one or many-t
 
 ### lineageTag
 
-A GUID that uniquely identifies the column across model versions. **Never change an existing lineageTag** — it would break report bindings.
+A GUID that uniquely identifies the column across model versions. **Never change an existing lineageTag**: it would break report bindings.
 
 ```tmdl
 column 'Product Name'
@@ -238,7 +245,7 @@ Common values:
 **Behavior:**
 - Power BI Desktop adds `PBI_FormatHint` automatically when a `formatString` is set through the UI
 - Removing `PBI_FormatHint` is safe, but Power BI may re-add it on the next save
-- When setting `formatString` in TMDL directly, you don't need to add `PBI_FormatHint` — but don't remove it if it's already there
+- When setting `formatString` in TMDL directly, you don't need to add `PBI_FormatHint`, but don't remove it if it's already there
 - Having both `formatString` and `PBI_FormatHint` is normal and expected
 
 ## Common Annotations
@@ -249,7 +256,7 @@ Common values:
 annotation SummarizationSetBy = Automatic
 ```
 
-Indicates how the `summarizeBy` value was determined. Values: `Automatic` (Power BI inferred it) or `User` (explicitly set). This is informational — changing the annotation alone doesn't change the actual `summarizeBy` behavior.
+Indicates how the `summarizeBy` value was determined. Values: `Automatic` (Power BI inferred it) or `User` (explicitly set). This is informational: changing the annotation alone doesn't change the actual `summarizeBy` behavior.
 
 ### PBI_NavigationStepName
 

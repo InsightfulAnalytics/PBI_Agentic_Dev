@@ -56,7 +56,7 @@ change the number. Pick by what is being aggregated:
 | `__Table` carries computed columns you must aggregate (`ADDCOLUMNS` + `"@…"`)  | X-aggregator   |
 | The row expression needs row context (`Sales[Qty] * Sales[Price]`, a per-row `IF`) | X-aggregator   |
 | **The row expression is an existing measure**                                 | **`CALCULATE`** |
-| **The aggregation is non-additive** — `DISTINCTCOUNT`, `MIN`/`MAX`, any ratio | **`CALCULATE`** |
+| **The aggregation is non-additive** (`DISTINCTCOUNT`, `MIN`/`MAX`, any ratio), and no filter argument constrains the column being aggregated | **`CALCULATE`** |
 | It needs a time shift or another filter modifier                                  | `CALCULATE`    |
 | You only want the row count                                                       | `COUNTROWS`    |
 
@@ -82,7 +82,10 @@ Two things cannot move into `CALCULATE`, so there the X-aggregator stays:
 lineage to. When step 3 is `CALCULATE`, decide `KEEPFILTERS` explicitly and say why in the
 comment — otherwise a `__Table` built over `ALL( … )` quietly ignores the slicers on the page. An
 X-aggregator over that same table overrides identically, so the culprit is the `ALL`, not the
-terminator; `KEEPFILTERS` is the repair, and it exists only inside `CALCULATE`.
+terminator; `KEEPFILTERS` is the repair, and it exists only inside `CALCULATE`. The same
+replacement bites with no `ALL` in sight when a predicate constrains the column being aggregated, and
+there the repair is to build the row set and count it:
+[When CALCULATE is the wrong call](references/calculate-and-performance.md#when-calculate-is-the-wrong-call-filtering-the-column-you-are-aggregating).
 
 ## Standing exception: time intelligence uses CALCULATE + DATEADD
 
@@ -123,8 +126,8 @@ Author every measure so it reads top-to-bottom like prose. Three rules:
    ```
 
    **Verified safe (2026-07-22):** a blank line *immediately after* `=`, before the body, does NOT
-   trigger the `InvalidLineType: Empty` that `~/.claude/rules/tmdl-pbir-authoring.md` warns about —
-   Power BI Desktop opens it cleanly. That warning is about a blank line *breaking the middle* of a
+   trigger the `InvalidLineType: Empty` that the `pbip:tmdl` skill's `references/authoring-gotchas.md`
+   warns about. Power BI Desktop opens it cleanly. That warning is about a blank line *breaking the middle* of a
    multi-line expression (between two body lines), which is a different thing. Do not blank-line
    inside the body; do blank-line right after `=`.
 
@@ -335,7 +338,8 @@ full reconciliation.
   hierarchies, dynamic granularity, SVG; row index, streaks, moving averages and trend,
   fuzzy matching, geospatial distance.
 - [`references/calculate-and-performance.md`](references/calculate-and-performance.md) —
-  What CALCULATE really is, why it is hard to debug, when it *is* worth writing, the FE/SE
+  What CALCULATE really is, why it is hard to debug, when it *is* worth writing, when it is the
+  wrong call (a filter argument that constrains the column being aggregated), the FE/SE
   optimization model, the debugging toolbox, and how this skill coexists with the
   `semantic-models:dax-optimisation` performance skill.
 

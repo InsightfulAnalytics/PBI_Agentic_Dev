@@ -28,6 +28,12 @@ table (e.g. `_Fmt` when the model has no such table) breaks every visual that
 references it in Desktop. Check `pbir model -d` first; do not bypass with
 `--no-validate`.
 
+**Single-quote every table name inside `-e`,** including names that DAX itself would accept bare:
+`DISTINCTCOUNT ( 'activities'[UserId] )` is accepted, `DISTINCTCOUNT ( activities[UserId] )` is
+rejected. The rejection reads like a DAX error, so the usual reaction is to rewrite DAX that was
+never the problem. Measure references (`[Revenue]`) are unaffected, which is why the examples below
+never exercise the rule.
+
 ```bash
 # Basic measure
 pbir dax measures add "Report.Report" -t _Fmt -n "StatusColor" \

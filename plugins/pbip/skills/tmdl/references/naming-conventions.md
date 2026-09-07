@@ -134,10 +134,9 @@ Use backslash for subfolder nesting:
 
 ### Calculation Items
 
-Use descriptive names matching their purpose:
+Use descriptive names matching their purpose. The items in `CgTimeIntelligence`:
 
 ```
-// In CgTimeIntelligence:
 Full Period
 MTD
 YTD

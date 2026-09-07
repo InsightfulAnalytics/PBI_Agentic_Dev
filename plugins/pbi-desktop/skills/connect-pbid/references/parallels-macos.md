@@ -179,7 +179,7 @@ prlctl exec <VM_NAME> cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Byp
 | Path with spaces breaks | `Power BI Desktop` in path | Use script files or Base64-encoded commands |
 | `net472` filter finds no DLLs | NuGet package only has `net45` | Filter for `net45` or remove framework filter |
 | Terminal corruption after timeout | Process killed mid-output | Set timeout to 120000ms+; use `/clear` to recover |
-| Port file not found | Windows Store install uses different path | Use the netstat method instead |
+| Port file not found | Windows Store install uses different path | Use the `netstat` port lookup above, or the port-discovery table in SKILL.md section 2 |
 | Empty database on port | PBI file open but model not loaded | Check the other port; wait for model to finish loading |
 
 

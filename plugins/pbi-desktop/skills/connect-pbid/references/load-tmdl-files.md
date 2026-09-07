@@ -65,16 +65,20 @@ On Windows, load TMDL/BIM directly via the TOM .NET assemblies. This avoids any 
 
 ### Prerequisites
 
-TOM NuGet package installed at `$env:TEMP\tom_nuget`:
+The TOM assemblies, loaded by a host that can load that build. **Probe for an installed copy before
+running `nuget install`, and check the build's target framework against the host**: a `net45` or
+`net472` build loads under Windows PowerShell 5.1, a `net6.0` or `net8.0` build needs `pwsh` 7 or a
+`net8.0` project. See [assembly-discovery.md](./assembly-discovery.md) for the probe, the tool
+table and the `ReflectionTypeLoadException` this prevents.
+
+If nothing is installed, the NuGet fallback in SKILL.md section 1 lays the assemblies out under
+`$env:TEMP\tom_nuget\<package>\lib\net45\`:
 
 ```powershell
-$pkgDir = "$env:TEMP\tom_nuget"
-if (-not (Test-Path "$pkgDir\Microsoft.AnalysisServices.retail.amd64\lib\net45\Microsoft.AnalysisServices.Tabular.dll")) {
-    nuget install Microsoft.AnalysisServices.retail.amd64 -OutputDirectory $pkgDir -ExcludeVersion | Out-Null
-}
-Add-Type -Path "$pkgDir\Microsoft.AnalysisServices.retail.amd64\lib\net45\Microsoft.AnalysisServices.Core.dll"
-Add-Type -Path "$pkgDir\Microsoft.AnalysisServices.retail.amd64\lib\net45\Microsoft.AnalysisServices.Tabular.dll"
-Add-Type -Path "$pkgDir\Microsoft.AnalysisServices.retail.amd64\lib\net45\Microsoft.AnalysisServices.Tabular.Json.dll"
+$basePath = "<the lib\<tfm> folder the probe found, or the NuGet layout above>"
+Add-Type -Path "$basePath\Microsoft.AnalysisServices.Core.dll"
+Add-Type -Path "$basePath\Microsoft.AnalysisServices.Tabular.dll"
+Add-Type -Path "$basePath\Microsoft.AnalysisServices.Tabular.Json.dll"
 ```
 
 ### Load TMDL folder
@@ -87,6 +91,39 @@ $model = $db.Model
 Write-Output "Loaded: $($db.Name) (compat $($db.CompatibilityLevel))"
 Write-Output "Tables: $($model.Tables.Count)"
 ```
+
+### Offline validation before a Desktop open
+
+`DeserializeDatabaseFromFolder` is also the cheapest possible pre-flight check. It parses a whole
+`definition/` folder in seconds and reports syntax errors that would otherwise surface after a
+multi-minute Desktop open, or worse, not at all.
+
+**Do not accept "it parsed" as the check.** A generator can emit TMDL that parses clean while silently
+dropping metadata: a measure expression written at the same indent level as its properties makes the
+parser read `displayFolder:` and every following line as more DAX, the `formatStringDefinition` child
+object disappears, and nothing complains. Deserialize and assert the round trip:
+
+```powershell
+$db    = [Microsoft.AnalysisServices.Tabular.TmdlSerializer]::DeserializeDatabaseFromFolder($tmdlPath)
+$model = $db.Model
+$measures = $model.Tables | ForEach-Object { $_.Measures }
+
+# 1. count: did the generator add what it claimed, and only that?
+Write-Output "measures: $(@($measures).Count)"
+
+# 2. did the dynamic format strings survive?
+Write-Output "with formatStringDefinition: $(@($measures | Where-Object { $_.FormatStringDefinition -ne $null }).Count)"
+
+# 3. spot-check an expression, which is where a bad indent shows as swallowed properties
+Write-Output $model.Tables["Sales"].Measures["Total Revenue"].Expression
+```
+
+Run the generator twice and assert the counts match, as an idempotency test.
+
+Two limits. This validates **parse and bind only**: it says nothing about whether the DAX returns the
+right number, and it cannot run a query (no engine). And it is not the only route: the `pbip` plugin
+bundles a standalone validator, `plugins/pbip/hooks/bin/tmdl-validate-<platform>`, which takes a path
+and needs no .NET assemblies at all, so it is the answer on Linux, macOS and CI.
 
 ### Load BIM file
 

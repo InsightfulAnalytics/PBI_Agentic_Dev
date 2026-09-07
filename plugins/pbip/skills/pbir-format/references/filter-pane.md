@@ -1,6 +1,8 @@
 # Filter Pane and Filters
 
-> For slicer visuals (on-canvas filters), slicer visual documentation is not yet available.
+> For slicer visual formatting (dropdown mode, header, the slicer object set, the minimum
+> height) see [visual-json.md](./visual-json.md), "Slicer Formatting"; for the pre-selected
+> values see "Slicer Default Selected Values" in the same file.
 
 ## General Guidance
 

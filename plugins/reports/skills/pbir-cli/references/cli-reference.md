@@ -2,7 +2,29 @@
 
 Complete command reference for the pbir CLI. All commands prefixed with `pbir`.
 
+## Console encoding on Windows
+
+On a Windows console left on the default cp1252 codepage, a `pbir` command can abort part-way
+through printing its own output with:
+
+```
+'charmap' codec can't encode character ...
+```
+
+The CLI prints Unicode glyphs that cp1252 cannot encode, so the command dies on its own output and
+reads as a failure even when the report mutation already landed. Do not retry or work around it;
+export UTF-8 first:
+
+```bash
+export PYTHONIOENCODING=utf-8
+export PYTHONUTF8=1
+```
+
+The exports do not persist between separate shell invocations, so prefix every shell block that
+calls `pbir`. Linux and macOS shells are UTF-8 by default and never hit this.
+
 ## Table of Contents
+- [Console encoding on Windows](#console-encoding-on-windows)
 - [Navigation and Discovery](#navigation-and-discovery)
 - [Property Management](#property-management)
 - [Report Creation and Management](#report-creation-and-management)
@@ -121,6 +143,14 @@ pbir open "Report.Report"                          # Open in Power BI Desktop
 pbir validate "Report.Report"                      # Validate structure
 ```
 
+**An active connection hijacks relative creation paths.** When a prior `pbir connect` has set an
+active report, `pbir new report "sub/Name.Report"` can create the report beside the *active*
+report's project instead of in the current working directory, and drop the `sub/` folder from the
+path on the way. Nothing errors. Pass an **absolute** report path, or `pbir connect` the intended
+target first, and confirm where the report actually landed with `pbir ls` before continuing. A
+report created in the wrong tree keeps working, and every later relative path compounds the
+mistake.
+
 `report link` records the published identity locally (never in the report definition); `pbir usage` and other remote commands read it to skip re-resolving. It differs from `report rebind`, which re-points a report at a different model.
 
 ## Page Operations
@@ -163,6 +193,14 @@ pbir pages conform "Report.Report/Page.Page" --properties title,background --for
 pbir cp "R1.Report/Page.Page" "R2.Report/NewPage.Page"
 pbir mv "R1.Report/Page.Page" "R2.Report/Page.Page"
 ```
+
+**Both rename routes move the page folder on disk.** `pbir pages rename ... --to` renames the
+folder only, leaving the page ID and the display name untouched. `pbir set "<page>.displayName"`
+changes the display name *and* renames the folder to match, which is easy to miss because the
+command reads as a label edit. Either way, every path built from the old page name goes stale from
+that moment: later `pbir` invocations, paths held from earlier in the task, and any script walking
+`definition/pages/`. Rename first and derive every later path from the new name, or recompute the
+paths afterwards; `pbir ls "Report.Report"` prints the current set.
 
 ## Visual Operations
 
@@ -601,6 +639,18 @@ pbir desktop screenshot "Report.Report" --pid 1234            # Disambiguate ins
 
 Screenshot flags: `--all` (every page), `-o/--output` (single-page PNG path), `--output-dir` (folder for `--all`, default `screenshots`), `--scale` (clamped 1-3, default 2), `--settle` (ms delay before the first capture, with `--all`), `--pid`, `--json`.
 
+Two traps in that list. The single-page output flag is `-o/--output`: **there is no `--out`**, and a
+mistyped flag stops the command instead of defaulting to something. And `--settle` pairs with
+`--all` only, so on a single-page capture it delays nothing and a page still painting is shot
+mid-render with no warning. To settle a single page, do not guess a sleep: capture, read the PNG,
+and capture again until two consecutive captures match. The `reports:pbi-verify-loop` skill wraps
+exactly that loop and is the right route whenever a single page has to be verified. If either flag
+is rejected as an unknown flag, run `pbir --version` before assuming a syntax problem: `--settle`
+is the later addition of the two, and a build that predates it rejects it outright rather than
+ignoring it. [`--settle` absent from `pbir desktop screenshot` on pbir 0.9.24, present on 0.9.25.
+Verified 2026-07-04.]
+Retest: `pbir desktop screenshot --help`
+
 Notes: screenshots need the Desktop window in the Report view. Refresh on an instance with unsaved changes makes Desktop save first (rewrites the definition on disk). PBIX files support screenshot but not refresh. `PBIR_DESKTOP_AUTO_REFRESH=1` auto-reloads the canvas after every pbir mutation. See `desktop-integration.md` for the full workflow.
 
 ## Usage Metrics
@@ -618,7 +668,7 @@ pbir usage "Sales.Workspace" --no-datahub        # Skip the last-visited lookup
 pbir usage "Sales.Workspace" -o json             # JSON for piping
 ```
 
-A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry (internal WABI usage-metrics APIs, not part of the public REST API) — they can change or break without notice, so treat failures as expected breakage rather than bugs.
+A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry (internal WABI usage-metrics APIs, not part of the public REST API), so they can change or break without notice. Treat failures as expected breakage rather than bugs.
 
 ## Configuration and Setup
 

@@ -145,7 +145,7 @@ Report-level theme, filters, settings, and resource packages:
 - `settings` — report-level behaviour settings
 - `resourcePackages` — registered themes and images; always keep both `SharedResources` and `RegisteredResources` entries
 
-**Note:** `reportVersionAtImport` records the schema version **at the time the theme was imported**, not the report's current schema version. Values vary per theme and are managed by Power BI Desktop — do not set manually.
+**Note:** `reportVersionAtImport` records the schema version **at the time the theme was imported**, not the report's current schema version. Values vary per theme and Power BI Desktop manages them, so do not set them manually on a report Desktop maintains. A `report.json` written from scratch is the exception: the block is required there. See [report.md](./report.md), "Hand-authoring report.json".
 
 ### page.json
 
@@ -230,7 +230,30 @@ Extension measures (report-level DAX). See `measures.md` for full details.
 }
 ```
 
-**Critical:** `references.measures` must list ALL measures referenced in the DAX expression. If no extension measures exist, DELETE the file entirely -- an empty `"entities": []` causes Power BI Desktop to fail.
+**Critical:** `references.measures` must list ALL measures referenced in the DAX expression. The
+schema has no `columns` array, so a measure that depends only on columns declares
+`{"unrecognizedReferences": true}` instead. If no extension measures exist, DELETE the file entirely -- an empty `"entities": []` causes Power BI Desktop to fail.
+
+## Adding or removing pages and visuals by hand
+
+Pages and visuals are discovered differently, and the asymmetry is what trips people up.
+
+- **Visuals are discovered from the folder tree.** Any `pages/<pageId>/visuals/<name>/visual.json`
+  is picked up. There is no index of visuals anywhere, so adding one by hand means creating one
+  folder and one `visual.json`, and removing one means deleting the folder (with its `mobile.json`
+  if present). Nothing else needs editing.
+- **Pages are not.** `pages/pages.json` carries `pageOrder` and `activePageName`, and a page folder
+  that is not listed in `pageOrder` does not appear in the report. Add the new page's `name` to
+  `pageOrder` in the same change, and drop it when deleting a page.
+
+Two further ids to keep in step when adding by hand: a page or visual `name` must match its folder
+name, and it must be unique among its siblings. When the new folder is a copy of an existing one,
+see "Cloning a page or a visual" in [page.md](./page.md): every id in the copy has to be
+regenerated, filter names included.
+
+When hand-authoring, set `$schema` to the version already used by the other files of that type in
+the same report rather than the newest published version, so the report stays one matched set (see
+[schemas.md](./schemas.md)).
 
 ## Renaming Folders for Better Readability
 

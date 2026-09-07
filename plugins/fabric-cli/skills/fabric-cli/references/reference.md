@@ -7,8 +7,26 @@ Comprehensive reference for Microsoft Fabric CLI commands, flags, and patterns.
 - **One-shot**: `fab <command>` runs a single command and exits; this is the right mode for scripts, hooks, and agent invocations.
 - **Interactive REPL**: `fab` with no arguments enters a persistent session with command history, tab completion, and a current-directory model that lets `cd` / `ls` / `get` chain without re-typing paths. Toggle persistent-by-default with `fab config set mode interactive`. Avoid REPL mode in non-interactive automation; the prompts and pagination break scripted I/O.
 
+## Console encoding on Windows
+
+On a Windows console left on the default cp1252 codepage, many `fab` commands abort part-way through printing their own output with:
+
+```
+'charmap' codec can't encode character '✓' ...
+```
+
+`fab` prints Unicode glyphs that cp1252 cannot encode, so the command dies on its success output and reads as a failure even though the server-side work completed. Do not retry or work around it; export UTF-8 first:
+
+```bash
+export PYTHONIOENCODING=utf-8
+export PYTHONUTF8=1
+```
+
+The exports do not persist between separate shell invocations, so prefix every shell block that calls `fab`. Linux and macOS shells are UTF-8 by default and never hit this.
+
 ## Table of Contents
 
+- [Console encoding on Windows](#console-encoding-on-windows)
 - [Item Types](#item-types)
 - [File System Commands](#file-system-commands)
 - [ACL Commands](#acl-commands)
@@ -832,7 +850,7 @@ fab job run <item_path> [--timeout <seconds>] [--polling_interval <seconds>] [-P
 
 #### Flags
 
-- `--timeout` - Timeout in seconds
+- `--timeout` - Timeout in seconds. It can crash the client poller with `'<' not supported between instances of 'int' and 'str'` while the job still runs server-side; do not resubmit, see [notebooks.md > Running Notebooks](notebooks.md#running-notebooks)
 - `--polling_interval` - Custom job status polling interval in seconds
 - `-P, --params` - Job parameters (typed: `name:type=value`)
 - `-C, --config` - Configuration JSON (file or inline)
@@ -853,7 +871,7 @@ fab job run <item_path> [--timeout <seconds>] [--polling_interval <seconds>] [-P
 # Run notebook
 fab job run "Production.Workspace/ETL.Notebook"
 
-# Run with timeout
+# Run with timeout (read the --timeout poller caveat under Flags above first)
 fab job run "Production.Workspace/LongProcess.Notebook" --timeout 300
 
 # Run with parameters
@@ -1464,8 +1482,11 @@ fab job run-status "Production.Workspace/ETL.Notebook" --id <job-id>
 # View job history for patterns
 fab job run-list "Production.Workspace/ETL.Notebook"
 
-# Run with timeout to prevent hanging
-fab job run "Production.Workspace/ETL.Notebook" --timeout 300
+# Bound a long-running job by polling, not with --timeout. --timeout can crash the client
+# poller with "'<' not supported between instances of 'int' and 'str'" while the job keeps
+# running server-side; do not resubmit, see notebooks.md > Running Notebooks
+JOB_ID=$(fab job start "Production.Workspace/ETL.Notebook" | grep -o '"id": "[^"]*"' | cut -d'"' -f4)
+fab job run-status "Production.Workspace/ETL.Notebook" --id "$JOB_ID"
 ```
 
 ### API Errors

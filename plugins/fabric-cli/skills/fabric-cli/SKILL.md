@@ -113,6 +113,7 @@ are per-machine and per-user.
 ## Critical general rules
 
 - IMPORTANT: The first time you use `fab` run check that it is up to date to the latest version (upgrade with `uv tool upgrade ms-fabric-cli` unless the user has pinned a version) and run `fab auth status`; If user isn't authenticated, ask them to run `fab auth login`
+- On a Windows console left on the cp1252 codepage, `fab` dies part-way through its own output with `'charmap' codec can't encode character` even though the server-side work succeeded; export `PYTHONIOENCODING=utf-8` and `PYTHONUTF8=1` in every shell block that calls `fab` (details in [reference.md](./references/reference.md#console-encoding-on-windows)). Linux and macOS never hit this
 - Always use `fab --help` and `fab <command> --help` the first time you use a command to understand its syntax
 - You must search the skill /references/ for relevant reference files that explain certain commands, examples, scripts, or workflows before you start using `fab`
 - Before first use, ask the user if they have Fabric admin access, sensitivity labels or DLP policies, any API restrictions, or preferences for Fabric/Power BI API usage; remind user to add this to memory files
@@ -172,6 +173,7 @@ You must read and understand the common list of operations with simple examples
 15. Using [Azure CLI](./references/fab-vs-az-cli.md) (advanced) when Fabric CLI doesn't suffice:
     - T-SQL over any SQL-capable item ; use [`scripts/query_sql_endpoint.py`](./scripts/query_sql_endpoint.py) (reuses `az login` via `ActiveDirectoryAzCli`; full walkthrough in [querying-data.md](./references/querying-data.md#sqlcmd-over-lakehouse-warehouse-and-sql-database))
     - Pass a Key Vault secret to a consumer without ever reading, echoing, or persisting it: `az login --service-principal -u <appId> -t <tenantId> --password "$(az keyvault secret show --vault-name <vault> --name <secret> --query value -o tsv)"` ; command substitution pipes the secret directly into the child process arg list, never stdout, a file, or a named shell variable
+    - Calling `az` from a Python script on Windows needs two accommodations that Linux and macOS do not: resolve the executable with `shutil.which("az")` so `PATHEXT` is honoured, and pass the command as one string with `shell=True` under Git Bash ; [fab-vs-az-cli.md](./references/fab-vs-az-cli.md#calling-az-from-a-script)
     - Full fab-vs-az decision matrix: [fab-vs-az-cli.md](./references/fab-vs-az-cli.md)
 
 
@@ -500,7 +502,7 @@ Flags:
 - `-P key:type=value` (parameters, type is `string|int|bool`)
 - `--id` (job run ID)
 - `-w` (wait on cancel)
-- `--timeout` (overall timeout for synchronous runs)
+- `--timeout` (overall timeout for synchronous runs; it can crash the client poller with `'<' not supported between instances of 'int' and 'str'` while the job still runs server-side, so do not resubmit, see [notebooks.md](./references/notebooks.md#running-notebooks))
 - `--polling_interval` (status poll cadence)
 
 Jobs map to different endpoints depending on item type:
@@ -597,6 +599,7 @@ Every Fabric item has a serializable definition. Move definitions between enviro
 
 - Single item:
   - Round-trip locally: `fab export` then `fab import` (always `mkdir -p` the output directory first; `fab export` does not create intermediate directories and fails with `[InvalidPath]`)
+    - For a `.SemanticModel` there is a second caveat: `fab export` omits `definition.pbism` and `fab import` requires it, so write `{"version":"4.2","settings":{}}` to the item root before importing or the import fails with `Workload_FailedToParseFile ... Required artifact is missing in 'definition.pbism'`; see [import-download-deploy.md](./references/import-download-deploy.md#export-output-structure)
   - Same-tenant shortcut, no local hop: `fab cp "dev/Item" "prod.Workspace"`
 - Semantic model as PBIP (TMDL + blank report):
   - Export the model with `fab export`, create the report with `pbir new report`, then combine
@@ -615,7 +618,7 @@ Check references before deploying:
 - [import-download-deploy.md](./references/import-download-deploy.md) ; export / import / copy / move, PBIP round-trips, migration patterns, rebinding gotchas
 - [deployment-pipelines.md](./references/deployment-pipelines.md)
 - [semantic-models.md](./references/semantic-models.md)
-- [reports.md](./references/reports.md)
+- [reports.md](./references/reports.md) ; includes the server-side `ExportTo` render for verifying a deployed report without Power BI Desktop
 - [paginated-reports.md](./references/paginated-reports.md)
 - [notebooks.md](./references/notebooks.md)
 - [workspaces.md](./references/workspaces.md)
@@ -630,6 +633,7 @@ Check references before deploying:
 - **IMPORTANT:** DON'T try to use `fab ls` on items that aren't data items (.Lakehouse, .Warehouse, etc); use `fab ls` to find workspaces and items, and use `fab get` to look at definitions
 - ALWAYS Use the `-f` flag when using `fab get`, `fab import`, `fab export`, etc. as described above
 - ONLY fallback to `fab api` when a command doesn't exist
+- **`fab api` returns a `{status_code, text}` envelope, not the raw body:** `-q` filters must start with `text.` or they silently return `None`, there is no `-o` flag (redirect stdout), and binary bodies (PDF, PNG, XLSX, PBIX, `.rdl`) are corrupted, so fetch files over raw HTTP with an `az` bearer token. See [fab-api.md](./references/fab-api.md#output-shape-and-flags)
 - **Definition changes feel slow but aren't:** `fab import` / `nb create` / `nb cell edit` take 25-60s to push a notebook definition only because they poll the LRO at the server's `Retry-After: 20`. The work is ~1s. Use [`scripts/deploy_notebook.py`](./scripts/deploy_notebook.py) (tight-polls at ~0.3s) for definition changes; the poll interval is the single biggest lever
 
 ## References
@@ -661,7 +665,7 @@ governance / deploy
 - [Warehouses](./references/warehouses.md) - Create, browse, query via DuckDB, load data
 - [SQL Databases](./references/sql-databases.md) - Create, browse, query via DuckDB, auto-mirroring
 - [Semantic Models](./references/semantic-models.md) - TMDL, DAX, refresh, storage mode
-- [Reports](./references/reports.md) - Export, import, visuals, fields
+- [Reports](./references/reports.md) - Export, import, visuals, fields, and the server-side `ExportTo` render that substitutes for a Power BI Desktop screenshot where Desktop is unavailable
 - [Paginated Reports](./references/paginated-reports.md) - RDL upload, export-to-file, datasources, parameters
 - [Notebooks](./references/notebooks.md) - Python/PySpark kernels, metadata, cell CRUD, Livy execution, scheduling
 - [Workspaces](./references/workspaces.md) - Create, manage, permissions

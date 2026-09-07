@@ -47,6 +47,24 @@ Array of sort specifications. Each entry defines:
 - `"Descending"` - Largest to smallest
 - `"Ascending"` - Smallest to largest
 
+### Extension measures in sortDefinition
+
+A sort field that points at a report-level extension measure must carry `"Schema": "extension"`
+inside its `SourceRef`, exactly as a `queryState` projection does. The worked examples on this page
+sort by model measures and columns, so they cannot be copied as-is for an extension measure.
+
+```json
+"field": {
+  "Measure": {
+    "Expression": {"SourceRef": {"Schema": "extension", "Entity": "activities"}},
+    "Property": "Active Users"
+  }
+}
+```
+
+Omitting it is silent locally and errors per visual once published. See
+[measures.md](./measures.md), "Every reference needs the tag, sorts included".
+
 ### sortDefinition.isDefaultSort (boolean)
 - `true` - Marks this as the default sort (Power BI may reset it to this when users clear their custom sort)
 - `false` or omitted - The sort array is applied as-is without the "default" flag; programmatic sorts often omit this property

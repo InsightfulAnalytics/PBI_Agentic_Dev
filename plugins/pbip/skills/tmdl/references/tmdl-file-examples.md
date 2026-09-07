@@ -18,7 +18,7 @@ All examples reference the SpaceParts model in `examples/SpaceParts.SemanticMode
 | Fact table | `definition/tables/Invoices.tmdl` | 51 measures (single-line + multi-line DAX), 18 columns, `formatString`, `displayFolder` nesting, `///` descriptions |
 | Calculated table | `definition/tables/__Measures.tmdl` | Measure-only table, `partition = calculated`, `source = {1}` |
 | Date table | `definition/tables/Date.tmdl` | `dataCategory: Time`, calculated table with extensive DAX, boolean flags, sort columns |
-| Calc group | `definition/tables/Z04CG1 - Time Intelligence.tmdl` | `calculationGroup`, `calculationItem` with backtick DAX, `precedence` |
+| Calc group | `definition/tables/Z04CG1 - Time Intelligence.tmdl` | `calculationGroup`, `calculationItem` with backtick DAX, `precedence`. Any calculation group also requires `discourageImplicitMeasures` on the `model` object in `model.tmdl` (`references/authoring-gotchas.md`) |
 | Calc group (UDFs) | `definition/tables/Z04CG1 - Time Intelligence - UDFs.tmdl` | Calc items calling DAX UDFs from `functions.tmdl` |
 | Field parameter | `definition/tables/1) Selected Metric.tmdl` | `NAMEOF`, sort-by pattern, 3-column structure |
 | SVG measures | `definition/tables/__SVGs.tmdl` | SVG DAX measures with backtick-enclosed expressions |

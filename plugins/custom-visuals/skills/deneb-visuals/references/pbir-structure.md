@@ -167,6 +167,24 @@ Fields are bound under `visual.query.queryState.dataset.projections`. Each proje
 
 Field names in Vega-Lite encoding channels must match the display label: `displayName` when set, otherwise `nativeQueryRef`.
 
+A renamed field therefore carries all four keys. To feed a spec that references `datum['Amount']` from a measure actually named `NM Amount`, `nativeQueryRef` holds the real model name and `displayName` holds the name the spec sees:
+
+```json
+{
+  "field": {
+    "Measure": {
+      "Expression": {"SourceRef": {"Entity": "Financials"}},
+      "Property": "NM Amount"
+    }
+  },
+  "queryRef": "Financials.NM Amount",
+  "nativeQueryRef": "NM Amount",
+  "displayName": "Amount"
+}
+```
+
+Pointing `nativeQueryRef` at the name the spec wants and omitting `displayName` does not rename anything, and the mistake reports through none of the three channels an agent would check: no error in Power BI Desktop, nothing from `pbir validate`, nothing in Deneb's own log. The query runs, the fields arrive under their native names, every spec reference resolves to undefined, and a null-guarded spec draws an intact skeleton with all-blank cells. Check this pairing before debugging the spec whenever a Deneb visual renders its frame but no marks.
+
 ### Sort Definition
 
 ```json

@@ -94,6 +94,25 @@ metadata, not from server timings, so none of the above give them. Use `te verti
 headless) or DAX Studio's VertiPaq Analyzer. That is a Tier 3 concern; see
 [MDL003](./model-optimization.md#mdl003-column-cardinality-and-data-type-optimization).
 
+**Dynamic format strings are not in the trace either.** An ADOMD or `EVALUATE` run returns raw values
+and never evaluates `formatStringDefinition`: formatting is a presentation concern and a bare query has
+no presentation layer. A rendered visual evaluates the format string once per cell. The expensive shape
+is a format string that references the measure it formats, `Fmt.Money ( [X] )`: the cell evaluates `[X]`
+for the value, then the format string evaluates `[X]` again to decide how to print it, and that second
+evaluation is in no plan captured with `EVALUATE`. Measured 2026-08-24 in the reference lab: the same
+182-cell grid, warm both times, went from **622 ms** with a static `formatString` to **1,270 ms** with a
+dynamic format string referencing its own measure. Roughly a doubling from one property.
+
+Test it rather than assume it: swap `formatStringDefinition` for a static `formatString` and re-time the
+visual, not the query. `SELECTEDMEASURE()` does not re-evaluate the measure by name and is the cheap
+shape. With a calculation group in play the cost moves to the winning calc item's format string, so a
+measure-level swap will not reproduce it (`semantic-models:semantic-model`,
+`references/calculation-groups.md`). The generalisation outlives the property: a clean DAX profile is
+evidence about the query layer only, not about the visual. The full per-cell cost model, including
+dispatch and `IFERROR` overheads, is in `custom-visuals:performant-matrix`, `references/per-cell-tax.md`.
+
+Retest: the A/B above, a static `formatString` against `formatStringDefinition` on the same visual, warm both ways. Verified 2026-08-24.
+
 ---
 
 ## Phase 1: Establish Baseline
@@ -216,7 +235,7 @@ Before proceeding:
 - **Connection failure** — Verify dataset name, workspace name, or XMLA endpoint. For Desktop, ensure Power BI Desktop is running and note the local port. For Service, verify XMLA read/write is enabled on the capacity.
 - **Query syntax error** — Validate DAX syntax before executing.
 - **Semantic equivalence failure** — Optimization changed calculation semantics. Review filter context, aggregation granularity, and CALCULATE filter arguments. Revert and try differently.
-- **No improvement found** — Some queries are already well-optimized at the DAX level. Check whether the bottleneck is data layout (Phase 4) or query structure (Phase 3).
+- **No improvement found**: some queries are already well-optimized at the DAX level. Check whether the bottleneck is data layout (Phase 4), query structure (Phase 3), or the presentation layer: a dynamic format string is evaluated once per rendered cell and never appears in a DAX trace (see [Trace Capture Methods](#trace-capture-methods)).
 - **Trace events empty** — Ensure server timing / trace capture is enabled before executing the query. Verify the trace is subscribed to the correct event types (`QueryEnd`, `VertiPaqSEQueryEnd`, `VertiPaqSEQueryCacheMatch`).
 
 ---

@@ -23,6 +23,17 @@ Dataflows come in two generations with completely different API surfaces. Gen1 d
 
 All Gen1 endpoints require the `-A powerbi` audience flag and operate under the `groups/<ws-id>/dataflows` path.
 
+### Create a Gen1 dataflow
+
+There is no `fab` command and no dedicated create endpoint. Post the `model.json` to the workspace import endpoint as multipart, with `model.json` supplied as a form file. Verified 2026-07-05.
+
+```
+POST groups/{ws}/imports?datasetDisplayName=model.json&nameConflict=Abort
+```
+
+- **`pbi:mashup.allowNativeQueries` must be `false` in the posted `model.json`**, or the import is rejected. That is the opposite of the value shown under [Update Dataflow Properties](#update-dataflow-properties) below, which patches an existing dataflow: the constraint is on import only.
+- `nameConflict` accepts only `Abort` or `GenerateUniqueName` for dataflows. The other values valid for datasets are rejected here.
+
 ### List Dataflows
 
 ```bash
@@ -61,6 +72,14 @@ fab api -A powerbi -X patch "groups/$WS_ID/dataflows/$DF_ID" -i '{
 ```
 
 Valid `computeEngineBehavior` values: `computeOptimized`, `computeOn`, `computeDisabled`.
+
+### DirectQuery over a Gen1 dataflow: three prerequisites
+
+All three are required, and a missing one leaves the dataflow un-queryable in DirectQuery mode with no clear message. Verified 2026-07-05.
+
+1. **Enhanced compute engine On.** `PATCH groups/{ws}/dataflows/{id}` with `{"computeEngineBehavior":"computeOn"}`, as above. `computeEngineBehavior` is not a `model.json` property, so it cannot be set at import time.
+2. **Premium or Fabric capacity** on the workspace.
+3. **A refresh AFTER enabling the engine.** The compute engine only materialises the DirectQuery-capable form on the next refresh, so a dataflow that was refreshed before step 1 stays unusable. This is the one that wastes a debugging cycle: enabling the engine on an already-refreshed dataflow looks like it worked and does not.
 
 ### Delete Dataflow
 
@@ -131,7 +150,7 @@ fab api -A powerbi -X patch "groups/$WS_ID/dataflows/$DF_ID/refreshSchedule" -i 
 }'
 ```
 
-Day values: `Sunday` through `Saturday`. Times use 24-hour `HH:mm` format.
+Day values: `Sunday` through `Saturday`. Times use 24-hour `HH:mm` format. The `value` wrapper is the same shape as for semantic models. The half-hour and standalone-disable rules are documented for semantic models and untested here, so try them first when a PATCH returns 400: [semantic-models.md > refreshSchedule constraints](./semantic-models.md#refreshschedule-constraints).
 
 ### Migrate Gen1 to Gen2
 
@@ -452,6 +471,24 @@ Gen2 dataflows use Fabric item-level scopes: `Workspace.ReadWrite.All` or `Item.
 - DirectQuery via the dataflow connector requires Premium capacity
 - No native Git integration or Monitoring Hub support
 - Refresh triggers return no transaction ID; identify the active transaction by polling and sorting by timestamp
+
+#### Query folding limits in DirectQuery over a dataflow
+
+Verified 2026-07-05.
+
+- **One non-folding measure errors the whole table visual**, not just its own column, so the broken column is rarely the one being looked at. Isolate by removing measures one at a time.
+- `AVERAGEX(..., DATEDIFF(...))` does not fold and returns error `10704`.
+- `MEDIANX`, `RANKX(ALL(...))`, `SUMX(FILTER(...))` and `DISTINCTCOUNT` do fold, but expensively. That makes them useful on purpose, as CU-burn load tests against a capacity.
+
+#### Desktop cannot open a DirectQuery-over-dataflow PBIP unattended
+
+Opening a PBIP whose model is DirectQuery over a dataflow fails with:
+
+```
+Cannot load model ... The key didn't match any rows
+```
+
+which reads as model corruption and is not. The `PowerPlatform.Dataflows` source has to be authorized once in Power BI Desktop through **Transform data > Data source settings**, and that authorization is manual and cannot be scripted. So Desktop is not a usable measurement or verification harness for this model shape in an automated run, on any platform. Measure the slow load through the service `executeQueries` endpoint instead ([querying-data.md](./querying-data.md)), and verify rendering server-side with the `ExportTo` API ([reports.md](./reports.md#server-side-render-for-headless-visual-verification)).
 
 ### Gen2
 

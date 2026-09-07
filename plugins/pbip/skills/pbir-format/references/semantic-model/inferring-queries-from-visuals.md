@@ -90,6 +90,7 @@ SUMMARIZECOLUMNS(
 | pivotTable (matrix) | Rows, Columns | Values |
 | Scatter | Category | X, Y, Size, Tooltips |
 | multiRowCard | Values (dims) | Values (measures) |
+| decompositionTreeVisual | ExplainBy | Analyze |
 
 ### 3. Filters → Variables
 

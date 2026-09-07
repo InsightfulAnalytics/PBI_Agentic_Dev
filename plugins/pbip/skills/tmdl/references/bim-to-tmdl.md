@@ -28,6 +28,8 @@ $tmdlFolder = "C:\path\to\MyModel.SemanticModel\definition"
 
 Requires a recent `Microsoft.AnalysisServices.retail.amd64` NuGet package. If `TmdlSerializer` is not found, update the package or use Tabular Editor CLI instead.
 
+`TmdlSerializer` resolving but throwing `UnsupportedObjectType` on `function` is a different problem, and not a broken model: the assembly predates DAX user-defined functions. See `references/authoring-gotchas.md`, `## DAX UDFs need compatibility level 1702`, for the version check and the copy-and-strip workaround.
+
 ## Converting Back (TMDL to BIM)
 
 ```bash

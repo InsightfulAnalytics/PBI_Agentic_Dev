@@ -22,15 +22,16 @@ Add-Type -Path "$env:TEMP\tom_nuget\Microsoft.AnalysisServices.AdomdClient.retai
 if ($Port -eq 0) {
     $portFiles = Get-ChildItem "$env:LOCALAPPDATA\Microsoft\Power BI Desktop\AnalysisServicesWorkspaces\*\Data\msmdsrv.port.txt" -ErrorAction SilentlyContinue
     if (-not $portFiles) {
-        $portFiles = Get-ChildItem "C:\Users\*\Microsoft\Power BI Desktop Store App\AnalysisServicesWorkspaces\*\Data\msmdsrv.port.txt" -ErrorAction SilentlyContinue
+        $portFiles = Get-ChildItem "$env:USERPROFILE\Microsoft\Power BI Desktop Store App\AnalysisServicesWorkspaces\*\Data\msmdsrv.port.txt" -ErrorAction SilentlyContinue
     }
     if ($portFiles) {
         $Port = [int](Get-Content $portFiles[0].FullName).Trim()
     } else {
         $pids = (Get-Process msmdsrv -ErrorAction SilentlyContinue).Id
         if ($pids) {
-            $lines = netstat -ano | Select-String "LISTENING" | Where-Object { $pids -contains ($_ -split "\s+")[-1] }
-            $Port = [int](($lines[0] -split "\s+")[2] -replace ".*:")
+            $Port = [int](Get-NetTCPConnection -State Listen |
+                Where-Object { $pids -contains $_.OwningProcess } |
+                Select-Object -First 1 -ExpandProperty LocalPort)
         }
     }
     if ($Port -eq 0) { Write-Error "Cannot find Analysis Services port."; exit 1 }

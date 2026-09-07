@@ -137,6 +137,31 @@ fab ln "ws.Workspace/LH.Lakehouse/Tables/ext.Shortcut" --type adlsGen2 -i ./shor
 
 `--type` accepts `oneLake`, `adlsGen2`, `amazonS3`, `googleCloudStorage`, `dataverse`, `s3Compatible`; external types need a `-i` JSON body carrying the location subpath and connection GUID. Deleting a shortcut (`fab rm`) removes the reference, never the underlying data. Fall back to the raw `POST workspaces/{ws}/items/{lh}/shortcuts` API only for options `fab ln` doesn't expose, such as `shortcutConflictPolicy` (a query parameter, not a body field). See [reference.md](./reference.md#ln-mklink---create-shortcuts) for the full command.
 
+### Headless ADLS Gen2 shortcut, end to end
+
+An external shortcut needs a `connectionId`, and the obvious way to get one is an OAuth2 connection, which cannot be created through the API at all. Use the workspace identity instead and the whole chain runs with no browser consent. Verified 2026-08-07.
+
+1. **Provision the workspace identity.**
+
+   ```bash
+   fab api -X post "workspaces/$WS_ID/provisionIdentity"
+   ```
+
+   Returns 202; poll `GET workspaces/$WS_ID` for `workspaceIdentity`.
+
+2. **Grant that identity Storage Blob Data Reader on the storage account.** An ARM role assignment, reachable through `fab api -A azure` as the fab identity (see [fab-vs-az-cli.md](./fab-vs-az-cli.md#fab-api--a-azure-arm-as-the-fab-identity)). Propagation was under a minute.
+
+3. **Create the shareable cloud connection**, `connectionDetails.type` `AzureDataLakeStorage`, `creationMethod` `AzureDataLakeStorage`, parameters `server=https://<acct>.dfs.core.windows.net` and `path=<container>`, `credentialType` `WorkspaceIdentity`. See [connections.md](./connections.md#with-workspaceidentity-no-secrets-needed).
+
+   A **201 means the live connection test passed**, so the identity really can reach the storage account. This is the checkpoint worth watching: if the role assignment has not propagated, it fails here rather than leaving a broken shortcut behind.
+
+4. **Create the shortcut** with the `connectionId` the previous step returned.
+
+   ```
+   POST workspaces/{ws}/items/{lakehouse}/shortcuts
+   {"path":"Files","name":"<n>","target":{"adlsGen2":{"location":"https://<acct>.dfs.core.windows.net","subpath":"/<container>/<dir>/...","connectionId":"<connection-id>"}}}
+   ```
+
 ## Querying Lakehouse Data
 
 Query lakehouse Delta tables and raw files directly using DuckDB with the `delta` and `azure` extensions. This reads from OneLake's ADLS Gen2-compatible endpoint; no semantic model required.

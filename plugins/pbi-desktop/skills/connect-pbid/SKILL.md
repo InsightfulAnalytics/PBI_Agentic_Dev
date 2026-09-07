@@ -131,8 +131,10 @@ Full loop on an open PBIP: change the model with TOM here, change visuals with `
 - A workspace engine reporting `Databases: 0` belongs to a thin report (live connection to a remote model); there is no local model to connect to. Query thin reports through their remote model instead (`pbir model -q` routes there automatically)
 - Always use a timeout of 60000ms or higher for PowerShell commands via Bash
 - **Shell escaping**: Bash eats PowerShell `$` variables (`$env:TEMP`, `$server`, etc.) silently. Two options: (1) single-quote the `-Command` arg so Bash passes `$` literally to PowerShell; (2) write a `.ps1` file with a heredoc (single-quoted delimiter preserves `$`) and use `-File`. On macOS via Parallels, the `prlctl` -> `cmd.exe` -> `powershell.exe` chain adds extra escaping layers; `.ps1` files are more reliable for complex scripts but inline `-Command` with single quotes works for short commands.
+- **Pass DAX into PowerShell as a single-quoted here-string.** A bracketed measure name (`[Total Revenue]`) parses as an attribute or type literal and `{}` as a script block, so DAX in an ordinary PowerShell string breaks. `@'...'@` is fully literal and fixes both; the closing `'@` must sit at column 0 on its own line or it is a parse error. Use `@'...'@`, not `@"..."@`, unless variable expansion is genuinely wanted. When the DAX has to go on a command line rather than into a variable, `--%` is the stop-parsing token (Windows PowerShell 5.1; omit it in bash or PowerShell 7+).
 - **Always use `-ExecutionPolicy Bypass`** when running PowerShell commands or scripts. Windows blocks unsigned scripts by default.
 - **Script file location** -- persistent scripts should go in the agent harness's scripts directory for the project (`.claude/scripts/`, `.github/scripts/`, `.cursor/scripts/`, `.gemini/scripts/`, etc. depending on the harness). Ephemeral or throwaway scripts should go in a project `tmp/` directory (which should be `.gitignored`). Do not write scripts to `./` root or `/tmp/`.
+- **The Desktop process has its own rules, and two of them destroy work.** An on-disk edit made while Desktop holds the project is silently reverted when Desktop closes, and force-killing Desktop after a save truncates `.pbi\cache.abf` mid-write (the next open then fails with `DecoderCorruptedData`, which reads like model corruption and is not). Check `pbir desktop list` before any bulk edit, and read [desktop-lifecycle.md](./references/desktop-lifecycle.md) before closing, killing or editing around an open instance. Windows and Desktop only; where Desktop is unavailable, that file names the server-side render and offline-validate substitutes.
 - Do not modify model metadata without explicit user direction
 - Always call `$model.SaveChanges()` to persist modifications; without it, changes are discarded
 - For macOS users running PBI Desktop in Parallels, see [parallels-macos.md](./references/parallels-macos.md)
@@ -145,11 +147,13 @@ Full loop on an open PBIP: change the model with TOM here, change visuals with `
 |-------------|-------------|
 | **Power BI Desktop** | Open with a model loaded (`.pbix` or `.pbip`) |
 | **PowerShell** | Available on the machine running PBI Desktop |
-| **NuGet CLI** | For package installation (`winget install Microsoft.NuGet`) |
+| **NuGet CLI** | For package installation (`winget install Microsoft.NuGet`), only if the probe below finds nothing |
 | **TOM NuGet Package** | `Microsoft.AnalysisServices.retail.amd64` -- model metadata |
 | **ADOMD.NET Package** | `Microsoft.AnalysisServices.AdomdClient.retail.amd64` -- DAX queries |
 
-Install both packages only if not already present:
+**Probe before installing.** A Windows machine running Power BI tooling has usually shipped these assemblies already, and reusing one avoids a NuGet dependency the machine may not have. Probe `$env:ProgramFiles` for `Microsoft.AnalysisServices.AdomdClient.dll` and `Microsoft.AnalysisServices.Tabular.dll`, then check the hit's target framework against the host that will load it: see [assembly-discovery.md](./references/assembly-discovery.md).
+
+Install both packages only if the probe finds nothing usable:
 
 ```powershell
 $pkgDir = "$env:TEMP\tom_nuget"
@@ -163,7 +167,7 @@ if (-not (Test-Path "$pkgDir\Microsoft.AnalysisServices.AdomdClient.retail.amd64
 
 Packages install DLLs under `lib\net45\`. Load with `Add-Type -Path`.
 
-> **If a TOM operation fails** with a compatibility level error or missing type, the `.retail.amd64` package may be too old. A newer package (`Microsoft.AnalysisServices`, .NET 8+) ships with more recent TOM features. See [daxlib.md](./references/daxlib.md) for details on package differences.
+> **If a TOM operation fails** with a compatibility level error or missing type, the `.retail.amd64` package may be too old. The newer unified `Microsoft.AnalysisServices` package ships more recent TOM features, but it needs a matching host: `pwsh` 7 or a `net8.0` project, never Windows PowerShell 5.1, which throws `ReflectionTypeLoadException: Unable to load one or more of the requested types` on a .NET 8 assembly. See [assembly-discovery.md](./references/assembly-discovery.md) for the host/framework table and [daxlib.md](./references/daxlib.md) for package differences.
 
 
 ## 2. Quickstart
@@ -171,14 +175,16 @@ Packages install DLLs under `lib\net45\`. Load with `Add-Type -Path`.
 Find the port, load TOM, connect, enumerate -- in one script:
 
 ```powershell
-# Find ports (deduped; netstat lists IPv4 and IPv6 entries per port)
-$pids = (Get-Process msmdsrv -ErrorAction SilentlyContinue).Id
-$ports = netstat -ano | Select-String "LISTENING" |
-    Where-Object { $pids -contains ($_ -split "\s+")[-1] } |
-    ForEach-Object { ($_ -split "\s+")[2] -replace ".*:" } |
-    Select-Object -Unique
+# Find ports. Get-NetTCPConnection returns objects with a typed OwningProcess and
+# LocalPort, so no text splitting and no IPv4/IPv6 de-duplication is needed.
+# An empty $ports is the correct signal that Desktop is not open.
+$pids  = (Get-Process msmdsrv -ErrorAction SilentlyContinue).Id
+$ports = Get-NetTCPConnection -State Listen |
+    Where-Object { $pids -contains $_.OwningProcess } |
+    Select-Object -ExpandProperty LocalPort -Unique
 
-# Load TOM
+# Load TOM. Substitute the lib\<tfm> folder the section 1 probe found, if it found one
+# (see references/assembly-discovery.md); otherwise this is the NuGet layout.
 $basePath = "$env:TEMP\tom_nuget\Microsoft.AnalysisServices.retail.amd64\lib\net45"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Core.dll"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Tabular.dll"
@@ -211,7 +217,9 @@ $server.Disconnect()
 |--------|-------------|---------|
 | Port file | Non-Store PBI Desktop | `Get-Content "$env:LOCALAPPDATA\Microsoft\Power BI Desktop\AnalysisServicesWorkspaces\*\Data\msmdsrv.port.txt"` |
 | Port file | Store PBI Desktop | `Get-Content "$env:LOCALAPPDATA\Packages\Microsoft.MicrosoftPowerBIDesktop_*\LocalState\AnalysisServicesWorkspaces\*\Data\msmdsrv.port.txt"` |
-| netstat | Any | `netstat -ano \| findstr LISTENING \| findstr <PID>` |
+| Listening ports | Any | `$pids = (Get-Process msmdsrv -ErrorAction SilentlyContinue).Id; Get-NetTCPConnection -State Listen \| Where-Object { $pids -contains $_.OwningProcess }` |
+
+Prefer `Get-NetTCPConnection` over parsing `netstat -ano` text: it is the same cmdlet section 2a uses to map ports to PIDs, and it avoids both the positional whitespace splitting and the duplicate IPv4/IPv6 rows netstat prints per port.
 
 
 ## 2a. Correlating Ports to Reports (Multiple Instances)
@@ -235,6 +243,7 @@ An engine reporting `Databases: 0` is a thin report's workspace; no local model 
 ### Load Assemblies
 
 ```powershell
+# Or the lib\<tfm> folder the section 1 probe found: see references/assembly-discovery.md
 $basePath = "$env:TEMP\tom_nuget\Microsoft.AnalysisServices.retail.amd64\lib\net45"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Core.dll"
 Add-Type -Path "$basePath\Microsoft.AnalysisServices.Tabular.dll"
@@ -460,6 +469,14 @@ For complete TOM object type tables, PowerShell reflection patterns for discover
 
 Before saving measure/column expressions, validate them by test-executing against the live model. This catches syntax errors, missing column references, and circular dependencies without persisting bad metadata.
 
+**Validating a *rewrite* takes more than this.** Desktop holds its own in-memory copy of the model,
+so an `EVALUATE` issued straight after a TMDL edit on disk returns the **old** result and the rewrite
+looks like it did nothing. Redefine the candidate in the query with `DEFINE MEASURE` and select the
+live measure and the candidate side by side in one `ROW()`: see
+[dax-expressions.md](./references/dax-expressions.md#testing-a-rewritten-measure-before-desktop-picks-up-the-disk-edit).
+Watch the harness too, a `FILTER ( VALUES ( ... ) )` used to sample rows silently redefines an
+`ALLSELECTED` measure ([dax-pitfalls.md](./references/dax-pitfalls.md#traps-in-the-test-query-itself)).
+
 ```powershell
 # Validate a DAX expression before adding it as a measure
 $testExpr = "SUM('Sales'[Amount]) / COUNTROWS('Sales')"
@@ -557,9 +574,9 @@ foreach ($m in ($model.Tables | ForEach-Object { $_.Measures })) {
 
 TOM does not expose the `.pbix`/`.pbip` file path directly.
 
-**Primary method — Desktop bridge:** `pbir desktop list` reports the exact file each running instance has open (requires the `pbir` CLI and the "external tool access" preview feature; see Section 2a). Use the methods below only when that is unavailable.
+**Primary method, the Desktop bridge:** `pbir desktop list` reports the exact file each running instance has open (requires the `pbir` CLI and the "external tool access" preview feature; see Section 2a). Use the methods below only when that is unavailable.
 
-**Fallback — FileHistory in User.zip (works for Store and non-Store):**
+**Fallback, FileHistory in User.zip (works for Store and non-Store):**
 
 ```powershell
 # Read the most recently opened file from PBI Desktop's settings
@@ -583,17 +600,17 @@ $files | Select-Object filePath, lastAccessedDate | Format-Table -AutoSize
 
 The first entry is the most recently opened file. Files on the Mac (via Parallels) appear as `\\Mac\Home\...` paths.
 
-> **Limitation:** This is an imperfect method — it reads recent file history, not the currently open file. If multiple PBI Desktop instances are open, or the most recently accessed file in history isn't the one currently open, the result may be wrong. Confirm with the user if there is any ambiguity.
+> **Limitation:** This is an imperfect method: it reads recent file history, not the currently open file. If multiple PBI Desktop instances are open, or the most recently accessed file in history isn't the one currently open, the result may be wrong. Confirm with the user if there is any ambiguity.
 
-**Fallback — window title (non-Store PBI Desktop only):**
+**Fallback, window title (non-Store PBI Desktop only):**
 
 ```powershell
 Get-Process PBIDesktop -ErrorAction SilentlyContinue | Select-Object Id, MainWindowTitle
 ```
 
-> **Note:** Store PBI Desktop (from Microsoft Store / WindowsApps) does not expose the file path in the window title — use the User.zip method above instead.
+> **Note:** Store PBI Desktop (from Microsoft Store / WindowsApps) does not expose the file path in the window title. Use the User.zip method above instead.
 
-**Fallback — msmdsrv command line (gives workspace path, not file path):**
+**Fallback, msmdsrv command line (gives workspace path, not file path):**
 
 ```powershell
 # Useful for finding the port; does NOT reveal the source file path
@@ -620,13 +637,15 @@ For syntax, structure, and editing patterns for these files, load the relevant s
 
 ### Reloading External File Edits
 
-Power BI Desktop does **not** watch for external file changes; edits made on disk while a report is open are silently ignored or overwritten on the next Desktop save. To apply changes, in order of preference:
+The rule is **do not leave Desktop's in-memory copy and the disk copy diverging**. An edit made on disk while Desktop holds the project, and never applied, is silently reverted when Desktop closes: it takes the model too, it produces no warning, and the eventual symptom is a query failing with "The value for 'X' cannot be determined". So after any on-disk edit, apply it into the running instance before touching the canvas again. In order of preference:
 
-1. **TOM modifications** (`$model.SaveChanges()`) apply to the running instance immediately. Prefer this for model metadata.
-2. **PBIR report-definition edits** (pages, visuals) hot-reload into the open canvas with `pbir desktop refresh "Report.Report"` (PBIP/PBIR only, not `.pbix`; requires the preview feature). Theme JSON edits under StaticResources do NOT hot-reload; close and reopen instead. If the instance has unsaved changes, Desktop saves first and may overwrite the on-disk edit.
-3. **Everything else** (TMDL edits on disk, theme files, `.pbix`): close Power BI Desktop, edit, reopen.
+1. **TOM modifications** (`$model.SaveChanges()`) apply to the running instance immediately. Prefer this for model metadata; nothing on disk diverges in the first place.
+2. **Apply external changes** (Desktop 26.08+, PBIP/PBIR only). Edit PBIR or TMDL on disk and Desktop shows a banner with an **Apply external changes** button that reloads the whole project in place, model included. It is a plain WPF button and is scriptable through UIAutomation. It does not depend on the local-API preview feature, so it works where the Desktop Bridge does not.
+3. **PBIR report-definition edits** (pages, visuals) hot-reload into the open canvas with `pbir desktop refresh "Report.Report"` (PBIP/PBIR only, not `.pbix`; requires the preview feature; the Desktop Bridge `file.reload/v1` method, see section 13). Theme JSON edits under StaticResources do NOT hot-reload. If the instance has unsaved changes, Desktop saves first and may overwrite the on-disk edit.
+4. **Everything else** (theme files, `.pbix`, a Desktop build older than 26.08): close Power BI Desktop, edit, reopen. Close it gracefully; never `Stop-Process -Force` after a save.
 
-For **report** (PBIR) files specifically, the Desktop Bridge reloads on-disk edits into the open canvas without reopening (the `file.reload/v1` pipe method, with the `powerbi-desktop` npm CLI as a fallback); see section 13. Model (TMDL) on-disk edits still require close-and-reopen, or use live TOM `SaveChanges()` as above.
+For the banner's scripted invoke, the silent-revert evidence, the `cache.abf` truncation that a force-kill causes, and the pre-edit check for an open instance, see [desktop-lifecycle.md](./references/desktop-lifecycle.md), which also carries the observed Desktop build behind the 26.08+ claim.
+Retest: edit a `.tmdl` file of an open PBIP on disk and watch for the banner, or read `Get-Process PBIDesktop | Select-Object -ExpandProperty MainModule | Select-Object FileVersion`.
 
 ### Microsoft Documentation
 
@@ -717,7 +736,7 @@ The `--%` stop-parsing token prevents Windows PowerShell 5.1 from stripping the 
 
 Without `pbir`, drive the pipe raw from PowerShell, the same way this skill drives TOM/ADOMD. It requires the Desktop bridge **preview setting** enabled (File > Options and settings > Options > Preview features, then restart). Auto-discover the PID by enumerating the pipe directory; then over JSON-RPC: `application.state.get/v1` returns the open file path (`currentFilePath`, so the bridge can locate the PBIP on disk), `file.reload/v1` reloads the on-disk PBIR into the canvas, and `report.snapshot.capture/v1` returns a page PNG.
 
-Model-plus-report loop: edit the model with TOM and `$model.SaveChanges()` (applies live), then `reload` and `screenshot` the report to confirm visuals reflect the change (a renamed measure, a new format string, a repaired relationship). On-disk **report** (PBIR) edits are picked up by `reload`; on-disk **model** (TMDL) edits and theme files under StaticResources still need a reopen, so prefer live TOM for model changes. The bridge drives the Windows app, so on macOS run it inside the Parallels VM (see [parallels-macos.md](./references/parallels-macos.md)).
+Model-plus-report loop: edit the model with TOM and `$model.SaveChanges()` (applies live), then `reload` and `screenshot` the report to confirm visuals reflect the change (a renamed measure, a new format string, a repaired relationship). On-disk **report** (PBIR) edits are picked up by `reload`; on-disk **model** (TMDL) edits are not, so apply them with live TOM `SaveChanges()` or with the **Apply external changes** banner on Desktop 26.08+ (see [desktop-lifecycle.md](./references/desktop-lifecycle.md) for the observed build and the retest). Theme files under StaticResources still need a reopen. The bridge drives the Windows app, so on macOS run it inside the Parallels VM (see [parallels-macos.md](./references/parallels-macos.md)).
 
 For the full command set, PID selection, the JSON-RPC method surface (`bridge.manifest`, `application.state.get/v1`, `file.reload/v1`, `report.snapshot.capture/v1`), and how it complements the Analysis Services local API, see [desktop-bridge.md](./references/desktop-bridge.md). To CHANGE visuals, pages, formatting, filters, or bookmarks, route to the `pbir-cli` skill (reports plugin); the Desktop Bridge here only reloads and screenshots, it never edits the report.
 
@@ -731,18 +750,20 @@ Alternative path (only if driving the raw pipe runs into trouble, framing, encod
 - [TOM Object Types CRUD](./references/tom-object-types.md) - Full CRUD examples for every object type including UDFs, Direct Lake, KPI note
 - [Annotations and Extended Properties](./references/annotations.md) - Standard PBI annotations, Tabular Editor table groups, auto date/time, field parameters, query groups, custom annotations
 - [Calendar Column Groups](./references/calendar-column-groups.md) - Gregorian, fiscal, and ISO week-based calendar definitions via TOM; time units, primary/associated columns
-- [DAX Expression Locations](./references/dax-expressions.md) - Where DAX appears in a model: measures, calculated columns/tables, calc items, format strings, detail rows, RLS, UDFs
-- [DAX Pitfalls](./references/dax-pitfalls.md) - Deprecated/not-recommended functions, non-existent functions agents hallucinate from SQL/Python/M, common syntax mistakes, BLANK vs NULL
+- [DAX Expression Locations](./references/dax-expressions.md) - Where DAX appears in a model: measures, calculated columns/tables, calc items, format strings, detail rows, RLS, UDFs. Also how to prove a rewritten measure with `DEFINE MEASURE` before landing the TMDL edit
+- [DAX Pitfalls](./references/dax-pitfalls.md) - Deprecated/not-recommended functions, non-existent functions agents hallucinate from SQL/Python/M, common syntax mistakes, BLANK vs NULL, and the traps in the *test query* that make a correct measure look broken
 - [EVALUATEANDLOG Debugging](./references/evaluateandlog-debugging.md) - Programmatic DAX debugging via TOM Trace API; capture intermediate results, cache clearing, six debugging patterns for common DAX issues
 - [Performance Profiling](./references/performance-profiling.md) - DAX Server Timings via Trace API; FE/SE time split, cold/warm cache comparison, PBIR visual-to-DAX translation, trace event column compatibility
 - [Query Listener](./references/query-listener.md) - Capture live visual DAX queries via DMV polling; interpret query structure, timings, filter patterns
 - [Export Model](./references/export-model.md) - Export to BIM/TMDL via Tabular Editor CLI, fab CLI, or TOM serializer
-- [Loading TMDL/BIM Files](./references/load-tmdl-files.md) - Load local TMDL folders or BIM files into TOM offline; inspect, modify, serialize back, deploy via fab CLI
+- [Loading TMDL/BIM Files](./references/load-tmdl-files.md) - Load local TMDL folders or BIM files into TOM offline; inspect, modify, serialize back, deploy via fab CLI. Also the seconds-not-minutes validation gate to run before a Desktop open, and why "it parsed" is not the check
 - [VertiPaq Statistics](./references/vertipaq-stats.md) - Column cardinality, dictionary/data size, memory by table, server timings via DMVs
-- [Refresh Model](./references/refresh-model.md) - All refresh methods (TMSL, TOM RequestRefresh, ADOMD.NET)
+- [Refresh Model](./references/refresh-model.md) - All refresh methods (TMSL, TOM RequestRefresh, ADOMD.NET), including the hand-authored PBIP that opens with "Some of the tables have incomplete or no data"
 - [macOS + Parallels Guide](./references/parallels-macos.md) - Connecting from macOS when PBI Desktop runs in a Parallels VM
 - [DAX Library Packages](./references/daxlib.md) - Installing reusable DAX UDF packages from daxlib.org; DaxLib.SVG, PowerofBI.IBCS, package structure, annotations
-- [Desktop Bridge (report canvas)](./references/desktop-bridge.md) - Reload + screenshot the open report canvas over the raw named-pipe JSON-RPC API (PowerShell; or the `pbir desktop` commands); pairing model (TOM) edits with report verification
+- [Desktop Bridge (report canvas)](./references/desktop-bridge.md) - Reload + screenshot the open report canvas over the raw named-pipe JSON-RPC API (PowerShell; or the `pbir desktop` commands); pairing model (TOM) edits with report verification. Also: the pipe-present-but-broken symptom, what to do when the local-API preview is off, and how the bridge differs from Apply external changes
+- [Desktop Process Lifecycle](./references/desktop-lifecycle.md) - Windows and Desktop only. Check before bulk-editing, Apply external changes on 26.08+, the silent revert of on-disk edits, the `cache.abf` truncation a force-kill causes, and why `CloseMainWindow()` is not the escalation. Names the headless substitutes for a machine with no Desktop
+- [Assembly Discovery](./references/assembly-discovery.md) - Probe for an installed ADOMD.NET or TOM assembly before running `nuget install`, then match its target framework to the host (`net45`/`net472` under Windows PowerShell 5.1, `net6.0`/`net8.0` under `pwsh` 7 or a `net8.0` project). Covers the `ReflectionTypeLoadException` misdiagnosis and the Linux/macOS routes
 
 **CLI tools at the skill root:**
 

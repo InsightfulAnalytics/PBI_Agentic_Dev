@@ -308,6 +308,35 @@ The `id` field on a selector targets a specific named state of a visual element.
 
 **Note:** Not all visual types support all `id` values. Slicers and action buttons have the richest set. Other visuals may only support `"default"`.
 
+### A state-based visual ignores a property with no selector
+
+On a visual that resolves formatting per state, an entry with no `selector` is ignored outright. It
+is not an error and not a fallback: the property simply does nothing.
+
+The case that keeps biting is the new card, `cardVisual`. `objects.value[0].properties.fontSize` is
+ignored unless the entry carries `"selector": {"id": "default"}`, so the card keeps rendering at its
+default size (roughly 40pt) and overflows its container.
+
+```json
+"value": [{
+  "properties": {"fontSize": {"expr": {"Literal": {"Value": "24D"}}}},
+  "selector": {"id": "default"}
+}]
+```
+
+The measure name printed above the number is `objects.label`, and it takes the same treatment:
+
+```json
+"label": [{"properties": {"show": {"expr": {"Literal": {"Value": "false"}}}},
+           "selector": {"id": "default"}}]
+```
+
+Both shapes pass `pbir validate` and import cleanly before the fix; this was caught on a server-side
+PDF export of the published report. Verified 2026-08-05. The `shape` visual has the same rule for
+`fill.fillColor` and `outline.lineColor`; see
+[visual-container-formatting.md](../visual-container-formatting.md), "What Goes Wrong". Working
+examples: `examples/visuals/formatted/cardVisual.json`.
+
 ## Advanced Properties
 
 ### highlightMatching

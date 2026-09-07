@@ -151,7 +151,7 @@ those columns first or rewrite the references.
   will not match a plain `"J"`.
 - **Do not hand-edit the M function's indentation.** It lives inside a TMDL triple-backtick
   block where indentation is significant; a reflowed line breaks Desktop's file open.
-  See `~/.claude/rules/tmdl-pbir-authoring.md`.
+  See the `pbip:tmdl` skill, `references/authoring-gotchas.md`.
 
 ## Reference
 

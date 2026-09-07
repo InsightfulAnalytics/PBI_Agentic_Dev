@@ -23,6 +23,21 @@ https://developer.microsoft.com/json-schemas/fabric/item/report/{type}/{version}
 - PBIP project: `.../fabric/pbip/pbipProperties/1.0.0/schema.json`
 - Semantic model: `.../fabric/item/semanticModel/{type}/{version}/schema.json`
 
+## Unknown keys are rejected (additionalProperties: false)
+
+Every PBIR schema is closed. An invented or misplaced property is not ignored: it breaks Power BI
+Desktop file-open. Repeat offenders:
+
+| Key | Why it turns up | Where it belongs |
+|-----|-----------------|------------------|
+| `prototypeQuery` | a legacy `report.json` concept carried through a conversion | nowhere in PBIR; the field definitions move inline into `queryState` projections (see [convert-legacy-to-pbir.md](./how-to/convert-legacy-to-pbir.md)) |
+| `filterConfig` | nested inside `visual` | a sibling of `visual`, at the root of visual.json. `pbir validate` catches this one: `SCHEMA_ERROR ... ('filterConfig' was unexpected)` |
+| `aggregationFunctionType` | guessed at the projection level | inside the field reference, as `Aggregation.Function` with an integer code |
+
+Copy structure from a working visual or from this skill's `examples/visuals/` templates rather than
+inventing keys, and run `pbir validate` after every hand edit. A clean validate is necessary but not
+sufficient: see [validation.md](./validation.md).
+
 ## K201 Example Schema Versions
 
 Versions below match the K201 example project bundled with this skill. As of mid 2026, newer versions exist (e.g., `visualContainer/2.7.0`, `report/3.3.0`, `page/2.1.0`, `bookmark/2.1.0`). Microsoft updates schemas roughly monthly — **always use the `$schema` URL from your existing project files** rather than assuming these versions.
@@ -48,7 +63,9 @@ Versions below match the K201 example project bundled with this skill. As of mid
 - baseTheme: `{"visual": "1.8.95", "report": "2.0.95", "page": "1.3.95"}`
 - customTheme: `{"visual": "2.1.0", "report": "2.1.0", "page": "2.0.0"}`
 
-Do not set this manually — Power BI Desktop manages it automatically.
+Do not set this manually on a report Desktop maintains; it manages the value automatically. When
+hand-authoring a `report.json` from scratch the block is required rather than optional, so supply a
+plausible one copied from a recently saved report. See [report.md](./report.md), "themeCollection".
 
 ## Key Schema Definitions
 

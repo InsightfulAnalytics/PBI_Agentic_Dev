@@ -35,6 +35,22 @@ forbids installs. A portable build does not update with `uv tool upgrade`, so pr
 when a normal install would have worked leaves the user on a stale CLI. If an install failed,
 fix the install rather than routing around it.
 
+## Keeping `pbir` current
+
+Resolve the binary before choosing an upgrade command, because `pbir` is not always a `uv` tool:
+
+```bash
+pbir --version
+which pbir      # PowerShell: (Get-Command pbir).Source
+```
+
+If the resolved path sits under a `uv` tools directory, upgrade with `uv tool upgrade pbir-cli`; if
+it sits under a Python scripts directory, upgrade with `pip install --upgrade pbir-cli`. The wrong
+command reports success and changes nothing, which leaves the agent believing it is on a newer CLI
+than it is: that is the failure mode behind every "this documented flag does not exist" dead end.
+Honor any user-pinned version, and upgrade only when required or requested. A portable build from
+`bin/fetch.sh` is updated by re-fetching it, not by either package manager.
+
 ## Keeping the Fabric CLI current
 
 When publishing to Fabric (`pbir publish`) alongside the `fabric-cli` plugin, check the installed Fabric CLI (`fab`) if publishing reports a compatibility problem. Upgrade with `uv tool upgrade ms-fabric-cli` only when required or requested, and honor any user-pinned version.
@@ -193,7 +209,7 @@ Follow all rules below.
 
 ### Exploration and Analysis
 
-Understand existing reports before modifying. **Always check page dimensions and existing visual positions before adding or resizing visuals** setting position/size without knowing the page dimensions causes errors.
+Understand existing reports before modifying. **Always check page dimensions and existing visual positions before adding or resizing visuals** setting position/size without knowing the page dimensions causes errors. Read those positions off disk at the start of every task, and again after any pause in which the user had the report open in Desktop: a Desktop save writes canvas nudges back into `visual.json`, so coordinates remembered from earlier in the conversation can silently undo hand adjustments the user just made.
 
 ```bash
 pbir desktop list                                # FIRST if Desktop is mentioned: instances (PID, open file)
@@ -221,6 +237,8 @@ pbir fields list "Report.Report"                 # Fields already in use across 
 ```
 
 Routing depends on the report's model reference: thin reports (`byConnection`) query the Power BI / Fabric service; thick reports (`byPath`) query the local Analysis Services engine of the Power BI Desktop instance that has the report open, so `-q` and `-d` work fully offline against live model state. Local queries need the .NET Framework ADOMD client (found automatically from DAX Studio or Desktop installs; override with `PBIR_ADOMD_DIR`).
+
+When `-d` fails with `failed to load model schema` or `Could not retrieve model definition`, the schema route is broken rather than the report: on a `byConnection` report the schema comes through the Fabric CLI, so check `fab --version` first. `-q` still works, and a local `byPath` model is unaffected. Measure-bound visuals keep working while column-bound projections do not, and `--skip fields` does not help. See "When the model schema will not load" in **`references/fields-and-bindings.md`** before changing approach.
 
 For full model query patterns and field binding workflows, consult **`references/fields-and-bindings.md`**.
 
@@ -256,6 +274,8 @@ The edit-verify loop: mutate with `pbir set`/`add`, then `pbir desktop refresh`,
 
 Screenshots need the Desktop window in the Report view. Refreshing an instance with unsaved changes makes Desktop save first, rewriting the whole definition on disk. PBIX files support screenshot but not refresh. For requirements, multi-instance behavior, and troubleshooting, consult **`references/desktop-integration.md`**.
 
+Do not guess a sleep between refresh and screenshot: `--settle` only applies with `--all`, and there is no `--out` (the single-page flag is `-o/--output`). For a single page, use the **`reports:pbi-verify-loop`** skill, which refreshes and then captures until two consecutive screenshots match.
+
 **When the bridge is unavailable.** `pbir desktop` commands are Windows-only: on macOS and Linux do not use them at all; every invocation fails before reaching Desktop. On Windows, `pbir desktop list` distinguishes the cases: the bridge is unreachable when the preview feature is off ("Enable external tool access to Power BI Desktop through secure local APIs" under File > Options and settings > Options > Preview features, then restart Desktop), and it reports when no running instance has the target report open. If the preview feature is off, relay the enable steps to the user once and ask whether they want to turn it on; do not keep retrying bridge commands meanwhile. Until the bridge works, and always on macOS, verify with `pbir validate --all`, then with the user's permission deploy with `pbir publish` to a sandbox workspace in Fabric and inspect the rendered report in the browser through the Chrome MCP tools. On Linux `pbir` cannot be installed at all, so check the changed JSON with `jq empty` and against the `pbip:pbir-format` skill's `references/validation.md`, then with the user's permission publish the byConnection report to a sandbox workspace with `fab import` (always pass `-f`), and inspect the rendering by exporting it server-side through the Power BI ExportTo API.
 
 ### Creating Reports
@@ -264,7 +284,7 @@ New reports include out of the box:
 - The **sqlbi** theme (professional colors, typography). Do not run `pbir theme apply-template` unless the user requests a different theme
 - A default **Page 1** with a **textbox** visual for the page title at position (20,20) height 90. Do not add a new textbox; rename the existing page instead. Place subsequent visuals at `y:120` or below to avoid overlapping the title textbox. Use `--no-title` on `pbir new report` to skip the default title textbox when the user wants a clean canvas
 
-Connection: pass `--connection "Workspace/Model.SemanticModel"`, or set an active connection first with `pbir connect` (optionally `pbir profile` / `pbir connect --profile <name>` to switch between saved connections). When an active connection is set, the connection flag can be omitted.
+Connection: pass `--connection "Workspace/Model.SemanticModel"`, or set an active connection first with `pbir connect` (optionally `pbir profile` / `pbir connect --profile <name>` to switch between saved connections). When an active connection is set, the connection flag can be omitted. The connection has to be a tenant model: the command cannot be pointed at a local sibling `.SemanticModel`, so create against the workspace copy and then `pbir report rebind --local` (see `references/create-new-report.md`).
 
 ```bash
 pbir new report "Sales.Report" -c "Workspace/Model.SemanticModel"
@@ -515,7 +535,7 @@ Top-level flags; place before the subcommand: `pbir -q new report ...`, NOT `pbi
 --skip <category>: skip validation categories (repeatable, comma-separated): structure, schema, schema-version, fields, enums, qa, roles, layout, theme
 ```
 
-`pbir` validates implicitly on mutations. `--skip`/`--rawdog` relax that for deliberate cases, e.g. `pbir --skip fields set ...` to author a visual whose field is not in the model yet. They are global, so they go before the subcommand. Prefer fixing the underlying issue over `--rawdog`.
+`pbir` validates implicitly on mutations. `--skip`/`--rawdog` relax that for deliberate cases, e.g. `pbir --skip fields set ...` to author a visual whose field is not in the model yet. They are global, so they go before the subcommand. Prefer fixing the underlying issue over `--rawdog`. They skip *validation* only: neither bypasses the model schema **load** that authoring a column reference needs, so neither rescues a `failed to load model schema` (see `references/fields-and-bindings.md`).
 
 Command-specific output flags such as `--json` or `-F json`, and mutation flags such as `-f/--force`, go after the relevant subcommand. Check `pbir <command> --help`; they are not global flags.
 
@@ -527,7 +547,7 @@ Command-specific output flags such as `--json` or `-F json`, and mutation flags 
 - **`pbir publish` uses positional args**, not `--workspace`. Correct: `pbir publish "Report.Report" "Workspace.Workspace/Report.Report" -f`.
 - **`pbir filters list` has no `-v` flag.** Use `--json` for detailed output.
 - **Do not convert to PBIX then publish the PBIR folder.** If converting to PBIX, publish the `.pbix` file directly. If publishing PBIR, skip conversion entirely.
-- **`pbir pages rename` renames folders only**; it does not change page IDs or display names. Use `--to` for single page folder rename.
+- **Renaming a page moves its folder, whichever route you take.** `pbir pages rename ... --to` renames the folder only, leaving the page ID and display name untouched; `pbir set "<page>.displayName"` changes the display name *and* renames the folder to match. So every path built from the old page name is stale afterwards; recompute them, or rename first and derive later paths from the new name.
 - **DMV queries fail against service-connected models.** For thin reports (`byConnection`), `pbir model -q` runs EVALUATE DAX only; `INFO.TABLES()` and other DMVs return 400 from the service, and schema comes from TMDL. Use `pbir model -d` for schema introspection. Thick reports (`byPath`) open in Desktop query the local engine instead, where the live schema is used.
 - **`pbir desktop refresh` does not work on PBIX files.** Desktop only reloads PBIP/PBIR definitions from disk; PBIX instances support `pbir desktop screenshot` only.
 - **Always run `pbir <command> --help`** before using an unfamiliar command to confirm exact syntax.
@@ -552,7 +572,7 @@ Mutating commands validate their own writes. Run `pbir validate "Report.Report"`
 ```yaml
 (no flags): structure + schema validation
 --fields: also validate fields exist in model with correct types (Column/Measure)
---qa: also run quality-assurance rules (overlap/overflow, hidden visuals, visual filters, field counts, layout and role-cardinality heuristics)
+--qa: also run quality-assurance rules (overlap/overflow, hidden visuals, visual filters, field counts, layout and role-cardinality heuristics, and color-contrast checks where the installed build has them)
 --semantic: also check visual type ids + objects/visualContainerObjects names against the core visual catalog
 --all: structure + schema + fields + QA + semantic
 --strict: promote field/QA/semantic warnings to errors
@@ -572,11 +592,12 @@ The same checks run implicitly on mutations. To bypass a category deliberately, 
 ## Reference Files
 
 ```yaml
-references/cli-reference.md: full syntax for any command with all flags
+references/cli-reference.md: full syntax for any command with all flags; Windows console encoding
 references/exploration.md: exploring an unfamiliar report systematically
 references/desktop-integration.md: driving Power BI Desktop; canvas refresh, page screenshots, auto-refresh, local model queries, troubleshooting
 references/create-new-report.md: building a report from scratch
 references/add-new-visual.md: adding visuals, layout patterns, bulk creation
+references/add-image.md: image visuals from file, URL, or a measure; the ImageUrl measure contract
 references/visual-groups.md: visual groups (create, add/remove members, ungroup)
 references/visual-presets.md: style presets (minimal, bold, clean, emphasis, presentation)
 references/fields-and-bindings.md: field binding, Column vs Measure types, swapping fields, rebinding

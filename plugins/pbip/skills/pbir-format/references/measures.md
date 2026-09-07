@@ -504,6 +504,24 @@ Extension measures can reference model measures:
 - Power BI uses this for dependency tracking
 - Helps with refresh/update logic
 
+The `reportExtension/1.0.0` schema supports exactly two keys there:
+
+| Key | Shape | Use |
+|-----|-------|-----|
+| `measures` | array of `{schema?, entity, name}` | one entry per measure the DAX calls. Set `"schema": "extension"` on an entry pointing at another extension measure; leave it off for a model measure |
+| `unrecognizedReferences` | boolean | the dependency list is incomplete or cannot be enumerated |
+
+There is **no `columns` array**. A measure that references only columns, and no other measure,
+therefore cannot enumerate its dependencies and should be written as:
+
+```json
+"references": {"unrecognizedReferences": true}
+```
+
+Do not invent a `columns` key: the schema is closed and the file is rejected. `pbir dax measures add`
+writes the measure but omits the `references` block entirely, so a measure created through the CLI
+needs it patched in afterwards.
+
 ### Referencing Other Extension Measures
 
 Extension measures can reference each other:
@@ -575,6 +593,52 @@ Extension measures require `"Schema": "extension"` in the SourceRef:
   }
 }
 ```
+
+The inverse is equally strict: a reference to a real semantic model measure must NOT carry
+`"Schema": "extension"`, or it breaks the other way.
+
+### Every reference needs the tag, sorts included
+
+The tag is required in **both** places a measure can be referenced: `queryState` projections **and**
+`sortDefinition` sorts. A sort that omits it breaks the visual exactly as a projection does, and the
+worked example in [sort-visuals.md](./sort-visuals.md) shows a bare model-measure sort, so it cannot
+be copied as-is for an extension measure.
+
+```json
+"sortDefinition": {
+  "sort": [{
+    "field": {
+      "Measure": {
+        "Expression": {"SourceRef": {"Schema": "extension", "Entity": "activities"}},
+        "Property": "Active Users"
+      }
+    },
+    "direction": "Descending"
+  }]
+}
+```
+
+Without the tag the service resolves the name against the **model** table, finds nothing, and the
+published report errors per visual with:
+
+`Missing_References` / **"Something's wrong with one or more fields or you don't have required permissions: (table) MeasureName"**
+
+The errors surface one visual at a time, so fixing one just reveals the next. Audit the whole report
+in one pass instead: list what is actually an extension measure, then list every measure reference
+with the schema tag it carries, and look for extension names reported as `model`.
+
+```bash
+jq -r '.entities[].measures[].name' "Report.Report/definition/reportExtensions.json" | sort -u
+
+find "Report.Report/definition/pages" -name visual.json -exec jq -r \
+  '.. | .Measure? | select(.) | "\(.Expression.SourceRef.Schema // "model")\t\(.Expression.SourceRef.Entity).\(.Property)"' \
+  {} \; | sort -u
+```
+
+**Nothing local catches this.** `pbir validate` passes, and running the measure's DAX with a raw
+`EVALUATE` against the model works fine because the DAX itself is valid. Only a published report
+reveals the problem. Neither `pbir add visual -d "Values:table.ExtMeasure"` nor hand-authored JSON
+adds the tag automatically, so patch it in yourself.
 
 ### Using with Selectors
 
@@ -970,7 +1034,9 @@ Always populate `references` when using model measures:
 
 ### Measure Not Found
 
-**Symptom:** Visual shows error "Can't find measure"
+**Symptom:** Visual shows error "Can't find measure". Published, the same cause reads as
+`Missing_References` / "Something's wrong with one or more fields or you don't have required
+permissions: (table) MeasureName". See "Every reference needs the tag, sorts included" above.
 
 **Causes:**
 1. Missing `"Schema": "extension"` in SourceRef
@@ -1039,7 +1105,7 @@ The file is **optional** - only include it when you have at least one extension 
 Check data type matches property:
 ```json
 // For colors:
-"dataType": "Text"  // NOT Int64 or Double
+"dataType": "Text"  // NOT Integer or Double
 
 // For transparency:
 "dataType": "Integer"  // NOT Text
@@ -1095,20 +1161,30 @@ Common escape issues:
 
 ### Unrecognized References
 
-**Symptom:** `"unrecognizedReferences": true` in references object
+`"unrecognizedReferences": true` has two meanings, and which one applies depends on whether a
+`measures` array sits beside it.
 
-**Meaning:** Power BI couldn't find one or more referenced measures
+**Legitimate:** the flag on its own is the correct shape for a measure whose only dependencies are
+columns. The schema has no `columns` array, so there is nothing else to declare. Leave it alone.
+
+```json
+"references": {"unrecognizedReferences": true}
+```
+
+**A defect:** the flag alongside a `measures` array means Power BI could not resolve one or more of
+the listed measures.
 
 **Causes:**
 1. Referenced measure doesn't exist
 2. Measure renamed or removed, but the dependency downstream in the visual was not updated
+3. An extension-measure entry missing its `"schema": "extension"` field
 
 **Fix:**
 
-Verify measure exists:
+Verify each listed measure exists, and that extension entries carry the schema field:
 ```json
 "references": {
-  "unrecognizedReferences": true,  // ← Warning flag
+  "unrecognizedReferences": true,  // ← warning flag in THIS shape
   "measures": [
     {
       "entity": "Sales",

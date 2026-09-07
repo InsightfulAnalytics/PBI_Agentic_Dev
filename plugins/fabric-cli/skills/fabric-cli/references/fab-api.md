@@ -4,6 +4,33 @@ Direct API access via `fab api` for operations beyond standard commands.
 
 > **Note:** Several operations previously requiring `fab api` now have native commands. Check `fab acl` (permissions), `fab assign/unassign` (capacity/domain), `fab start/stop` (capacities), `fab ls -q` (filtered listing), and `fab label` (sensitivity labels) before using API calls.
 
+## Output shape and flags
+
+Every `fab api` response comes back inside an envelope, never as the raw body:
+
+```json
+{"status_code": 200, "text": { ... }}
+```
+
+- `-q <jmespath>` runs against that envelope, so filters must start with `text.` (`text.value[?...]`, `text.tenantSettings[?...]`). A filter that omits the prefix silently returns `None`.
+- `text` is sometimes a JSON **string** rather than an object; a parsing script needs a second `json.loads` on it.
+- `status_code` sits alongside `text` and is the reliable success check.
+- **`fab api` has no `-o` / output-file flag**, so redirect stdout instead: `fab api workspaces > workspaces.json`. `fab get` is a different command and does have `-o`, which is where the confusion comes from. If `-o` is rejected as an unknown flag, that is this rather than a syntax error. [`fab api --help` lists only `-i, --input`: observed on fab 0.1.10 and still absent on fab 1.7.0. Verified 2026-09-07.]
+  Retest: `fab api --help`
+
+### Binary bodies must not go through `fab api`
+
+The envelope is JSON, so it corrupts any endpoint that returns a file (an exported PDF, PNG, XLSX, PBIX or `.rdl`). The command reports success and writes a file that is silently unreadable, so the failure surfaces downstream in whatever tries to open it, not at the command. Fetch bytes over raw HTTP with a bearer token instead:
+
+```bash
+TOKEN=$(az account get-access-token --resource https://analysis.windows.net/powerbi/api --query accessToken -o tsv)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://api.powerbi.com/v1.0/myorg/groups/$WS_ID/reports/$REPORT_ID/Export" \
+  -o SalesReport.rdl
+```
+
+Use `fab api` for JSON, raw HTTP for bytes. Worked examples: [paginated-reports.md](./paginated-reports.md) (`.rdl` and export-to-file) and [reports.md](./reports.md) (server-side report render).
+
 ## API Basics
 
 ```bash

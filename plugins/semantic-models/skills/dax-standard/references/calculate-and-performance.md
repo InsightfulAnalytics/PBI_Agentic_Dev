@@ -47,6 +47,45 @@ There is no prize for avoiding it. Reasonable uses:
 Rule of thumb: **a single, simple column predicate over a base measure** is the safe and
 readable use. Stacked filter modifiers are where it stops being readable.
 
+## When CALCULATE is the wrong call: filtering the column you are aggregating
+
+One carve-out from the row above. "Non-additive, so `CALCULATE`" holds right up until a filter
+argument constrains the very column being aggregated:
+
+```dax
+-- Avoid
+CALCULATE (
+    DISTINCTCOUNT ( 'T'[Col] ),
+    <other filters>,
+    'T'[Col] <> ""
+)
+```
+
+Nothing here is ambiguous or order-dependent: every filter argument is applied to the filter context
+before the expression evaluates. The defect is filter-context *replacement*. The predicate on
+`'T'[Col]` overwrites whatever the slicer, the visual axis or a page filter had on that same column,
+so the measure quietly ignores the user's selection on the one column it reports, and returns a
+plausible number rather than an error. It is the same mechanism as
+[the guard](../SKILL.md#step-3-is-not-always-an-x-aggregator), reached with no `ALL` anywhere in
+sight, which is why the guard's advice reads as not applying.
+
+Build the row set first, then count it:
+
+```dax
+COUNTROWS (
+    FILTER (
+        CALCULATETABLE ( VALUES ( 'T'[Col] ), KEEPFILTERS ( <other filters> ) ),
+        'T'[Col] <> ""
+    )
+)
+```
+
+`KEEPFILTERS` intersects with the incoming selection on `'T'[Col]` instead of replacing it, the
+`<> ""` runs over the resulting row set rather than over the filter context, and the intermediate
+table can be `EVALUATE`d on its own when the number looks wrong. Ending in `COUNTROWS` is not a
+departure from the decision table either: the non-additive part moved into the table expression, so
+what is left to do really is count rows.
+
 ## Performance: readability is not the trade
 
 Written well, the two forms usually compile to the same query plan — the formula engine only

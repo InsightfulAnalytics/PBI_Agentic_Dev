@@ -359,6 +359,34 @@ See [images.md](./images.md) for image registration and referencing patterns.
 | Tooltip | 320 | 240 |
 | Letter portrait | 816 | 1056 |
 
+## Cloning a page or a visual
+
+A cloned page or visual inherits every id from its source. Regenerate all of them:
+
+- the page `name`, which must equal its folder name
+- each visual container `name`, which must equal its folder name
+- **every `filterConfig` filter `name`**, at page level and at visual level
+
+The filter names are the ones that get missed. Duplicated filter names across pages make Power BI
+Desktop open with an **"Issues were found"** dialog and load an empty model: 0 tables, and
+"Untitled" in the title bar. `pbir validate` does not catch it. Verified 2026-08-23.
+
+That symptom is identical to the one a UTF-8 BOM produces, so check both before concluding the model
+is corrupt: see [validation.md](./validation.md), "What a clean validate does not prove". The BOM
+check is one command and rules half of it out immediately.
+
+A fresh `uuid4().hex[:20]` per filter works. For a generator that will be re-run, seed from `uuid5`
+on a stable key instead, so a second run lands on the same ids rather than producing a second clone.
+
+Ids that cross-reference the page live **outside** the page folder. Grep `definition/bookmarks/` for
+the source page's id and its visual ids before assuming the clone is self-contained: a bookmark pins
+visual ids in `explorationState.sections.<page>.visualContainers.<visual>` and in
+`options.targetVisualNames`, and the clone inherits every one of them.
+
+```bash
+grep -rl "<source page or visual id>" "Report.Report/definition/bookmarks/"
+```
+
 ## Key Learnings
 
 1. **Background property is `background`, NOT `canvasBackground`**

@@ -271,6 +271,18 @@ fab get "ws.Workspace/SQLDB.SQLDatabase" -q "properties.serverFqdn"
 
 The database name to pass to `sqlcmd -d` is the item's display name without the type extension (e.g. `LH` for `LH.Lakehouse`).
 
+#### Decoding a Fabric SQL endpoint host name
+
+Host names take the form `<cluster>-<segment>.datawarehouse.fabric.microsoft.com`, where `segment` is `base32(uuid.bytes_le).lower()` of the **workspace** id: 26 characters, padding stripped. Decode it back:
+
+```python
+import base64, uuid
+
+uuid.UUID(bytes_le=base64.b32decode(seg.upper() + "======"))
+```
+
+That is the way to map an opaque `Sql.Database(host, db)` in an inherited Power Query expression back to the workspace it points at, with no API call. The `db` argument is then either the item name or the SQL analytics endpoint item id.
+
 ### Query a lakehouse table
 
 ```bash
@@ -457,6 +469,8 @@ result = subprocess.run(
 )
 token = json.loads(result.stdout)["accessToken"]
 ```
+
+Both Windows accommodations for calling `az` from a script, and the `shutil.which` form the scripts in this skill use, are in [fab-vs-az-cli.md > Calling `az` from a script](./fab-vs-az-cli.md#calling-az-from-a-script).
 
 #### API Endpoints
 

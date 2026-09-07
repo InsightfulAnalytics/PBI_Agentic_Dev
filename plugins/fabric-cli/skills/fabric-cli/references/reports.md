@@ -293,3 +293,36 @@ ls -R /tmp/exports/Report.Report/
 # Check definition is valid JSON
 fab get "ws.Workspace/Report.Report" -q "definition" | jq . > /dev/null && echo "Valid"
 ```
+
+## Server-side render for headless visual verification
+
+Where Power BI Desktop is unavailable (a Linux Codespace, CI, a container) or its local screenshot API cannot be reached, the service will render the report instead. This is the substitute for a Desktop screenshot loop, and the only way to actually see a published report from a machine with no Desktop.
+
+Same three steps as a paginated export, against a Power BI report:
+
+1. `POST groups/{ws}/reports/{id}/ExportTo` with `{"format":"PDF"}` ; [Step 1](./paginated-reports.md#step-1-initiate-export)
+2. Poll `.../exports/{eid}` until `Succeeded` ; [Step 2](./paginated-reports.md#step-2-poll-export-status)
+3. `GET .../exports/{eid}/file` ; [Step 3](./paginated-reports.md#step-3-download-exported-file)
+
+It works on trial capacity, and it renders certified custom visuals, Deneb included, so it is a genuine visual check rather than a layout dump.
+
+Two mechanics decide whether the loop works at all:
+
+- **Fetch the file over raw HTTP, not `fab api`.** `fab api` wraps every response in a JSON envelope and corrupts binary bodies, so the PDF arrives unreadable and nothing complains until something tries to open it. Use a bearer token from `az account get-access-token --resource https://analysis.windows.net/powerbi/api`. See [fab-api.md](./fab-api.md#binary-bodies-must-not-go-through-fab-api).
+- **Convert the PDF to PNG with `pymupdf`** (`pip install pymupdf`). It is pure pip with no system dependency, so it works where `pdftoppm` does not because poppler is not installed.
+
+```bash
+TOKEN=$(az account get-access-token --resource https://analysis.windows.net/powerbi/api --query accessToken -o tsv)
+curl -s -H "Authorization: Bearer $TOKEN" \
+  "https://api.powerbi.com/v1.0/myorg/groups/$WS_ID/reports/$REPORT_ID/exports/$EXPORT_ID/file" \
+  -o report.pdf
+
+python3 -c "
+import pymupdf
+doc = pymupdf.open('report.pdf')
+for i, page in enumerate(doc):
+    page.get_pixmap(dpi=150).save(f'page-{i+1}.png')
+"
+```
+
+`format: "PNG"` is also accepted for Power BI reports and skips the conversion, but PDF is the format with the widest visual fidelity across visual types.

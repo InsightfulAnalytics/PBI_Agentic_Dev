@@ -10,6 +10,10 @@ Workflow for diagnosing and repairing reports with broken field references cause
 - Visuals rendering with blank/zero data despite valid filters
 - `pbir validate --fields` reporting missing fields (when model is accessible)
 
+If the report validates clean and every field still exists in the model, the cause is a missing
+`"Schema": "extension"` on an extension-measure reference rather than a rename. See
+[measures.md](../measures.md), "Every reference needs the tag, sorts included".
+
 ## Diagnosis Workflow
 
 ### 1. Identify broken references

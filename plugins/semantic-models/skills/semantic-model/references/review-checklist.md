@@ -42,6 +42,11 @@ Produce a markdown report: a count-by-severity summary, detailed findings with o
 - Filtering whole tables instead of columns in CALCULATE; unguarded division (`DIVIDE` vs bare `/`)
 - Context-blind calculated columns using CALCULATE; variable time-shift bugs
 
+### Calculation groups (`calculation-groups.md`)
+- Row measures feeding a scenario-swapping group that carry a scenario filter of their own; the inner `CALCULATE` beats the item's outer filter and every scenario column returns the same number
+- Format strings defined on the lower-precedence group of two; only the higher group's `formatStringDefinition` is evaluated, and `SELECTEDMEASUREFORMATSTRING()` there returns the base measure's string
+- Explicit `ordinal:` lines on calculation items; item order comes from declaration order and Desktop strips the property on save
+
 ### Measure hygiene
 - Implicit measures where explicit measures should exist; report-scoped extension measures that belong in the model; ambiguous duplicate measure names
 

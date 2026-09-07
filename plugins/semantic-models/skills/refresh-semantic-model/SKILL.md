@@ -233,7 +233,8 @@ Quick reference for the most common failures. For the full troubleshooting guide
 
 | Symptom                        | Likely Cause                                    | Resolution                                         |
 |--------------------------------|-------------------------------------------------|----------------------------------------------------|
-| Failed with credential error   | Credentials expired, missing, or didn't carry over after copy | Update in dataset settings; only shared cloud connections transfer with `fab cp` |
+| Failed with credential error   | Credentials expired, missing, or didn't carry over after copy | Update in dataset settings (an interactive route, so not available headlessly; over a Fabric source, use the workspace-identity route in the next row); only shared cloud connections transfer with `fab cp` |
+| Fabric source fails on credentials | The model is bound to the SSO default data connection; no explicit connection exists | Create a shareable cloud connection backed by the workspace identity and bind it (`references/troubleshooting.md`, "Refreshing over a Fabric source with no gateway") |
 | Type mismatch on a table       | Source column types don't match model column types | Check column data types in the model definition vs source schema; add `Table.TransformColumnTypes` in partition expression |
 | Column does not exist          | Source column renamed, removed, or differently cased | Check source schema; add `Table.RenameColumns` in partition expression |
 | Timeout (2h shared / 5h Premium) | Model too large for a single refresh window | Implement incremental refresh; use partition-level refresh via XMLA; reduce model size |
@@ -284,13 +285,14 @@ Pro capacity supports only full-model standard refreshes. Enhanced refresh featu
 
 - Workspace contributor or higher permissions
 - `fab` CLI authenticated: `fab auth login`
+- Refreshing a Fabric source with no gateway also needs an F SKU or trial capacity (to provision a workspace identity) and an explicit workspace role assignment for that identity, which is not granted implicitly
 
 ## Additional Resources
 
 ### Reference Files
 
 - **`references/refresh-types.md`** -- Complete reference for all 7 refresh types, commit modes, parallelism, incremental policy interaction, status values, XMLA/TMSL details, and the two-phase refresh pattern
-- **`references/troubleshooting.md`** -- Comprehensive troubleshooting guide: credential errors, type/schema mismatches, timeouts, capacity limits, incremental refresh issues, debugging workflows, and large model strategies
+- **`references/troubleshooting.md`** -- Comprehensive troubleshooting guide: credential errors, the gateway-free Fabric-source route (workspace identity, shareable cloud connection, bind), type/schema mismatches, timeouts, capacity limits, incremental refresh issues, debugging workflows, and large model strategies
 
 ### Scripts
 

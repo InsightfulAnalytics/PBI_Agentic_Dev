@@ -172,6 +172,7 @@ The most complex transformation. Each visual container's stringified `config` co
 | `config.layouts[0].position` | `position` (add `tabOrder` from `z` if missing) |
 | `singleVisual.visualType` | `visual.visualType` |
 | `singleVisual.projections` + `prototypeQuery` | `visual.query.queryState` (see below) |
+| `prototypeQuery` itself | nothing. It is a legacy-only concept and PBIR schemas reject unknown keys, so carrying it over breaks Desktop file-open |
 | `singleVisual.objects` | `visual.objects` |
 | `singleVisual.vcObjects` | `visual.visualContainerObjects` |
 | `singleVisual.drillFilterOtherVisuals` | `visual.drillFilterOtherVisuals` |
@@ -230,7 +231,7 @@ The most critical transformation. Legacy format uses `projections` (role -> quer
 4. Map `columnProperties` display names to `displayName` on projections
 5. Convert `prototypeQuery.OrderBy` to `sortDefinition`
 
-**Legacy `active` flags**: `active` belongs to `pivotTable` row and column levels, where it must be present on EVERY projection. Do not carry it onto a `tableEx` or chart `Values` projection: with `active` on only the first projection Desktop renders that one column and silently drops every later one, and `pbir validate` passes.
+**Legacy `active` flags**: `active` belongs to `pivotTable` row and column levels, where it must be present on EVERY projection. Do not carry it onto a `tableEx` projection or a chart measure well (`Y`, `Y2`, a card's `Values`): with `active` on only the first projection Desktop renders that one column and silently drops every later one, and `pbir validate` passes. Grouping roles keep it: `Category`, `Series` and a slicer's `Values` normally carry `active: true`.
 
 **Combo chart roles**: `lineStackedColumnComboChart` and `lineClusteredColumnComboChart` use `Y` (column bars) and `Y2` (lines). Do not rename these to `ColumnY`/`LineY`.
 

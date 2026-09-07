@@ -392,6 +392,20 @@ az costmanagement query \
   --dataset-filter "{dimensions:{name:ResourceType,operator:In,values:[Microsoft.Fabric/capacities]}}"
 ```
 
+### FOCUS cost exports on a pay-as-you-go subscription
+
+Learn documentation states that Azure MOSP billing scopes and subscriptions do not support FOCUS datasets. A FOCUS export was nevertheless created and run successfully at subscription scope on a pay-as-you-go MOSP subscription, so try it before designing around the documented limitation. Verified 2026-08-07.
+
+```
+PUT providers/Microsoft.CostManagement/exports/<name>?api-version=2025-03-01
+```
+
+at subscription scope, reachable through [`fab api -A azure`](#fab-api--a-azure-arm-as-the-fab-identity) as the fab identity.
+
+- The only blocking error on the first attempt was a missing resource provider. Register `Microsoft.CostManagementExports` on the **destination storage** subscription (`POST .../register`, then poll for roughly 60 seconds until it reports `Registered`).
+- Run now is `POST .../exports/<name>/run` with **no body**. Sending `-i '{}'` returns 400 `Invalid time period`.
+- Historical backfill is the same endpoint with a body, `{"timePeriod":{"from":...,"to":...}}` and `to` in the past. Do one month per run.
+
 ### Reservations
 
 Purchase 1-year or 3-year Fabric capacity reservations for cost savings:
@@ -504,24 +518,43 @@ Purview is managed through the Purview portal and Azure CLI (`az purview`), not 
 
 ---
 
+## `fab api -A azure`: ARM as the fab identity
+
+`fab` and `az` hold separate sessions and are frequently authenticated as different principals with different rights. `fab api -A azure` issues ARM calls as the **fab** identity, so full ARM CRUD (resource groups, storage accounts, role assignments, Cost Management exports) is reachable through `fab` without an `az login` at all.
+
+That is the route when the `az` session is a low-privilege account and the `fab` session holds Owner or Contributor on the subscription. Before blaming an ARM 403 on missing rights, check which principal each tool is actually using:
+
+```bash
+fab auth status      # prints the Principal ID fab is calling as
+az account show      # the az session's user and subscription
+```
+
+```bash
+# ARM through fab, no az login required
+fab api -A azure "subscriptions/<sub-id>/resourcegroups?api-version=2021-04-01"
+fab api -A azure "subscriptions/<sub-id>/providers/Microsoft.Fabric/skus?api-version=2023-11-01"
+```
+
+Verified 2026-08-07.
+
 ## Responsibility Matrix
 
 | Domain | `az` CLI | `fab` CLI | Fabric Portal |
 |--------|----------|-----------|---------------|
-| Capacity CRUD | create, show, update, delete, list | -- | View/link |
+| Capacity CRUD | create, show, update, delete, list | `fab api -A azure` | View/link |
 | Capacity lifecycle | suspend, resume, scale | start/stop (pause/resume only) | Pause/Resume buttons |
-| Capacity RBAC | role assignment | -- | -- |
+| Capacity RBAC | role assignment | `fab api -A azure` | -- |
 | VNet / subnet / NSG | Full control | -- | -- |
 | Private endpoints | create, approve, DNS zones | -- | Enable tenant setting |
 | Managed Private Endpoints | -- | -- | Create/approve |
 | VNet Data Gateway | Subnet delegation | `fab acl` for permissions | Gateway creation/mgmt |
 | Key Vault | create, set-policy, key/secret mgmt | -- | -- |
 | Customer-Managed Keys | Key Vault + RBAC setup | -- | Enable CMK in workspace settings |
-| Storage account RBAC | role assignment | -- | -- |
+| Storage account RBAC | role assignment | `fab api -A azure` | -- |
 | Event Hubs | Full control | -- | Connection setup via UI |
 | Log Analytics | Full control | -- | -- |
 | Diagnostic settings | Full control | -- | Real-Time Hub wizard |
-| Cost Management | Queries, budgets, tags, reservations | -- | Cost analysis UI |
+| Cost Management | Queries, budgets, tags, reservations | `fab api -A azure` (exports, queries) | Cost analysis UI |
 | Git / CI/CD | Azure DevOps infra, Key Vault for creds | `fab api` for git connect/commit/update | Workspace git settings |
 | Purview governance | `az purview` for scans | -- | Enable tenant settings |
 | Workspaces and items | -- | Full control | Full control |
@@ -529,6 +562,48 @@ Purview is managed through the Purview portal and Azure CLI (`az purview`), not 
 | Deployments | -- | `fab api` for deployment pipelines | Pipeline UI |
 | Jobs and refresh | -- | `fab job`, `fab api` | UI triggers |
 
+`--` in the `fab` column means no native `fab` command, not out of reach: any ARM operation is reachable through `fab api -A azure`, as the fab identity.
+
 ### Key Principle
 
-The `az` CLI manages Azure infrastructure: capacity resources, networking, monitoring, identity RBAC, and billing. The `fab` CLI manages Fabric content: workspaces, items, deployments, jobs, and permissions. They are complementary tools serving different layers of the same platform with minimal overlap. The only shared surface is capacity pause/resume (`az fabric capacity suspend/resume` and `fab start/stop .capacities/`).
+The `az` CLI is the ergonomic way to manage Azure infrastructure: capacity resources, networking, monitoring, identity RBAC, and billing. The `fab` CLI manages Fabric content: workspaces, items, deployments, jobs, and permissions. Their native command surfaces barely overlap; the only shared one is capacity pause/resume (`az fabric capacity suspend/resume` and `fab start/stop .capacities/`).
+
+The layers are not sealed off from each other, though. `fab api -A azure` reaches ARM as the fab identity, so an ARM task is not blocked by the `az` session being a different, lower-privilege principal. Reach for it when `az` returns 403 on something the fab identity owns.
+
+---
+
+## Calling `az` from a script
+
+Two Windows-only accommodations. On Linux and macOS `az` is a plain executable and the ordinary list form works, so neither is needed there.
+
+- **`subprocess.run(["az", ...])` cannot find `az` on Windows.** The lookup does not apply `PATHEXT`, so it never resolves `az.cmd` and raises `FileNotFoundError`, which scripts usually report as "Azure CLI (az) not found". `az` works fine in both PowerShell and Git Bash while this happens, so do not reinstall it. Resolve the executable first with `shutil.which("az")` (which does honour `PATHEXT`) and pass the resolved path. Every script in this skill's `scripts/` folder does this.
+- **List-form arguments get mangled under Git Bash.** MSYS path translation rewrites arguments that look like paths, including the `--resource` URL, so `az account get-access-token` fails there. Pass the whole command as one string with `shell=True`, or resolve the path as above and invoke it from PowerShell.
+
+The resolved-path list form, for PowerShell, cmd and any non-MSYS shell. This is the form the scripts in this skill use:
+
+```python
+import json, shutil, subprocess
+
+az = shutil.which("az")
+if not az:
+    raise SystemExit("Azure CLI (az) not found on PATH. Install it and run 'az login'.")
+out = subprocess.run(
+    [az, "account", "get-access-token", "--resource", "https://api.fabric.microsoft.com"],
+    capture_output=True, text=True, check=True,
+)
+token = json.loads(out.stdout)["accessToken"]
+```
+
+The one-string form, for Git Bash, where the list form above is the one that gets mangled. It is also correct on Linux and macOS:
+
+```python
+import json, subprocess
+
+out = subprocess.run(
+    "az account get-access-token --resource https://api.fabric.microsoft.com",
+    shell=True, capture_output=True, text=True, check=True,
+)
+token = json.loads(out.stdout)["accessToken"]
+```
+
+Same sample in context: [querying-data.md > Using the API Directly](./querying-data.md#using-the-api-directly).

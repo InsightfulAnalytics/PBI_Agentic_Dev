@@ -74,6 +74,10 @@ Individual bookmark state. Each bookmark captures a snapshot of the report at a 
 | `suppressData` | boolean | Don't restore filter/slicer state |
 | `applyOnlyToTargetVisuals` | boolean | Only affect visuals listed in targetVisualNames |
 
+**Cloning a page a bookmark targets:** `targetVisualNames` and
+`explorationState.sections.<page>.visualContainers.<visual>` pin ids from outside the page folder, so
+a copied page is not self-contained. See [page.md](./page.md), "Cloning a page or a visual".
+
 ### explorationState
 
 | Property | Description |

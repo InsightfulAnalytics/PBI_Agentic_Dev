@@ -139,7 +139,7 @@ Full enumeration patterns, filtering, and change mechanics: [references/delegate
 
 Any setting scoped to a security group is only as strong as the group's membership, ownership, and governance. A recommended scoping that points to an empty or stale SG is effectively no scoping at all. Conversely, a setting restricted to a sprawling, dynamically-populated SG can be less restrictive than leaving it org-wide under a tenant with clean RLS.
 
-Enumerate every `graphId` referenced by the live tenant settings, resolve each via `az ad group`, classify members by `@odata.type`, cross-check against Fabric / Power BI / Global admin role assignments, and feed each finding back onto the corresponding tenant-setting row. Red-flag categories (empty groups, guest members, stale owners, dynamic membership, nested SPs) and the exact Graph queries are in [references/security-groups.md](./references/security-groups.md).
+Enumerate every `graphId` referenced by the live tenant settings, resolve each via `az ad group`, classify members by `@odata.type`, cross-check against Fabric / Power BI / Global admin role assignments, and feed each finding back onto the corresponding tenant-setting row. Red-flag categories (empty groups, guest members, stale owners, dynamic membership, nested SPs), the exact Graph queries, and the settings that refuse an org-wide enable are in [references/security-groups.md](./references/security-groups.md).
 
 When the SG strategy itself looks wrong (e.g. one SG reused for unrelated postures, individual users added directly to role-style groups, ownership sitting on departed employees), point it out plainly without alarmist framing. The goal is to help the user rethink the model, not scare them.
 
@@ -202,6 +202,7 @@ Close every plan with the disclaimer: "These recommendations are based on the cu
 - **Ambiguous setting phrasing**: if more than one setting matches the query, list candidates and ask which one.
 - **No `fab auth` session**: ask the user to run `fab auth login` before proceeding. Do not auto-authenticate.
 - **No `az login`** when an SG question comes up: ask for `az login`. Offer to fall back to the script's heuristic UPN flag for a first-pass smoke test.
+- **Bare 400 on `{"enabled": true}`**: if the setting reports `canSpecifySecurityGroups: true`, the group scope is mandatory rather than optional. Add `enabledSecurityGroups` before suspecting permissions or a malformed body; see [references/security-groups.md](./references/security-groups.md) section 6.
 - **Rate limit (429)**: back off per `Retry-After`. When resuming, resume from the failed setting rather than restarting.
 - **Huge tenants**: admin workspace and items APIs are paged. Use `continuationUri` / `continuationToken` and stream; do not try to materialize everything into a single response.
 
@@ -211,7 +212,7 @@ Close every plan with the disclaimer: "These recommendations are based on the cu
 
 - `references/tenant-settings-metadata.yaml` ; curated baseline for every known Fabric / Power BI tenant setting (portal title, description, preview, recommendation, risk, nuance, docs link).
 - `references/delegated-overrides.md` ; enumerate, classify, and (for capacity only) change delegated overrides.
-- `references/security-groups.md` ; resolve graphIds, classify members, detect red flags, cross-check admin role assignments.
+- `references/security-groups.md` ; resolve graphIds, classify members, detect red flags, cross-check admin role assignments, and the settings that refuse an org-wide enable (bare 400).
 - `scripts/audit-tenant-settings.py` ; audit + change-detection script. Consumes the metadata yaml via its sibling `references/` path.
 - `scripts/generate_audit_pdf.py` ; renders a clean one-to-two-page PDF briefing of the same audit. Reuses the audit logic by importing the sibling script, optionally enumerates delegated overrides, and emits a compact editorial-style summary with headline counts, changes since last audit, a drift table, and a delegated-overrides section. Run with `uv run scripts/generate_audit_pdf.py -o /tmp/tenant-audit.pdf` after (or instead of) the markdown audit; share the PDF with stakeholders, keep the markdown for the working walk-through.
 

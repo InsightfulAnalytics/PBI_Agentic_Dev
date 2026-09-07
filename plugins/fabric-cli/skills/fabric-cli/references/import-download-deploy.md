@@ -64,6 +64,18 @@ output/
 
 The `.platform` file is the item manifest (display name, type, item ID). The `definition/` subdirectory holds the editable source. Paths inside `definition/` are what the pbip and pbir-cli skills operate on.
 
+**A `.SemanticModel` export is not directly re-importable.** `fab export` writes `.platform` and `definition/` but **not** `definition.pbism`, which `fab import` requires, so the round trip fails at the import step with:
+
+```
+Workload_FailedToParseFile ... Required artifact is missing in 'definition.pbism'
+```
+
+Write the file to the item root before importing. Every export/import round trip, backup restore and workspace-to-workspace move needs this step. Verified 2026-08-05.
+
+```bash
+echo '{"version":"4.2","settings":{}}' > /tmp/migration/Sales.SemanticModel/definition.pbism
+```
+
 ### Full workspace snapshot (including lakehouse files)
 
 `fab export -a` skips Lakehouse Files and will miss anything stored in `Files/` or `Tables/` inside a Lakehouse. For a true backup, use the [`download_workspace.py`](../scripts/download_workspace.py) script, which walks every item in the workspace, exports each definition, and additionally `fab cp`'s all lakehouse files to disk:
@@ -143,7 +155,45 @@ fab set "Production.Workspace/Sales.Report" \
   -i "<target-model-id>"
 ```
 
-See [reports.md](./reports.md) for alternative byPath / byConnection rebinding patterns and the full thin-report workflow.
+See [reports.md](./reports.md) for the full thin-report workflow.
+
+### Publishing a report over an API-imported model
+
+`fab import` rejects a **byPath** report outright, with a message telling you to switch to byConnection. The working sequence for a model created or imported through the API is:
+
+1. Import the `.SemanticModel` first, and read back its GUID.
+2. Import a **byConnection** report whose `definition.pbir` carries:
+
+```
+Data Source=powerbi://api.powerbi.com/v1.0/myorg/<Ws>;Initial Catalog=<dataset-GUID>;semanticModelId=<dataset-GUID>
+```
+
+Two contract details break the import when violated:
+
+- byConnection schema 2.0.0 is `additionalProperties: false`. **Only** `connectionString` is allowed in the object; any extra key fails the import with a parse error that does not name the offending key.
+- The dataset **GUID** is required, not the dataset name, in both `Initial Catalog` and `semanticModelId`.
+
+Verified 2026-07-05.
+
+### A Direct Lake model created by `fab import` arrives unbound
+
+Its datasource has no `datasourceId` and no `gatewayId`, so the first refresh fails with:
+
+```
+We cannot access the source Delta table '<t>' referenced by table '<t>'
+```
+
+The message points at the lakehouse, and the lakehouse is fine. The binding is missing. Copy the two ids from a model in the same workspace that already refreshes, then bind:
+
+```bash
+# read the ids from a working model
+fab api -A powerbi "groups/$WS_ID/datasets/<working-model-id>/datasources"
+
+# bind the new one
+fab api -A powerbi -X post "groups/$WS_ID/datasets/<new-model-id>/Default.BindToGateway" -i body.json
+```
+
+**Re-bind after every definition update.** An import can drop the binding again, so a pipeline that updates a definition has to re-bind in the same step, not once at creation. Verified 2026-08-05.
 
 ### Bulk import from a directory
 
@@ -214,6 +264,8 @@ Two supported paths:
    # 2. Import to prod, item by item
    fab import "Production.Workspace/Pipeline.DataPipeline" \
      -i /tmp/migration/Pipeline.DataPipeline -f
+   # fab export omits definition.pbism, which fab import requires (see above)
+   echo '{"version":"4.2","settings":{}}' > /tmp/migration/Sales.SemanticModel/definition.pbism
    fab import "Production.Workspace/Sales.SemanticModel" \
      -i /tmp/migration/Sales.SemanticModel -f
    fab import "Production.Workspace/Sales.Report" \

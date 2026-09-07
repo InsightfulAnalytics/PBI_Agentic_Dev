@@ -21,12 +21,78 @@ snapshot the report to confirm the visuals reflect the change.
   Where-Object { $_ -match 'pbi-desktop-bridge-(\d+)$' }
 ```
 
-  The pipe exists only when the bridge **preview setting is enabled**: in Power BI
-  Desktop, File > Options and settings > Options > Preview features, turn on the
-  developer-mode / report-bridge preview feature and restart Desktop. If no pipe is
-  found, that setting is off or Desktop is closed.
+  The bridge needs its **preview setting enabled**: in Power BI Desktop, File > Options
+  and settings > Options > Preview features, turn on the developer-mode / report-bridge
+  preview feature and restart Desktop. If no pipe is found, that setting is off or
+  Desktop is closed. **Pipe enumeration is not an availability check**, though: a pipe
+  can be present and the bridge still drop the client (next section), so confirm with a
+  `bridge.manifest` round trip before building a workflow on it.
 - Protocol: JSON-RPC 2.0 with LSP-style `Content-Length` framing (vscode-jsonrpc over
   the pipe stream). No initialize handshake; connect and call.
+
+## Symptom: the pipe exists but the client is dropped at handshake
+
+There is a third state between "pipe present" and "pipe absent". The pipe can be
+present for every Desktop process while the bridge still drops the client: a raw connect
+to `\\.\pipe\pbi-desktop-bridge-<PID>` succeeds, the first write then fails with
+**"Pipe is broken"**, and `pbir desktop list` reports that the local API is not reachable.
+The bridge is accepting the connection and dropping the client at handshake rather than
+refusing it outright. (Observed with the preview toggle in a particular state, not
+documented product behaviour.)
+Retest: connect to the pipe and call `bridge.manifest`.
+
+So **call `bridge.manifest` first and treat its response as the availability test**. It
+is the first call in both clients below for this reason, not as a formality. A pipe that
+enumerates proves nothing.
+
+When it fails this way, route around it rather than trying to repair it:
+
+- **Reloads**: the Apply-external-changes banner (Desktop 26.08+) reloads a PBIP in
+  place and does not depend on the bridge. See
+  [desktop-lifecycle.md](./desktop-lifecycle.md).
+- **Screenshots**: render server-side with the `ExportTo` API (fabric-cli
+  `references/reports.md`), which needs no local Desktop at all.
+- **Model work**: unaffected. The Analysis Services port is independent of the bridge
+  (next section).
+
+## When the local API preview is off
+
+`pbir model -q` depends on the same preview feature. With it off, the command fails with:
+
+```
+Local model is not open in Power BI Desktop ... enable 'Enable external tool access to Power BI Desktop through secure local APIs'
+```
+
+That is a per-machine preview toggle, not a product limitation and not something a
+command-line flag works around. **Go straight to ADOMD rather than spending turns fixing
+`pbir`.** The direct ADOMD path in SKILL.md connects to the Analysis Services port and
+works regardless of the toggle: the XMLA port is always there when Desktop has a model
+loaded, the named pipe only when the preview is on.
+
+Treat `pbir desktop list` as worth one attempt, not as a dependency. If it returns
+nothing, correlate `msmdsrv` ports to their `PBIDesktop.exe` parents through the process
+tree (SKILL.md section 2a) and read `$server.Databases[0].Name` per port.
+
+## Apply-external-changes is not the `pbir` local API
+
+Two separate Desktop features, easily conflated:
+
+| | Desktop Bridge (this file) | Apply external changes |
+|---|---|---|
+| What it is | The "secure local APIs" preview: a per-process named pipe speaking JSON-RPC 2.0 | A banner and a WPF button in the Desktop UI that reloads a PBIP in place |
+| Gated by | The preview setting, per machine | The Desktop build (26.08+) |
+| Reloads | PBIR report definition (`file.reload/v1`) | The whole PBIP project, model included |
+| Drivable by | `pbir desktop`, or the raw pipe | UIAutomation |
+
+Microsoft documents the bridge at
+`https://learn.microsoft.com/power-bi/developer/agentic/power-bi-desktop-bridge-overview`;
+the banner's feature symbols live in `Microsoft.PowerBI.Client.Windows.dll`
+(`ExternalChangesTracker`, `PBIPReload`, `ProjectExternalChangesDetected`).
+
+The consequence that matters: the banner does **not** depend on the bridge or on that
+preview setting, so it stays available on a machine where the bridge is off or broken.
+Do not report the canvas as unreachable just because `pbir desktop list` fails. Full
+treatment in [desktop-lifecycle.md](./desktop-lifecycle.md).
 
 ## Methods (params and returns, as the bridge defines them)
 
@@ -101,15 +167,20 @@ $shot = Invoke-Bridge $pipe 6 "report.snapshot.capture/v1" @{ pageId = "ReportSe
 ```
 
 On-disk PBIR (report) edits are picked up by `file.reload/v1`. On-disk TMDL (model)
-edits are not; prefer live TOM `SaveChanges()` for model changes.
+edits are not, so for model changes either apply them into the running instance with
+live TOM `SaveChanges()` (preferred here, it is already connected) or click **Apply
+external changes** on Desktop 26.08+, which reloads the whole project including the
+model. Either way, do not leave the in-memory copy and the disk copy diverging; see
+[desktop-lifecycle.md](./desktop-lifecycle.md).
 
 ## Locating the open PBIP from the bridge
 
 You do not need the file path in advance. Enumerate the pipe directory to auto-discover
-the running Desktop PID, connect, and call `application.state.get/v1`; its
-`currentFilePath` is the open `.pbip`/`.pbix` on disk. From it you have the project
-folder and its `.Report` (PBIR) and `.SemanticModel` siblings, ready to drive with
-`pbir` / the `pbir-format` skill. This is more reliable than the recent-file-history
+the running Desktop PID, connect, call `bridge.manifest` to confirm the bridge is really
+answering (enumeration alone does not, see the handshake symptom above), then call
+`application.state.get/v1`; its `currentFilePath` is the open `.pbip`/`.pbix` on disk.
+From it you have the project folder and its `.Report` (PBIR) and `.SemanticModel`
+siblings, ready to drive with `pbir` / the `pbir-format` skill. This is more reliable than the recent-file-history
 method (section 10), which reads history rather than the live instance.
 
 ```powershell
@@ -117,7 +188,8 @@ $procId = [System.IO.Directory]::GetFiles("\\.\pipe\") |
           ForEach-Object { if ($_ -match 'pbi-desktop-bridge-(\d+)$') { $matches[1] } } |
           Select-Object -First 1
 # connect to pbi-desktop-bridge-$procId (above), then:
-$state     = Invoke-Bridge $pipe 1 "application.state.get/v1" @{}
+Invoke-Bridge $pipe 1 "bridge.manifest" @{} | Out-Null      # availability test, not a formality
+$state     = Invoke-Bridge $pipe 2 "application.state.get/v1" @{}
 $pbip      = $state.currentFilePath                              # e.g. C:\Reports\Sales\Sales.pbip
 $reportDir = Join-Path (Split-Path $pbip) ((Split-Path $pbip -LeafBase) + ".Report")
 ```
