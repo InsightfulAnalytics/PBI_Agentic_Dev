@@ -1,6 +1,6 @@
 ---
 name: workout-wednesday
-version: 26.25
+version: 26.26
 description: End-to-end pipeline for a Power BI Workout Wednesday challenge — from a pasted challenge link to a built PBIP report, visually verified against the original and published to a Fabric workspace. Use when the user pastes a workout-wednesday.com challenge link, says "this week's Workout Wednesday", "WW week N", or asks to build or publish a WW challenge solution.
 ---
 

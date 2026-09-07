@@ -1,6 +1,6 @@
 ---
 name: claude-design-handoff
-version: 26.25
+version: 26.26
 description: "Import and implement a Claude Design handoff (an api.anthropic.com/v1/design/... URL, a claude.ai/design link, or a design ZIP) into a Fabric App or Power BI report, and author the reverse handoff brief back to Claude Design. Use whenever the user pastes a design URL, says \"fetch this design file and implement\", \"import the design\", mentions a Claude Design handoff/mockup, or asks for a design brief for Claude Design. Encodes the extraction, delta-application, and cleanup rules that repeatedly went wrong when done ad hoc."
 ---
 

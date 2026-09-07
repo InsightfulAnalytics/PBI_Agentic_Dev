@@ -1,6 +1,6 @@
 ---
 name: dax-standard
-version: 26.25
+version: 26.26
 description: The house style for authoring DAX measures — build the rows the calculation needs into a table variable, then aggregate over it with an X-function, composing the steps with VARs so every measure reads top-to-bottom and can be debugged step by step. Covers measure formatting (dynamic format strings + user-defined functions), the time-intelligence exception, and worked recipes. Invoke when asked to "write a measure", "how do I write DAX for…", "rewrite this measure", "make this DAX readable/easier to debug", "the DAX pattern", "format a measure", "dynamic format string", "number formatting", or for a recipe (time intelligence, customer/HR/finance/operations KPIs, geospatial, streaks, fuzzy matching, SVG). For tuning a measure that is measurably slow, or reading server timings, use `semantic-models:dax-optimisation` instead.
 ---
 # Standard DAX

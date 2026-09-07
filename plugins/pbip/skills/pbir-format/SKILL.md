@@ -1,6 +1,6 @@
 ---
 name: pbir-format
-version: 26.25
+version: 26.26
 description: Format reference for Power BI Enhanced Report (PBIR) JSON schemas and patterns. Automatically invoke on any PBIR metadata format question (visual.json properties, extension measures, themes, page structure) and on the symptoms hand-authored PBIR produces, a formatting change that did nothing, a visual that renders empty or shows only its first column, an Issues were found dialog, or Missing_References after publishing.
 ---
 

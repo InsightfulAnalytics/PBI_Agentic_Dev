@@ -1,6 +1,6 @@
 ---
 name: date-table
-version: 26.25
+version: 26.26
 description: Drop a complete, ready-to-use date dimension into a PBIP semantic model -- an extended DimDate table (58 columns; calendar, ISO week, fiscal, and to-date flags) built by a bundled Power Query function, plus the "Dates Selected" DAX measure that renders the current date selection as a report title. Automatically invoke when the user asks to "add a date table", "add a calendar table", "create DimDate", "set up a date dimension", "add my standard date table", "mark as date table", "add a fiscal calendar", or wants a title measure showing the selected date period.
 ---
 
