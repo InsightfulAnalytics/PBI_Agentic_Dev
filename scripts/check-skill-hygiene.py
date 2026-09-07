@@ -12,6 +12,8 @@ Four jobs, one walk of the tracked markdown:
    the tracked denylist never contains the terms it protects.
 4. Cross-reference resolution. Every relative markdown link and ``#anchor`` under
    ``plugins/`` must resolve to a real file and a real heading.
+5. SKILL.md frontmatter sanity. An unquoted YAML scalar cannot contain ": ", and a skill whose
+   frontmatter fails to parse loads with EVERY field silently dropped, so it never triggers.
 
 Usage::
 
@@ -303,6 +305,60 @@ def check_links(path: Path, text: str, cache: dict[Path, set[str]], rep: Report)
                     ))
 
 
+# --- job 5: SKILL.md frontmatter ---------------------------------------------------
+
+FM_KEY_RE = re.compile(r"^([A-Za-z_][A-Za-z0-9_-]*):(.*)$")
+
+
+def check_frontmatter(path: Path, text: str, rep: Report) -> None:
+    """Catch the frontmatter breakages that make a skill load with no metadata.
+
+    Full YAML parsing is validate-plugins.sh's job. This catches the one failure that
+    keeps recurring: recasting a dash into a colon inside an unquoted scalar.
+    """
+    if path.name != "SKILL.md":
+        return
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        rep.add(Finding(rel(path), 1, "NO_FRONTMATTER", "SKILL.md does not open with a `---` fence"))
+        return
+    try:
+        end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+    except StopIteration:
+        rep.add(Finding(rel(path), 1, "UNTERMINATED_FRONTMATTER", "no closing `---` fence"))
+        return
+
+    key = None
+    start = 0
+    buf: list[str] = []
+
+    def flush() -> None:
+        if key is None:
+            return
+        value = " ".join(buf).strip()
+        if not value or value[0] in "\"'|>[{&*!":
+            return  # quoted, block or flow scalar: a colon inside is legal
+        if ": " in value or value.endswith(":"):
+            rep.add(Finding(
+                rel(path), start + 1, "FRONTMATTER_UNQUOTED_COLON",
+                f"`{key}:` is an unquoted scalar containing \": \", which fails YAML parsing; "
+                f"the skill would load with every frontmatter field dropped. Recast the colon or "
+                f"quote the value",
+            ))
+
+    for i in range(1, end):
+        line = lines[i]
+        m = FM_KEY_RE.match(line)
+        if m and not line.startswith((" ", "	", "-")):
+            flush()
+            key, rest = m.group(1), m.group(2)
+            start = i
+            buf = [rest]
+        elif key is not None:
+            buf.append(line)
+    flush()
+
+
 # --- boundary-rule drift -------------------------------------------------------------
 
 def extract_sentinel(text: str) -> str | None:
@@ -356,6 +412,7 @@ def main() -> int:
         text = read(path)
         check_dated_claims(path, text, args.max_age_days, args.today, rep)
         check_leakage(path, text, patterns, hashes, rep)
+        check_frontmatter(path, text, rep)
         if not args.no_links and rel(path).startswith("plugins/"):
             check_links(path, text, anchor_cache, rep)
     check_boundary_rule(rep)

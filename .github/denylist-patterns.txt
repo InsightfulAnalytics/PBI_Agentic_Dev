@@ -21,6 +21,6 @@ C:\\Users\\[A-Za-z0-9][A-Za-z0-9._-]*	a Windows user-profile path
 /Users/[A-Za-z0-9][A-Za-z0-9._-]*	a macOS user-profile path
 [A-Za-z]:\\VS Code Files	the fork maintainer's workspace root
 (?i)[A-Za-z0-9._%+-]+@(?:gmail|googlemail|outlook|hotmail|live|yahoo|icloud|me|proton|protonmail|aol)\.[A-Za-z.]{2,}	a personal email address
-~/\.claude/rules|\.claude[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md
-\.cursor[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md
-\.github[\\/]instructions	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md
+~/\.claude/rules|\.claude[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md,release-notes/*.md
+\.cursor[\\/]rules	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md,release-notes/*.md
+\.github[\\/]instructions	a per-machine memory-file location	LEARNINGS.md,CONTRIBUTING.md,plugins/fabric-cli/skills/fabric-cli/SKILL.md,plugins/pbi-desktop/skills/connect-pbid/SKILL.md,plugins/reports/skills/pbir-cli/SKILL.md,release-notes/*.md

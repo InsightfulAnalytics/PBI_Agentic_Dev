@@ -1,7 +1,7 @@
 ---
 name: pbi-verify-loop
 version: 26.26
-description: Visually verify Power BI report edits against a running Power BI Desktop instance: refresh the canvas from disk, wait until rendering is stable (no guessed sleeps), screenshot the page, and optionally diff against a mockup. Use after ANY edit to PBIR visual.json / pages / theme when Desktop is open, and whenever the user asks to "check the report", "verify the change", "screenshot the page", or a mockup comparison is needed. Replaces hand-rolled refresh + Start-Sleep + screenshot loops.
+description: Visually verify Power BI report edits against a running Power BI Desktop instance. Refresh the canvas from disk, wait until rendering is stable (no guessed sleeps), screenshot the page, and optionally diff against a mockup. Use after ANY edit to PBIR visual.json / pages / theme when Desktop is open, and whenever the user asks to "check the report", "verify the change", "screenshot the page", or a mockup comparison is needed. Replaces hand-rolled refresh + Start-Sleep + screenshot loops.
 ---
 
 # PBI verify loop
