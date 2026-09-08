@@ -1,7 +1,7 @@
 ---
 name: desktop-screen-capture
 version: 26.26
-description: Screenshot what is actually on a Windows screen, the whole virtual desktop or one window located by title, and save a PNG the agent can Read. Use whenever you need to SEE a GUI: Power BI Desktop, a dialog, a driver or display symptom, a browser. Use especially when `pbir desktop screenshot` or the connect-pbid Desktop Bridge is unavailable because the "Enable external tool access to Power BI Desktop through secure local APIs" preview is off. Triggers include "what's on screen", "screenshot Power BI", "look at my screen", "can you see the dialog", "screenshot that window".
+description: Screenshot what is actually on a Windows screen, the whole virtual desktop or one window located by title, and save a PNG the agent can Read. Use whenever you need to SEE a GUI, such as Power BI Desktop, a dialog, a driver or display symptom, or a browser. Use especially when `pbir desktop screenshot` or the connect-pbid Desktop Bridge is unavailable because the "Enable external tool access to Power BI Desktop through secure local APIs" preview is off. Triggers include "what's on screen", "screenshot Power BI", "look at my screen", "can you see the dialog", "screenshot that window".
 ---
 
 # Desktop screen capture

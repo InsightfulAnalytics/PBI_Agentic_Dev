@@ -164,11 +164,17 @@ def load_patterns() -> list[tuple[re.Pattern[str], str, list[str]]]:
 
 def tracked_markdown(staged_only: bool) -> list[Path]:
     if staged_only:
-        cmd = ["git", "-C", str(REPO), "diff", "--cached", "--name-only", "--diff-filter=ACMR"]
+        cmds = [["git", "-C", str(REPO), "diff", "--cached", "--name-only", "--diff-filter=ACMR"]]
     else:
-        cmd = ["git", "-C", str(REPO), "ls-files"]
+        # Tracked files PLUS untracked-but-not-ignored ones. A brand new SKILL.md is exactly the
+        # file most likely to be malformed, and `ls-files` alone silently skips it, so the check
+        # passes locally and only fails in CI after the commit.
+        cmds = [["git", "-C", str(REPO), "ls-files"],
+                ["git", "-C", str(REPO), "ls-files", "--others", "--exclude-standard"]]
+    out = ""
     try:
-        out = subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
+        for cmd in cmds:
+            out += subprocess.run(cmd, capture_output=True, text=True, check=True).stdout
     except (subprocess.CalledProcessError, FileNotFoundError):
         return sorted(REPO.glob("plugins/**/*.md"))
     files = []
