@@ -112,6 +112,11 @@ are per-machine and per-user.
 - **Cross-reference by `plugin:skill` name plus reference filename**, never by filesystem path.
   That form survives a repo move, a Codespace checkout at a different path, and the Codex projection
   into `~/.agents/skills/`.
+- **Do not sweep the existing em dashes.** New content in this repo is written without them, but the
+  ones already here stay. There are 719 across 113 files; 79 of those files are upstream-authored,
+  so a sweep would conflict with every future cherry-pick from `data-goblin`. Others sit inside code
+  fences, inline code, and table cells where `—` marks "not applicable", where a blind replace would
+  change literal content. Decided 2026-09-08.
 
 ## Checks
 
