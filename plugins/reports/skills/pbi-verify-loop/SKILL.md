@@ -37,7 +37,7 @@ The script refreshes the report from disk, then captures repeatedly (every 3s, u
 
 ## Preconditions & gotchas
 
-- Power BI Desktop must be running with the report open, and the preview feature **"external tool access to Power BI Desktop through secure local APIs"** enabled (Options → Preview features, restart Desktop). Check with `pbir desktop list`. If it errors or shows nothing, tell the user to enable/restart rather than retrying.
+- Power BI Desktop must be running with the report open, and the preview feature **"external tool access to Power BI Desktop through secure local APIs"** enabled (Options → Preview features, restart Desktop). Check with `pbir desktop list`. If it errors or shows nothing, that preview is off: tell the user to enable it and restart Desktop rather than retrying. Where it stays off, `reports:desktop-screen-capture` screenshots the Desktop window directly, and where Desktop is unavailable at all, render the published report server-side with `ExportTo` (`fabric-cli:fabric-cli`, `references/reports.md`).
 - **`pbir desktop list` first, always**: if the instance shows `Unsaved: yes`, a refresh reloads from disk and can clobber the user's unsaved in-Desktop tweaks, so use `--no-refresh` or ask them to save first.
 - Page path form is `Report.Report/PageName.Page` (folder names from `definition/pages/`), not display names. Omit the page to capture the first page.
 - Full-flag reference for `pbir desktop`: the `pbir-cli` skill's `references/cli-reference.md` (Desktop Operations section). Key gotchas: the screenshot output flag is `-o/--output` (there is no `--out`), and `--settle` applies only with `--all`.

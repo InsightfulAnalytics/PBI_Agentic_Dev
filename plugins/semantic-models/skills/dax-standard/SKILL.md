@@ -139,10 +139,18 @@ Author every measure so it reads top-to-bottom like prose. Three rules:
 2. **One thing per line (short lines).** Each `VAR`, each function, and each argument on its
    own line — break `FILTER`, `DIVIDE`, `GROUPBY`, etc. across lines instead of packing a call
    onto one line. Short lines diff cleanly and read like discrete steps.
-3. **Comment every step.** Precede each `VAR` / step with a `//` line saying what it does.
-   These `//` comments live *inside* the expression, so the engine keeps them as DAX comments.
-   (That is separate from the TMDL `///` line **above** the measure, which sets the measure's
-   `Description` property — use both.)
+3. **Comment every step, after the measure name rather than above it.** The explanatory comment
+   belongs on the line *after* `MeasureName =`, inside the expression, not stranded above the
+   declaration. Precede each `VAR` / step with a `//` line saying what it does. These `//` comments
+   live inside the expression, so the engine keeps them as DAX comments. That is separate from the
+   TMDL `///` line above the measure, which sets the `Description` property. Use both, and keep the
+   step-by-step reasoning in the `//` comments where it sits beside the code it explains.
+4. **Never leave a measure in an error state.** A measure that does not evaluate is worse than no
+   measure: it breaks every visual that touches it, and it breaks the model refresh. If a rewrite is
+   half done, or a field it depends on does not exist yet, either finish it or revert it before
+   handing the file back. Prove it evaluates before you call the work done. `pbip:tmdl`
+   `references/authoring-gotchas.md` covers the parse-level traps; this is about the semantic level,
+   where the file parses and the measure still returns an error.
 
 Worked example in this house style:
 
