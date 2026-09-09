@@ -490,17 +490,21 @@ the `visual` level: `objects` is not at the root of the file. Each value is an `
   "enableContextMenu": { "expr": { "Literal": { "Value": "true" } } },
   "enableSelection":   { "expr": { "Literal": { "Value": "false" } } },
   "enableHighlight":   { "expr": { "Literal": { "Value": "false" } } },
-  "logLevel":          { "expr": { "Literal": { "Value": "3D" } } },
-  "version":           { "expr": { "Literal": { "Value": "'6.4.1'" } } }
+  "logLevel":          { "expr": { "Literal": { "Value": "3D" } } }
 } } ] } }
 ```
 
 Booleans are bare `true` / `false`; `logLevel` is the numeric literal `3D` (PBIR's double suffix);
-strings, including the spec and the config, are single-quoted. `version` pins the Deneb runtime the
-spec was written against, so keep the `v6` schema URLs and the `version` literal in step.
+strings, including the spec and the config, are single-quoted. Leave `vega.version` and
+`developer.version` out: Deneb stamps both on the visual's first edit-mode open, and the value
+depends on the build that opens it (a 1.9 Vega-Lite visual gets `6.4.1`, a 2.0 one `6.4.3`), so a
+hand-written stamp only misdescribes the file. The rules for the 1.9 / 2.0 window are in the
+`custom-visuals:deneb-visuals` reference `deneb-2-migration.md`.
 
-**4. Flatten and quote the spec.** The whole JSON document goes inside a single-quoted literal, so
-embedded single quotes must be doubled:
+**4. Flatten and quote the spec.** Drop the root `$schema` first: it belongs in the standalone file
+for editors and the offline renderer, and inside `jsonSpec` Deneb 2.0 flags it with an editor
+warning (`deneb_spec.py embed` strips it for you). The whole JSON document then goes inside a
+single-quoted literal, so embedded single quotes must be doubled:
 
 ```python
 def pbir_lit(s):
@@ -558,18 +562,25 @@ Vega-Lite spec is compiled, a Vega spec is parsed as-is, and `--data` is injecte
 form or the array form as appropriate. A raw-Vega grid spec rendered clean and reported
 `"compiled":"vega"`. So a grid that outgrows Vega-Lite does not cost you your offline loop.
 
-Three things it does not do for you, all of which a *shipped grid spec* needs. Build a **preview
-copy** of the spec rather than editing the real one:
+Three things to know before trusting the picture, all of which a *shipped grid spec* runs into.
+Build a **preview copy** of the spec rather than editing the real one:
 
-- **No `width` / `height` injection.** The shipped spec deliberately omits both (see "Spec anatomy"),
-  and without them Vega-Lite renders at its 300x300 default: the whole grid crushed into a square.
-  Setting `width` / `height` on the preview copy gives you the real geometry. `--scale` multiplies
-  pixels, it does not set dimensions.
+- **Size comes from `--width` / `--height`.** The shipped spec deliberately omits both (see "Spec
+  anatomy"). The renderer, updated for Deneb 2.0, sizes an unsized Vega-Lite spec to the container it
+  is given, 600 x 400 by default, the way Deneb does, so pass the visual's real geometry
+  (`--width 1578 --height 710`) instead of editing the spec. Before that update an unsized spec drew
+  at Vega-Lite's default square, the whole grid crushed. `--scale` multiplies pixels, it does not set
+  dimensions. Verified 2026-09-08 against the renderer's usage text in this repository, not against
+  a Desktop.
+  Retest: `node "${CLAUDE_PLUGIN_ROOT}/skills/deneb-pbir/renderer/render.mjs" --help` lists `--width`.
 - **No `--config` flag.** Merge the config into the preview copy as `spec.config`.
-- **No Deneb runtime stubs.** Any spec using `pbiColor`, `pbiFormat` or `pbiPatternSVG` dies at parse
-  time with `Error: Unrecognized function: pbiColor`, before rendering starts. Either substitute
-  literal colours in the preview copy, or, if the theme call is the thing you are checking, use an
-  8-line wrapper that registers stubs against the same install:
+- **Deneb runtime stand-ins, not Deneb.** The same renderer update registers offline stand-ins for
+  `pbiColor`, `pbiFormat`, `pbiFormatAutoUnit` and `pbiPatternSVG` (plus the `pbiColor*` schemes and
+  the container signals), so a spec that calls them parses and draws instead of dying with
+  `Error: Unrecognized function: pbiColor`. They are approximations: `pbiFormat` is not Power BI's
+  formatter and `pbiPatternSVG` returns the foreground colour, so read the PNG for layout, order and
+  blanks, never for number formatting. If you need a specific stub value (one theme colour, say),
+  the wrapper below still works against the same install:
 
 ```js
 import { createRequire } from 'node:module';
@@ -718,8 +729,11 @@ hour on any grid where a client will reconcile the numbers.
   error; aggregate it or drop it.
 - `null` coerces to `0` in every JS comparison, so a derived threshold that goes missing produces a
   plausible wrong column rather than a blank one. Put `isValid` guards on anything a filter reads.
-- The bundled renderer throws `Unrecognized function: pbiColor` on Deneb theme helpers, at parse time
-  rather than render time. Substitute literals in the preview copy, or register stubs in a wrapper.
+- The bundled renderer registers offline stand-ins for the Deneb theme and formatting helpers (since
+  its Deneb 2.0 update); the colours and formatted text in a PNG are approximations, so check
+  formatting in Desktop. On an older renderer the same spec dies at parse time with
+  `Unrecognized function: pbiColor`: substitute literals in the preview copy, or register stubs in a
+  wrapper.
 - The offline renderer has no Segoe UI and estimates text width well over the true value, so `limit`
   truncation in a PNG is not evidence of truncation in Desktop. Check clipping in Desktop; use the
   render for layout, order and blanks.

@@ -1,6 +1,14 @@
 # Vega Chart Patterns for Deneb
 
-Common Vega chart patterns for Power BI Deneb visuals. All specs use `"data": [{"name": "dataset"}]` (array form) and Vega v6 (bundled in Deneb 1.8+). Use `pbiContainerWidth` / `pbiContainerHeight` signals for responsive sizing and `pbiColor()` for theme colors.
+Common Vega chart patterns for Power BI Deneb visuals. All specs use `"data": [{"name": "dataset"}]` (array form) and Vega v6, bundled since Deneb 1.8: Deneb 2.0.0.0 ships Vega 6.4.0, Deneb 1.9.x shipped 6.2.0 (Verified 2026-09-08 against Deneb's `package.json` and the docs changelog "Vega Updates"). Use `pbiColor()` for theme colors.
+
+Retest: `gh api repos/deneb-viz/deneb/contents/package.json --jq '.content' | base64 -d | grep '"vega"'`
+
+Every block below carries a root `$schema` for editors and the offline renderer; it never goes into `jsonSpec` (`deneb_spec.py embed` strips it; strip it yourself if you hand-embed).
+
+### Container signals
+
+Every pattern below sizes itself with `pbiContainerWidth` / `pbiContainerHeight`. Those are the legacy names: they work natively on Deneb 1.9.x and on every 2.x build, where Deneb rewrites them to the 2.0 names at parse time and logs one warning per session (removal target is 3.0). The 2.0 name is the `denebContainer` signal object with `width`, `height`, `scrollWidth`, `scrollHeight`, `scrollTop` and `scrollLeft`; it does not exist in 1.9.x, so a spec that references `denebContainer.width` should fail to parse there (inferred from Vega's parser, never reproduced in a Desktop running Deneb 1.9.1.0, so it is unverified; see the [compatibility matrix](deneb-2-migration.md#compatibility-matrix) for the Retest). Rule: if the visual.json you are editing carries `developer.version` 2.0.0.0 or later, use `denebContainer.width` / `denebContainer.height`; if it carries a 1.x stamp, or the target report has not been confirmed on 2.0, keep the legacy names. Flip a finished spec either way with `deneb_spec.py migrate --signals modern|legacy`. Details and the compatibility matrix: [deneb-2-migration.md, Authoring rules during the transition](deneb-2-migration.md#authoring-rules-during-the-transition).
 
 ## Vega Spec Anatomy
 
@@ -644,6 +652,93 @@ When `enableSelection` is true, use `__selected__` to control mark opacity:
 ]
 ```
 
+## Field Parameters (Consolidated, Deneb 2.0)
+
+With `stateManagement.consolidateFieldParameters` on, a field parameter arrives as ONE array-valued column named after the parameter (its display name, not a component's), one entry per selected component in data-view order, plus companion arrays: `<Parameter>__names` (component display names, opt-in) and `__highlight`, `__highlightStatus`, `__highlightComparator`, `__format`, `__formatted` (all arrays). Use a `flatten` transform to get one row per component; `__row__` is preserved, so tooltips and cross-filtering keep resolving. Pattern from the Deneb docs (`field-parameters.md`, "Working with Array Data"):
+
+```json
+{
+  "data": [
+    {"name": "dataset"},
+    {
+      "name": "flattened",
+      "source": "dataset",
+      "transform": [
+        {"type": "flatten", "fields": ["Metric", "Metric__names"]}
+      ]
+    }
+  ],
+  "scales": [
+    {"name": "x", "type": "linear", "domain": {"data": "flattened", "field": "Metric"}, "range": "width", "nice": true, "zero": true},
+    {"name": "y", "type": "band", "domain": {"data": "flattened", "field": "Metric__names"}, "range": "height", "padding": 0.2},
+    {"name": "color", "type": "ordinal", "domain": {"data": "flattened", "field": "Metric__names"}, "range": {"scheme": "pbiColorNominal"}}
+  ],
+  "axes": [
+    {"orient": "bottom", "scale": "x"},
+    {"orient": "left", "scale": "y"}
+  ],
+  "marks": [
+    {
+      "type": "rect",
+      "from": {"data": "flattened"},
+      "encode": {
+        "update": {
+          "y": {"scale": "y", "field": "Metric__names"},
+          "height": {"scale": "y", "band": 1},
+          "x": {"scale": "x", "value": 0},
+          "x2": {"scale": "x", "field": "Metric"},
+          "fill": {"scale": "color", "field": "Metric__names"},
+          "tooltip": {"signal": "datum"}
+        }
+      }
+    }
+  ]
+}
+```
+
+Rules that bite:
+
+- Reference the parameter's display name (`Metric`), never a component's; a single-select slicer gives one-element arrays, which Vega flattens the same way
+- `Metric__names` is opt-in: set `names: true` for the parameter's entry in `supportFieldConfiguration`, or the field is absent and the `y` scale domain is empty
+- Consolidation is 2.0-only. A visual.json with a real spec, no `denebMetaVersion` and no `supportFieldConfiguration` is classified as a migrated 1.x project on first open under 2.0 and consolidation is pinned OFF, so `flatten` on the parameter name finds nothing (a configuration without the version stamp is the half-stamped row in `references/pbir-structure.md`, which is not legacy). Stamp `denebMetaVersion '2'`, `consolidateFieldParameters true` and an explicit `supportFieldConfiguration` together (never one of them alone), and expect pass-through (ordinary columns and measures) on 1.9.x. See [deneb-2-migration.md](deneb-2-migration.md#authoring-rules-during-the-transition)
+- Component order follows the data view, not the parameter table; there is no custom sort
+- In PBIR the parameter's currently selected component field(s) are bound as ordinary projections, each carrying a `displayName` (in the Deneb sample workbook Desktop wrote the component's own name, `Species`, on one visual and the DAX alias, `Series`, on the other, so it is the label the component is expanded under, not the parameter's name), plus a hand-authored `visual.query.queryState.dataset.fieldParameters[]` entry whose `parameterExpr` names the parameter table's column and whose `index`/`length` cover those component projections; the parameter table's column itself is not a projection. `pbir visuals bind` has no field-parameter option, so that entry is hand-authored (pbir 0.9.29, Verified 2026-09-08). The observed Desktop-saved shape is in the [Template Round-Trip section of advanced-patterns.md](advanced-patterns.md#template-round-trip-terminal-import)
+  - Retest: `pbir visuals bind --help` and look for a field-parameter option
+
+## Formatting with `pbiFormat`
+
+`pbiFormat(value, format, options = {})` applies a Power BI format string (not d3) in the report locale; `pbiFormatAutoUnit(value, format?)` picks the nearest display unit (K, M, bn) like the Auto unit does. Both are Vega expression functions registered by Deneb (since well before 2.0), so they work in any `signal` expression, including axis label encodes:
+
+```json
+"axes": [
+  {
+    "orient": "left",
+    "scale": "yscale",
+    "encode": {
+      "labels": {
+        "update": {
+          "text": {"signal": "pbiFormat(datum.value, '$#0,,,.0bn')"}
+        }
+      }
+    }
+  }
+],
+"marks": [
+  {
+    "type": "text",
+    "from": {"data": "dataset"},
+    "encode": {
+      "update": {
+        "text": {"signal": "pbiFormatAutoUnit(datum['Sales'])"},
+        "tooltip": {"signal": "{'Sales': pbiFormat(datum['Sales'], {format: '#,0.0', value: 1e6, cultureSelector: 'en-GB'})}"}
+      }
+    }
+  }
+]
+```
+
+`options` accepts any `ValueFormatterOptions` key: `format` (overrides the positional string), `precision`, `value` (1e3, 1e6, 1e9, 1e12 or a live value to pick the unit), `cultureSelector` (overrides the report locale). When a measure's own model format string is wanted, read it from `datum['Sales__format']` (present on migrated and 1.9 visuals; opt-in on new 2.0 visuals) or use the pre-formatted `datum['Sales__formatted']` directly. Offline rendering with the deneb-pbir renderer only approximates this function; treat its text output as a shape check, not as Power BI formatting.
+
 ## Available Transforms
 
 Key Vega transforms useful in Deneb:
@@ -654,7 +749,7 @@ Key Vega transforms useful in Deneb:
 | `bin` | Discretize numeric values |
 | `collect` | Sort data objects |
 | `filter` | Filter with predicate expression |
-| `flatten` | Expand array fields |
+| `flatten` | Expand array fields; the transform for consolidated field parameters (`__row__` survives it) |
 | `fold` | Pivot columns to key/value pairs |
 | `formula` | Compute derived fields |
 | `joinaggregate` | Add aggregate values without grouping |

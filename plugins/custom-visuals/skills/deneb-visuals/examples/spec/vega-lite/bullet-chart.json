@@ -1,5 +1,5 @@
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
   "data": {"name": "dataset"},
   "transform": [
     {"window": [{"op": "rank", "as": "rank"}], "sort": [{"field": "Value", "order": "descending"}]},

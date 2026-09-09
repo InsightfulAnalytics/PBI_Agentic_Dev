@@ -28,6 +28,12 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 - Added a Codespaces bootstrap (`.devcontainer/`, `scripts/bootstrap-agent-env.sh`) and an in-repo
   learning-capture route (`LEARNINGS.md`, `scripts/record-learning.sh`,
   `scripts/check-skill-hygiene.py`, `scripts/sync-boundary-rule.py`).
+- Updated the Deneb skills and tooling for Deneb 2.0 with 1.9 compatibility (2026-09-08):
+  `custom-visuals/deneb-visuals` (new `references/deneb-2-migration.md`, the 2.0 properties,
+  supporting fields, field parameters and template usermeta v2), `custom-visuals/deneb-pbir`
+  (`audit` and `migrate` commands, renderer shims, the 2.0 Vega bundle), the `reports/deneb-reviewer`
+  agent and the `performant-matrix` grid reference. Fork-original work; upstream's Deneb skill had
+  not been updated for 2.0 at that date.
 
 ### Fork-owned files, for upstream harvest resolution
 

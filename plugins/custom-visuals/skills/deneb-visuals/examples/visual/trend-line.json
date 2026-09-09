@@ -75,7 +75,7 @@
             "jsonSpec": {
               "expr": {
                 "Literal": {
-                  "Value": "'{\"$schema\": \"https://vega.github.io/schema/vega-lite/v5.json\", \"data\": {\"name\": \"dataset\"}, \"transform\": [{\"fold\": [\"Order Lines\", \"Order Lines (PY)\"], \"as\": [\"Measure\", \"Value\"]}], \"mark\": {\"type\": \"line\", \"strokeWidth\": 2, \"point\": false}, \"encoding\": {\"x\": {\"field\": \"Date\", \"type\": \"temporal\", \"axis\": {\"title\": null, \"grid\": false, \"labelAngle\": 0}}, \"y\": {\"field\": \"Value\", \"type\": \"quantitative\", \"axis\": {\"title\": null, \"grid\": true, \"gridColor\": \"#e0e0e0\", \"gridDash\": [2, 2]}, \"scale\": {\"zero\": false}}, \"color\": {\"field\": \"Measure\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Order Lines\", \"Order Lines (PY)\"], \"range\": [\"#118DFF\", \"#999999\"]}, \"legend\": {\"title\": null, \"orient\": \"top\", \"direction\": \"horizontal\"}}}}'"
+                  "Value": "'{\"data\": {\"name\": \"dataset\"}, \"transform\": [{\"fold\": [\"Order Lines\", \"Order Lines (PY)\"], \"as\": [\"Measure\", \"Value\"]}], \"mark\": {\"type\": \"line\", \"strokeWidth\": 2, \"point\": false}, \"encoding\": {\"x\": {\"field\": \"Date\", \"type\": \"temporal\", \"axis\": {\"title\": null, \"grid\": false, \"labelAngle\": 0}}, \"y\": {\"field\": \"Value\", \"type\": \"quantitative\", \"axis\": {\"title\": null, \"grid\": true, \"gridColor\": \"#e0e0e0\", \"gridDash\": [2, 2]}, \"scale\": {\"zero\": false}}, \"color\": {\"field\": \"Measure\", \"type\": \"nominal\", \"scale\": {\"domain\": [\"Order Lines\", \"Order Lines (PY)\"], \"range\": [\"#118DFF\", \"#999999\"]}, \"legend\": {\"title\": null, \"orient\": \"top\", \"direction\": \"horizontal\"}}}}'"
                 }
               }
             },
@@ -90,13 +90,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'{\"autosize\":{\"type\":\"fit\",\"contains\":\"padding\"},\"view\":{\"stroke\":\"transparent\"},\"font\":\"Segoe UI\"}'"
-                }
-              }
-            },
-            "isNewDialogOpen": {
-              "expr": {
-                "Literal": {
-                  "Value": "false"
                 }
               }
             },
@@ -132,13 +125,6 @@
               "expr": {
                 "Literal": {
                   "Value": "3D"
-                }
-              }
-            },
-            "version": {
-              "expr": {
-                "Literal": {
-                  "Value": "'5.20.1'"
                 }
               }
             }
@@ -186,19 +172,6 @@
               "expr": {
                 "Literal": {
                   "Value": "'light'"
-                }
-              }
-            }
-          }
-        }
-      ],
-      "developer": [
-        {
-          "properties": {
-            "version": {
-              "expr": {
-                "Literal": {
-                  "Value": "'1.7.1.0'"
                 }
               }
             }

@@ -6,6 +6,13 @@ On the maintainer's machine, Claude Code loads the Power BI skills from a local 
 
 This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `pbi-verify-loop` / `power-bi-theme` / `claude-design-handoff` / `workout-wednesday` (reports — `workout-wednesday` migrated 2026-07-29, de-personalized and with the LinkedIn-draft step dropped), `deneb-pbir` (custom-visuals), and `date-table` (semantic-models — the standard DimDate template, migrated from `PBI Projects\Date Table Template` on 2026-07-21; it bundles third-party community code, credited in [ATTRIBUTIONS.md](ATTRIBUTIONS.md)), and `dax-standard` (semantic-models — the house DAX authoring style, migrated 2026-08-24), and `performant-matrix` (custom-visuals, authored in the fork 2026-08-29).
 
+- 2026-09-08: the fork updated the Deneb skills and tooling for Deneb 2.0 while keeping 1.9
+  compatibility: `custom-visuals/deneb-visuals` (new `references/deneb-2-migration.md`, the 2.0
+  property, supporting-field, field-parameter and template v2 facts), `custom-visuals/deneb-pbir`
+  (`audit` / `migrate`, renderer shims, the 2.0 Vega bundle), the `reports/deneb-reviewer` agent and
+  the `performant-matrix` grid reference. Upstream's `deneb-visuals` was still on 1.9 that day, so a
+  future upstream 2.0 update will conflict with these files; harvest it hunk by hunk.
+
 ## How Claude actually loads these skills (important)
 
 **Corrected 2026-09-07.** This section previously said skills are copied into a per-commit cache and

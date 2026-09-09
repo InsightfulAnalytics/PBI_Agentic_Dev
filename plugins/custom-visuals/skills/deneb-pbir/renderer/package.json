@@ -2,10 +2,10 @@
   "name": "deneb-pbir-renderer",
   "private": true,
   "type": "module",
-  "description": "Offline Vega/Vega-Lite -> PNG renderer for verifying Deneb specs without Power BI",
+  "description": "Offline Vega/Vega-Lite -> PNG renderer for verifying Deneb specs without Power BI (vega and vega-lite pinned to the Deneb 2.0 bundle)",
   "dependencies": {
     "sharp": "^0.34.0",
-    "vega": "^6.2.0",
-    "vega-lite": "^6.4.0"
+    "vega": "6.4.0",
+    "vega-lite": "6.4.3"
   }
 }

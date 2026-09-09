@@ -1,5 +1,5 @@
 {
-  "$schema": "https://vega.github.io/schema/vega/v5.json",
+  "$schema": "https://vega.github.io/schema/vega/v6.json",
   "data": [{"name": "dataset"}],
   "padding": 5,
   "width": {"signal": "pbiContainerWidth - 25"},

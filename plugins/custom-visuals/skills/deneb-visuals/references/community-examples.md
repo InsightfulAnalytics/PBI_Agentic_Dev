@@ -8,75 +8,92 @@ Community examples come in three formats. Understand these to fetch and adapt th
 
 ### 1. Deneb Template JSON (`.deneb-template.json` or `.json`)
 
-The most common format in community repos. A valid Vega/Vega-Lite spec with a `usermeta` block bolted on for Deneb's import/export workflow:
+The most common format in community repos. A valid Vega/Vega-Lite spec with a `usermeta` block bolted on for Deneb's import/export workflow. This is the usermeta v2 shape Deneb 2.0 exports (validated against `https://deneb-viz.github.io/schema/deneb-template-usermeta-v2.json`, Verified 2026-09-08); most community templates still carry the older v1 shape described below it.
+
+Retest: `python -c "import json,jsonschema;from jsonschema import Draft7Validator as V;s=json.load(open('deneb-template-usermeta-v2.json'));t=json.load(open('template.json'));print(list(V(s).iter_errors(t['usermeta'])))"` with the schema downloaded from the URL above (expects `[]`).
 
 ```json
 {
-  "$schema": "https://vega.github.io/schema/vega-lite/v5.json",
+  "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
   "usermeta": {
     "deneb": {
-      "build": "1.6.2.1",
-      "metaVersion": 1,
-      "provider": "vegaLite"
+      "build": "2.0.0.0",
+      "metaVersion": 2,
+      "provider": "vegaLite",
+      "providerVersion": "6.4.3"
     },
     "information": {
       "name": "Simple Bar Chart",
       "description": "Basic bar chart.",
-      "author": "Daniel Marsh-Patrick",
-      "uuid": "65f4a0a0-...",
-      "generated": "2021-09-14T16:13:43.104Z"
+      "author": "Example author",
+      "uuid": "3f2c8a1e-6b7d-4c2a-9e1f-0a1b2c3d4e5f",
+      "generated": "2026-09-08T00:00:00.000Z"
     },
-    "dataset": [
-      {
-        "key": "__0__",
-        "name": "Category",
-        "description": "Categorical field on Y-axis",
-        "type": "text",
-        "kind": "column"
-      },
-      {
-        "key": "__1__",
-        "name": "Value",
-        "description": "Numeric measure",
-        "type": "numeric",
-        "kind": "measure"
-      }
-    ]
+    "datasets": {
+      "dataset": [
+        {
+          "key": "__dataset.0__",
+          "name": "Category",
+          "description": "Categorical field on Y-axis",
+          "type": "text",
+          "kind": "column"
+        },
+        {
+          "key": "__dataset.1__",
+          "name": "Value",
+          "description": "Numeric measure",
+          "type": "numeric",
+          "kind": "measure"
+        }
+      ]
+    },
+    "interactivity": {
+      "tooltip": true,
+      "contextMenu": true,
+      "contextMenuSelector": true,
+      "selection": false,
+      "selectionMode": "simple",
+      "highlight": false,
+      "dataPointLimit": 50
+    },
+    "config": "{\"autosize\": {\"type\": \"fit\", \"contains\": \"padding\"}}"
   },
-  "config": { "autosize": { "type": "fit", "contains": "padding" } },
   "data": { "name": "dataset" },
   "mark": { "type": "bar", "tooltip": true },
   "encoding": {
-    "y": { "field": "__0__", "type": "nominal" },
-    "x": { "field": "__1__", "type": "quantitative" }
+    "y": { "field": "__dataset.0__", "type": "nominal" },
+    "x": { "field": "__dataset.1__", "type": "quantitative" }
   }
 }
 ```
 
 Key elements:
-- **`usermeta.deneb`** -- build version, provider (`vega` or `vegaLite`)
-- **`usermeta.dataset`** -- field placeholder definitions. `key` (e.g. `__0__`) maps to field references in the spec. `kind` is `column` or `measure`. `type` is `text`, `numeric`, `dateTime`, or `bool`
+- **`usermeta.deneb`** -- build version, `metaVersion` (2 for templates written by Deneb 2.0; 1 is still accepted and migrated on import), provider (`vega` or `vegaLite`), `providerVersion`
+- **`usermeta.datasets.dataset`** -- field placeholder definitions. `key` (`__dataset.0__`, `__dataset.1__`, ...) maps to field references in the spec. `kind` is `column`, `measure`, `parameter` (a consolidated field parameter) or `any`. `type` is `text`, `numeric`, `dateTime`, `bool` or `other`. An optional per-entry `supportFieldConfiguration` carries the field's supporting-field flags
 - **`usermeta.information`** -- metadata (name, author, description)
+- **`usermeta.interactivity`** and **`usermeta.config`** -- optional; the config is a JSON string, not an object
 - The actual spec (mark, encoding, layer, etc.) sits at the top level using placeholder keys
+
+**Legacy v1 shape** (`metaVersion` 1, written by Deneb 1.x and by most community repos): a flat `usermeta.dataset` array whose keys are `__0__`, `__1__` (Deneb's own exports) or free-form names such as `__category__` (hand-written templates), and a v5 or older `$schema`. Deneb 2.0 imports v1 and rewrites index keys to `__dataset.N__`; free-form keys are not rewritten in the spec body, so substitute those offline (inferred from source, unverified in the UI; Retest in [capabilities.md, v1 (legacy)](capabilities.md#v1-legacy)).
 
 ### How to use a template
 
-**To import into Deneb UI:** Use Deneb's built-in "New visual" > "Import from template" dialog. It reads the `usermeta.dataset` to prompt for field mappings.
+**To import into Deneb UI:** Use Deneb's built-in "New visual" > "Import from template" dialog. It reads `usermeta.datasets.dataset` (or the v1 `usermeta.dataset`) to prompt for field mappings.
 
 **To inject into PBIR visual.json programmatically:**
 
-1. Strip `usermeta` from the JSON
-2. Replace placeholder keys (`__0__`, `__1__`) with the display labels of your projections (`displayName` when set, otherwise `nativeQueryRef`)
-3. Stringify the spec and wrap in single quotes for `jsonSpec` literal value (see escaping rules in SKILL.md Step 3)
-4. Extract `config` separately for `jsonConfig`
+1. Strip `usermeta` from the JSON (and the root `$schema`; `deneb_spec.py embed` strips it for you)
+2. Replace placeholder keys (`__dataset.0__`, `__dataset.1__`, or the v1 `__0__` / `__category__`) with the display labels of your projections (`displayName` when set, otherwise `nativeQueryRef`), with `\ " . [ ]` replaced by `_`
+3. Embed with `deneb_spec.py embed` from the `custom-visuals:deneb-pbir` skill; it wraps the spec as the single-quoted `jsonSpec` literal and doubles apostrophes (escaping rules in SKILL.md Step 3)
+4. Parse the `usermeta.config` string (a pre-1.7 template has a top-level `config` object instead) and embed it as `jsonConfig`, not inside the spec
 
-For a full terminal workflow (CLI bind commands, `kind` validation, breaking changes, pitfalls) see `references/advanced-patterns.md`.
+For a full terminal workflow (CLI bind commands, `kind`, the context-menu remap, breaking changes, pitfalls) see `references/advanced-patterns.md`.
 
 **To create a new template from an existing spec:**
 
-1. Replace hardcoded field names with placeholder keys (`__0__`, `__1__`, etc.)
-2. Add the `usermeta` block with `deneb`, `information`, and `dataset` sections
-3. In `dataset`, define each placeholder with `key`, `name`, `description`, `type`, and `kind`
+1. Replace hardcoded field names with placeholder keys (`__dataset.0__`, `__dataset.1__`, etc.; keys must match `__<dataset>.<index>__`, max 30 characters)
+2. Add the `usermeta` block with `deneb` (`metaVersion` 2), `information`, and `datasets.dataset` sections
+3. In `datasets.dataset`, define each placeholder with `key`, `name`, `description`, `type`, and `kind`
 4. Keep `"data": {"name": "dataset"}` unchanged
 
 ### 2. Raw Spec JSON
