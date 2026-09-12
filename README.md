@@ -240,7 +240,6 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 | Skill | [`pbi-verify-loop`](plugins/reports/skills/pbi-verify-loop/) | Refresh → settle → screenshot loop to visually verify report edits (optional mockup diff) |
 | Skill | [`power-bi-theme`](plugins/reports/skills/power-bi-theme/) | Browse a preset-theme gallery and apply a chosen theme to a report |
 | Skill | [`modifying-theme-json`](plugins/reports/skills/modifying-theme-json/) | Edit, enforce, audit, and re-theme report theme JSON |
-| Skill | [`claude-design-handoff`](plugins/reports/skills/claude-design-handoff/) | Import and implement a Claude Design handoff into a report or Fabric App |
 | Skill | [`workout-wednesday`](plugins/reports/skills/workout-wednesday/) | Turn a [Workout Wednesday](https://www.workout-wednesday.com/) challenge link into a built, verified, published report — see [Try it end-to-end](#try-it-end-to-end) |
 | Skill | [`pbi-report-design`](plugins/reports/skills/pbi-report-design/) *(WIP)* | Power BI report best practices, design, and style |
 | Skill | [`review-report`](plugins/reports/skills/review-report/) *(WIP)* | Review Power BI reports for usage metrics and best practices |

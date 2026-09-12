@@ -61,8 +61,8 @@ against PBIR-Legacy's single `report.json`.
   `custom-visuals:deneb-pbir` to extract/patch/embed it in `visual.json` and
   **offline-render it with sample data before ever opening Desktop**. Native visuals go
   through `reports:pbir-cli`.
-- **Design round (optional):** a mockup via Claude Design, imported with the
-  `reports:claude-design-handoff` skill.
+- **Design round (optional):** a mockup, then implement it with the delta-only rules in
+  `reports:pbi-report-design` (`references/implementing-a-design.md`).
 - **Reconcile against the challenge source before calling it done.** The recurring failure
   mode is a report that looks right and is wrong: colors mapped to the wrong categories,
   groupings that don't match the original, totals that don't tie out. Check each

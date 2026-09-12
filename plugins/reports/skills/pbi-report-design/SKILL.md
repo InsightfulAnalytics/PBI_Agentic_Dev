@@ -274,6 +274,16 @@ When evaluating, provide:
 
 Before declaring a design done, run the closing gate in **`references/quality-gate.md`**. It is not the planning-stage checklist that runs before the build; it runs against the finished artifact and decides whether it ships. It verifies the identity propagated, every page has one intent, spacing and margins are equal and on-grid, callouts are backed by model evidence, and accessibility is met. Because an agent cannot see the canvas, pair the gate with the screenshot-review loop in the **`pbir-cli`** skill: render the pages, look, and confirm what the JSON inferred.
 
+## Implementing an approved design
+
+Once a design is agreed, the failure mode changes. It stops being "is this good" and becomes "did we
+build the thing we agreed, without breaking what was already there". The rules for that phase are in
+**`references/implementing-a-design.md`**: apply the delta only and never replace existing chrome,
+check what else consumes a shared object before editing it, validate and then actually look before
+claiming done, defer cleanup rather than fighting a file lock, and write a reverse brief from the
+report's current state when another design round is needed. They are technique-agnostic and apply to
+any design source.
+
 ## Common Design Issues
 
 ### Issue: Cognitive Overload
@@ -323,6 +333,7 @@ Before declaring a design done, run the closing gate in **`references/quality-ga
 - **`references/filter-pane.md`** -- Lock vs hide, card naming, card order, Applied/Available styling, report-level settings
 - **`references/mobile.md`** -- Phone layout as a curated subset, `mobile.json` mechanics, what to include/exclude
 - **`references/custom-visuals.md`** -- Build-vs-buy ranking, AppSource/org-store tradeoffs, licensing gaps
+- **`references/implementing-a-design.md`** -- Turning an approved design into a report: delta-only application, preserving existing chrome, shared-object scope discipline, validate-then-look verification, deferred cleanup, and the reverse design brief with its template
 
 ## Related Skills
 
