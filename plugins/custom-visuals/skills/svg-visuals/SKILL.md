@@ -20,6 +20,30 @@ Generate inline SVG graphics using DAX measures that return SVG markup strings. 
 2. The measure's `dataCategory` is set to `ImageUrl`
 3. Power BI renders the SVG as an image in supported visuals
 
+## Three constraints to check before you start
+
+**Publish to web forbids report level measures.** The default advice above is to store these as
+extension measures in `reportExtensions.json`. If the report will ever be shared with **Publish to
+web**, that choice blocks it outright: report level DAX measures are on the Microsoft Learn
+unsupported list
+(<https://learn.microsoft.com/power-bi/collaborate-share/service-publish-to-web#considerations-and-limitations>).
+Put the measures in the semantic model instead and leave `reportExtensions.json` empty. The report
+and its model must also sit in the same workspace.
+
+**Deneb will not accept the `;utf8,` prefix.** Feeding one of these measures into a Deneb image mark
+is a different code path from a table cell. Deneb's certified build ships a custom Vega loader whose
+data URI regex accepts `;charset=utf-8,`, a bare comma, and `;base64,`, but **rejects `;utf8,`**,
+substituting a blank PNG plus a header warning icon rather than raising an error. Every example in
+this skill uses `;utf8,`, which is correct for native visuals and silently wrong inside Deneb. If one
+measure feeds both, emit `;charset=utf-8,`. Established by extracting the regex from Deneb's
+`loader.ts` and testing it against eleven URI forms; **not yet reproduced inside Deneb in product**,
+so confirm before relying on it.
+
+**Power Query silently truncates at 32,766 characters.** That is a different and lower limit than the
+DAX engine's, which raises an error near 2.1 million characters rather than truncating. It matters
+when an image is stored in the model rather than generated: a base64 payload is capped at roughly
+24 KB of source image.
+
 ## Supported Visuals
 
 - Table (`tableEx`): `grid.imageHeight` / `grid.imageWidth` -- `references/svg-table-matrix.md`
