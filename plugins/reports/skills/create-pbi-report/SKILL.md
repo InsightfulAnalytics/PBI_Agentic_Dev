@@ -245,6 +245,24 @@ pbir validate "Sales.Report"
 pbir tree "Sales.Report" -v
 ```
 
+`pbir validate` answers "is this schema-valid JSON". It does not answer "did anyone decide".
+
+### Step 11b: Sweep the report surface
+
+Run the close-out sweep before you call the report finished. It prints one row per (page, visual)
+across the axes a page artboard never covers: tooltip setting, page reachability, explicit title,
+data labels and axis titles, alt text, and whether a Deneb visual's `vega.enableTooltips` agrees
+with its container tooltip.
+
+```bash
+python "<reports plugin>/skills/pbir-cli/scripts/close-plan.py" "Sales.Report"
+```
+
+A cell reading `not decided` means the PBIR carries no opinion at all: not "off", not "default",
+simply nothing written. **"Off" is a decision; silence is not.** Walk the undecided cells with the
+user and settle each one, then re-run. It is advisory by default and takes `--enforce` to exit
+non-zero, which is how a `pbi-plan` ticket gates its own close-out.
+
 ### Step 12: Publish or Open
 
 ```bash

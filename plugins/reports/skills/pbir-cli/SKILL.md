@@ -205,6 +205,13 @@ Follow all rules below.
 
 6. **Verify rendering through the Desktop bridge.** When the report is open in Power BI Desktop, run `pbir desktop refresh` after every change unless the user asks not to, then `pbir desktop screenshot` and inspect the PNG after every meaningful change. Validation cannot catch rendering problems (overlap, truncation, wrong field, illegible formatting); the screenshot is the only proof a change rendered as intended. When a request involves many changes, ask the user up front whether to refresh after each step (so they watch progress in the canvas) or once at the end. Check availability once with `pbir desktop list` before starting the loop; if the bridge is unavailable, do not retry it after every change (see "When the bridge is unavailable" below)
 
+7. **One Desktop, batched writes.** Three rules that together stop the open/close thrash and the lost-edit class of bug:
+   - **One Desktop instance per PBIP.** Confirm with `pbir desktop list` before the first write. Two instances on the same project produce stale-model false negatives: you query one and edit the other, and the disagreement looks like a broken edit.
+   - **Batch every write for a page, then apply once.** Not edit, apply, edit, apply. A reload re-parses the whole project, so per-edit applies cost time and add windows in which the two copies diverge.
+   - **A Desktop save writes out and never reads back, and it re-serializes the entire report definition.** If Desktop holds pending canvas changes when you edit on disk, either apply the external change first or have the user close without saving, deliberately, and say which you chose. The failure is silent: the on-disk edit is simply gone. Corollary: two generators must never share a TMDL anchor.
+
+   You do **not** need to close Desktop to pick up an on-disk edit. On 26.08+ the **Apply external changes** banner reloads the project in place; see the `pbi-desktop:connect-pbid` skill's `references/desktop-lifecycle.md` for the exceptions and the UIAutomation snippet that clicks it.
+
 
 ## Core Workflows
 
@@ -614,10 +621,12 @@ references/thin-report-measures.md: extension measures for CF, conditional rende
 references/visual-calculations.md: visual calculations (RUNNINGSUM, RANK, etc.)
 references/filters.md: filter types (Categorical, TopN, Advanced, RelativeDate), management, pane styling
 references/bookmarks.md: bookmark management, copying, button references
+references/interactions.md: the report shell; tooltip filter-context trap, Deneb hover layers and the fillOpacity-0 hit-test rule, tooltip page sizing, page reachability
 references/audit-report.md: report quality audit checklist
 references/bpa.md: Best Practice Analyzer; running rules, applying safe fixes, managing the rule set
 references/vague-prompts.md: handling underspecified prompts; targeted questions, sensible defaults
 references/property-catalogue.md: offline property index (49 types, 15 containers, 12,600+ slots)
+scripts/close-plan.py: report-surface sweep; one row per (page, visual) for tooltip, navigation reachability, title, labels, alt text; --enforce to exit non-zero
 references/visualTypes/*.md: per-visual-type design rules, CLI commands, and best practices
 examples/visuals/default/*.json: read-only examples of minimal visual structures with theme defaults
 examples/visuals/formatted/*.json: read-only examples of formatting, CF, filters, and advanced patterns; reproduce them with CLI commands, never by copying JSON into a report
