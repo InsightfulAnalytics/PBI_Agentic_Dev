@@ -17,7 +17,7 @@ PBIP (Power BI Project) is the developer-mode file format for Power BI. It decom
 - **UTF-8 without BOM.** All files must be saved as UTF-8 without BOM. A BOM prefix causes parse errors in some tools.
 - **Git line endings:** PBI Desktop writes CRLF. Configure `core.autocrlf` or `* text=auto` in `.gitattributes` to normalize.
 - **260-char Windows path limit.** Use short root paths. Deep nesting of page/visual GUIDs can exceed this limit.
-- **PBI Desktop does not detect external changes.** Close and reopen PBI Desktop after editing files externally.
+- **PBI Desktop 26.08+ applies external changes in place.** Editing PBIP files on disk while Desktop is open raises an "Apply external changes" banner that reloads the project without a restart. Close and reopen only on older builds, when the edit changes a data source or adds a table needing a real refresh, when Desktop has already resolved a field as deleted, or for theme files under `StaticResources` -- see the `pbi-desktop:connect-pbid` skill's `references/desktop-lifecycle.md`.
 - **Rename cascades are cross-cutting.** Renaming a table, measure, or column requires updating references in TMDL files, visual JSONs, report extensions, culture files, DAX queries, and diagram layouts. Missing even one location causes broken visuals or DAX errors.
 - **SparklineData metadata** selectors embed Entity references in compact strings that do not follow the standard `SourceRef.Entity` JSON structure. Easy to miss.
 - **DAX query files exist in TWO locations:** `<Name>.SemanticModel/DAXQueries/` and `<Name>.Report/DAXQueries/`. Always check both during renames.

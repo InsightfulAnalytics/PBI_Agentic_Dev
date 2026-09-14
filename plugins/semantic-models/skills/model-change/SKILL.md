@@ -80,8 +80,13 @@ Cheapest first, and it catches syntax errors in seconds rather than after a slow
 
 ## 5. Prove it against real data
 
-Desktop holds its own in-memory copy, so a TMDL edit on disk is invisible to a query until
-close-and-reopen. Don't reopen just to test:
+Desktop holds its own in-memory copy, so a TMDL edit on disk is invisible to a query until it is
+applied. On Desktop 26.08+ that is the **Apply external changes** banner, which reloads the project
+in place and keeps the loaded data; close-and-reopen is only needed on older builds, when the edit
+changes a data source or adds a table that needs a real refresh, or when Desktop has already
+resolved a field as deleted (that binding stays broken until a full reload). The canonical account,
+including the UIAutomation snippet that clicks the banner, is the `pbi-desktop:connect-pbid` skill's
+`references/desktop-lifecycle.md`. Either way, don't reload just to test:
 
 > Redefine the measure in the query with `DEFINE MEASURE '<Table>'[X new] = …` and select the
 > old and new side by side in one `ROW()`. That proves the fix against real data with zero
