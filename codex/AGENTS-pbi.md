@@ -31,6 +31,7 @@ index. Invoke explicitly with `$<name>` when a match is obvious.
 | Report | `modifying-theme-json` | Design, edit, enforce, audit report theme JSON |
 | Report | `review-report` | Review report quality, usage metrics, best practices |
 | Report | `workout-wednesday` | Build/verify/publish a Workout Wednesday challenge from its challenge link |
+| Report | `pbi-plan` | Plan a multi-session report or model build as a ticketed map with a live HTML plan board. Only when the user asks for a plan, never on your own initiative |
 | Visuals | `deneb-visuals` | Author Deneb Vega/Vega-Lite specs, interactivity, theme integration |
 | Visuals | `deneb-pbir` | Extract/embed/offline-render a Deneb spec in visual.json |
 | Visuals | `python-visuals` / `r-visuals` / `svg-visuals` | Python (matplotlib), R (ggplot2), or SVG-measure visuals in reports |
@@ -49,8 +50,6 @@ index. Invoke explicitly with `$<name>` when a match is obvious.
 | Task | `audit-context` | Review/critique AGENTS.md, CLAUDE.md, memory and context files |
 | Task | `migrating-fabric-trial-capacities` | Migrate workspaces from trial capacity to a production capacity |
 | Task | `suggest-rule` | Generate a BPA rule from a description or model analysis |
-
-Not installed for Codex: `claude-design-handoff` (bound to Anthropic's Claude Design API).
 
 ## Reading the skills' Claude Code vocabulary
 

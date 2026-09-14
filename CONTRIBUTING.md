@@ -11,7 +11,7 @@ New skills, new subagents, and improvements to upstream-authored skill content s
 Issues and PRs are welcome in this repo for things that only exist here:
 
 - Broken links, typos, or errors in the fork's own docs (README, PERSONALIZING.md, FORK-CHANGES.md, this file)
-- Fixes to the fork-maintained skills: `pbi-verify-loop`, `power-bi-theme`, `claude-design-handoff` (reports), and `deneb-pbir` / `performant-matrix` (custom-visuals)
+- Fixes to the fork-maintained skills: `pbi-verify-loop`, `power-bi-theme`, `pbi-plan` (reports), and `deneb-pbir` / `performant-matrix` (custom-visuals)
 - Problems with this fork's marketplace packaging (`marketplace.json`, plugin manifests)
 - The fork-only tooling: the Codespaces bootstrap (`.devcontainer/`), `LEARNINGS.md`, and the
   `scripts/` helpers for hygiene, boundary-rule sync and learning capture. These have no upstream

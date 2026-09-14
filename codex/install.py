@@ -48,8 +48,9 @@ TOML_END = "# <<< pbi-agentic-dev <<<"
 MANIFEST_NAME = ".pbi-agentic-dev-manifest.json"
 
 # Skills that are functionally tied to Anthropic/Claude services and make no
-# sense under Codex. Override with --include-all.
-EXCLUDED_SKILLS = {"claude-design-handoff"}
+# sense under Codex. Override with --include-all. Empty since 2026-09-14, when
+# claude-design-handoff was retired into pbi-report-design.
+EXCLUDED_SKILLS: set[str] = set()
 
 # Codex shortens or omits skill descriptions past this budget (the documented
 # fallback when the model's context window is unknown).
@@ -261,9 +262,11 @@ def routing_table_coverage(skills: list[dict]) -> list[str]:
 def cmd_check(skills: list[dict], target: Path, prefix: str) -> None:
     log(f"repo:   {REPO}")
     log(f"target: {target}")
+    excluded = (", excluded by default: " + ", ".join(sorted(EXCLUDED_SKILLS))
+                if EXCLUDED_SKILLS else "")
     log(f"skills: {len(skills)} to install "
-        f"({sum(1 for s in skills if s['origin'] == 'codex-command')} command-skills, "
-        f"excluded by default: {', '.join(sorted(EXCLUDED_SKILLS))})")
+        f"({sum(1 for s in skills if s['origin'] == 'codex-command')} command-skills"
+        f"{excluded})")
 
     total_desc = sum(len(s["description"]) for s in skills)
     log(f"\ndescription budget: {total_desc:,} chars total "

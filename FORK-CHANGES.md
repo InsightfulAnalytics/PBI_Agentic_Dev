@@ -9,7 +9,9 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 - Added fork-maintainer skills to existing plugins (authored by the fork maintainer, not the upstream author):
   - `reports/pbi-verify-loop`
   - `reports/power-bi-theme`
-  - `reports/claude-design-handoff`
+  - `reports/pbi-plan` — plan a multi-session report or model build as a ticketed map with a
+    live HTML plan board. Its ticket shape and frontier rule are adapted from Matt Pocock's
+    MIT-licensed `wayfinder` / `to-tickets` skills; see [ATTRIBUTIONS.md](ATTRIBUTIONS.md)
   - `reports/workout-wednesday`
   - `custom-visuals/deneb-pbir`
   - `custom-visuals/performant-matrix`

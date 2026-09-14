@@ -9,6 +9,10 @@ The `semantic-models/date-table` skill redistributes two pieces of community cod
 - **Extended Date Table (`fnDateTable` Power Query M function):** original author [Melissa de Korte](https://gist.github.com/m-dekorte), published on the [Enterprise DNA forum](https://forum.enterprisedna.co/t/extended-date-table-power-query-m-function/6390) ([gist](https://gist.github.com/m-dekorte/12b53faee9cc1a616fa23f15b1b4a173)). This copy was taken from [Brian Julius's mirror](https://gist.github.com/bjulius/24533d0a6eb4110fcebbb3c19e70ae44) and locally modified — renamed and added output columns, removed the raw ISO columns (see the skill's `references/column-reference.md`).
 - **`Dates Selected` DAX measure:** [Rick de Groot](https://datahub.nl) / Datahub, ["Showing period selections in Power BI"](https://datahub.nl/showing-period-selections-in-power-bi/).
 
+The `reports/pbi-plan` skill adapts the ticket shape from third-party work under an explicit licence.
+
+- **Ticket map, frontier rule and fog list:** adapted from [Matt Pocock](https://github.com/mattpocock)'s `wayfinder` and `to-tickets` skills, distributed in the `mattpocock-skills` plugin under the **MIT License** (Copyright (c) 2026 Matt Pocock). What is adapted is the pattern, not the prose: numbered tickets carrying `Type` / `Status` / `Blocked by`, the frontier rule (take the lowest-numbered open, unblocked, unclaimed ticket), a "fog of war" list of what is not yet specified, and an explicit out-of-scope section. The Power BI specifics (the mandatory `Exit` command, the four compulsory fog axes, the inverted model/page dependency order, the HTML plan board) are this fork's. The MIT notice travels with the skill, as an HTML comment below its frontmatter.
+
 ## Community contributions to the upstream project
 
 Community contributions and suggestions that shaped the upstream project:

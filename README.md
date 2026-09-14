@@ -189,7 +189,6 @@ $tmdl                   # invoke a skill explicitly by name
 - **Subagents** aren't spawned; the eight reviewer/validator agents become inline checklists the agent reads from `plugins/*/agents/*.agent.md`.
 - **Slash commands** are ported as skills (`$audit-context`, `$suggest-rule`, `$migrating-fabric-trial-capacities`) since Codex deprecated custom prompts.
 - **MCP servers** are added to `~/.codex/config.toml` with `--mcp` (`microsoft-learn` over HTTP, `pbiviz` over stdio).
-- **`claude-design-handoff`** is excluded — it needs Anthropic's Claude Design API.
 - **Skills kept outside this repo** (e.g. personal skills Claude loads from `~/.claude/skills`) are not touched by the installer — copy any you want Codex to have into `~/.agents/skills` yourself.
 - The `codex/` layer only reads from `plugins/`; **Claude Code behavior is unchanged.**
 

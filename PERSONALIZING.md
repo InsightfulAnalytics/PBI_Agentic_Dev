@@ -4,7 +4,7 @@ This is **Tim's personal fork** of Kurt Buhler's [`power-bi-agentic-development`
 
 On the maintainer's machine, Claude Code loads the Power BI skills from a local clone of **this repo** (via a `directory`-source marketplace), with all 10 plugins enabled. The upstream `data-goblin/power-bi-agentic-development` marketplace stays *registered* (so upstream updates can be harvested — see [Tracking upstream](#tracking-upstream-kurts-updates)), but its plugins are not enabled; the previously-disabled upstream toggles and the on-disk cache were removed on 2026-07-12.
 
-This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `pbi-verify-loop` / `power-bi-theme` / `claude-design-handoff` / `workout-wednesday` (reports — `workout-wednesday` migrated 2026-07-29, de-personalized and with the LinkedIn-draft step dropped), `deneb-pbir` (custom-visuals), and `date-table` (semantic-models — the standard DimDate template, migrated from `PBI Projects\Date Table Template` on 2026-07-21; it bundles third-party community code, credited in [ATTRIBUTIONS.md](ATTRIBUTIONS.md)), and `dax-standard` (semantic-models — the house DAX authoring style, migrated 2026-08-24), and `performant-matrix` (custom-visuals, authored in the fork 2026-08-29).
+This fork also **owns Tim's personal Power BI add-in skills**, migrated in from `~/.claude/skills` so they're version-controlled here: `pbi-verify-loop` / `power-bi-theme` / `workout-wednesday` (reports — `workout-wednesday` migrated 2026-07-29, de-personalized and with the LinkedIn-draft step dropped), `deneb-pbir` (custom-visuals), and `date-table` (semantic-models — the standard DimDate template, migrated from `PBI Projects\Date Table Template` on 2026-07-21; it bundles third-party community code, credited in [ATTRIBUTIONS.md](ATTRIBUTIONS.md)), and `dax-standard` (semantic-models — the house DAX authoring style, migrated 2026-08-24), and `performant-matrix` (custom-visuals, authored in the fork 2026-08-29).
 
 - 2026-09-08: the fork updated the Deneb skills and tooling for Deneb 2.0 while keeping 1.9
   compatibility: `custom-visuals/deneb-visuals` (new `references/deneb-2-migration.md`, the 2.0
@@ -12,6 +12,16 @@ This fork also **owns Tim's personal Power BI add-in skills**, migrated in from 
   (`audit` / `migrate`, renderer shims, the 2.0 Vega bundle), the `reports/deneb-reviewer` agent and
   the `performant-matrix` grid reference. Upstream's `deneb-visuals` was still on 1.9 that day, so a
   future upstream 2.0 update will conflict with these files; harvest it hunk by hunk.
+- 2026-09-14: the fork absorbed the Netflix build debrief. `reports/pbi-plan` is new (a ticketed
+  build map with an HTML plan board, user-invoked only via `/pbi-plan`; its ticket shape is adapted
+  from Matt Pocock's MIT-licensed `wayfinder` / `to-tickets`, see
+  [ATTRIBUTIONS.md](ATTRIBUTIONS.md)), and it retires `reports/claude-design-handoff`. New tooling:
+  `reports/pbir-cli` gained `scripts/close-plan.py` (a report-surface sweep for tooltip, navigation,
+  title, label, axis and alt-text decisions nobody made; advisory by default, `--enforce` to gate a
+  ticket) and `references/interactions.md`. Also: Critical Rule 7 in `pbir-cli` (one Desktop,
+  batched writes), the insight test in `reports/pbi-report-design`, and the Desktop 26.08+ "Apply
+  external changes" correction in `pbip/pbip` and `semantic-models/model-change`, which retires
+  close-and-reopen as the default advice.
 
 ## How Claude actually loads these skills (important)
 

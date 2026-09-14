@@ -30,7 +30,7 @@ description matching activate them.
 
 | What | Where | Notes |
 |---|---|---|
-| 34 plugin skills + 3 task skills | `~/.agents/skills/<name>/` | `claude-design-handoff` excluded (Anthropic-API-bound); ported slash commands: `audit-context`, `migrating-fabric-trial-capacities`, `suggest-rule` |
+| 40 plugin skills + 3 task skills | `~/.agents/skills/<name>/` | Ported slash commands: `audit-context`, `migrating-fabric-trial-capacities`, `suggest-rule` |
 | AGENTS.md adapter block | `~/.codex/AGENTS.md` (honors `$CODEX_HOME`) | routing table, Claude-vocabulary translation, validation rules, tool prerequisites — between `pbi-agentic-dev` sentinel comments |
 | MCP servers (`--mcp` only) | `~/.codex/config.toml` | `microsoft-learn` (HTTP), `pbiviz` (npx stdio) — mirrors the plugins' `.mcp.json` files |
 | Manifest | `~/.agents/skills/.pbi-agentic-dev-manifest.json` | enables clean update/uninstall |
@@ -81,8 +81,8 @@ template changes.
 |---|---|
 | Hooks auto-validate TMDL/PBIR/RDL after every edit | No file-edit hooks. The AGENTS.md block instructs Codex to run the validators after edits — verify it actually does on nontrivial changes |
 | Subagents (8 reviewers/validators) run as separate processes | Codex performs the same review inline, using the `*.agent.md` files as checklists |
-| Slash commands (`/suggest-rule`, …) | Ported as skills: `$suggest-rule`, `$audit-context`, `$migrating-fabric-trial-capacities` |
-| `claude-design-handoff` skill | Not installed (needs Anthropic's Claude Design API) |
+| Slash commands (`/suggest-rule`, …) | Ported as skills: `$suggest-rule`, `$audit-context`, `$migrating-fabric-trial-capacities`. `/pbi-plan` is the exception: its skill ports directly, so invoke `$pbi-plan` |
+| `disable-model-invocation: true` keeps `pbi-plan` user-invoked only | Codex ignores the key, so the skill is model-invocable there. The AGENTS.md block says not to plan a build unless asked; treat that as the only guard |
 | Plugin marketplace manages versions/updates | `git pull` + re-run the installer |
 
 ## Troubleshooting
