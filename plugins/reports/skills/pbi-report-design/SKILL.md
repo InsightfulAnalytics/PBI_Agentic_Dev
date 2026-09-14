@@ -40,6 +40,20 @@ Recording tone and signature once is what turns "use muted colors" into a propag
 11. **Fonts:** Prefer *Segoe UI* and *Segoe UI Semibold*. Do not use custom fonts, since they aren't guaranteed to render on user computers. Evaluate whether fonts are sufficiently large to be readable given the visual and page size.
 12. **Page intent:** Route each page to exactly one shape by the question it answers (see `references/page-shapes.md`). A page trying to answer two questions is two pages.
 
+## The insight test (run before building a chart)
+
+A chart is cheap to reject on the spec and expensive to reject on the canvas. Run these five tests against the *proposed* chart, before any `pbir add visual`. They are rejection tests, not a generation quota: a chart that passes all five gets built as specced, and no extra candidates are generated to compete with it.
+
+1. **The title states the insight, not the shape.** "Additions peaked in 2019 and have halved since" is a title; "Titles by year" is a caption for an axis that already says so.
+2. **Every mark carries a measure.** A mark placed for texture, balance, or to fill a panel is decoration. Cut it.
+3. **Every figure has a denominator, and one denominator.** A percentage whose base is unstated is unreadable; a panel that mixes two bases in one frame is wrong, not merely unclear.
+4. **No panel restates its neighbour.** If a tooltip, card, or sub-chart shows only what the visual it sits beside already prints, it is a duplicate. This is the most common failure and the easiest to see on the spec.
+5. **The title points the same direction as its own measure.** A title claiming growth over a measure that falls is a defect that survives every schema validation, because nothing in the JSON knows what the words mean.
+
+**When a chart fails:** simplify it to a single comparison, or cut it. Do not repair it in place through successive renders; that is how one bad panel consumes an evening. Record which you chose, and why, in the plan's fog list (see the **`pbi-plan`** skill) so the decision is not rediscovered next session.
+
+The test is deliberately blind to how good the chart could be. It discriminates on whether the chart says something, which a render cannot tell you any better than the spec can.
+
 ## Page Layout Guidelines
 
 ### Check Page Size Before Modifying
