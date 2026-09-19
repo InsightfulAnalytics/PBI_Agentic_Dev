@@ -283,6 +283,42 @@ At a minimum, set:
 }
 ```
 
+### Declutter Defaults
+
+Gridlines, axis titles, legends and data labels are wildcard containers, so decluttering is a theme decision taken once for the whole report. An agent that strips them visual by visual is re-deriving a theme rule and creating theme-compliance findings in the process. Set them here:
+
+```json
+"visualStyles": {
+  "*": {
+    "*": {
+      "categoryAxis": [{"gridlineShow": false, "showAxisTitle": false}],
+      "valueAxis": [{
+        "gridlineShow": true,
+        "gridlineColor": {"solid": {"color": "#E0E0E0"}},
+        "gridlineStyle": "dotted",
+        "gridlineThickness": 1,
+        "showAxisTitle": false
+      }],
+      "legend": [{"show": true, "position": "Bottom", "showTitle": false}],
+      "labels": [{"show": false}]
+    }
+  }
+}
+```
+
+Single properties can go through the CLI instead of a serialize/build round trip:
+
+```bash
+pbir theme set-formatting "Report.Report" "*.*.categoryAxis.gridlineShow" --value false
+pbir theme set-formatting "Report.Report" "*.*.legend" --json '{"show": true, "position": "Bottom", "showTitle": false}'
+```
+
+The axis asymmetry is the decision, not a default: kill the category-axis gridlines outright, keep the value-axis gridlines faint, because length is read against them. Axis titles stay off on both axes, and the legend keeps its position while losing its title; the legend itself stays until a visual-type override or a per-visual decision turns it off. For why, and for the axis-versus-data-label pairing that goes with it, see `pbi-report-design` skill → `references/chart-selection.md`.
+
+Watch the data-label default in your starting theme. `SqlbiDataGoblinTheme.json` sets `labels.show: true` at the wildcard, so every visual in a report built from it starts with labels on everywhere, which is why per-visual advice like `pbir visuals labels "Visual.Visual" --no-show` keeps firing. Flip it to `false` once in the wildcard and opt in per visual type.
+
+Removal is only the first half. A page that has had gridlines, borders, shadows and labels taken away is not finished; it is empty, and the attention the theme just freed still has to be spent. A theme cannot spend it, so hand that step to the design gate: `pbi-report-design` skill → `references/quality-gate.md`, check 6.
+
 ### Recommended Additions
 
 - **`subTitle`** — `show: false` by default; only specific visuals should use it
@@ -355,6 +391,7 @@ Before considering a theme complete:
 - [ ] `textClasses` covers at minimum the four primaries: `title`, `header`, `label`, `callout`; secondary classes overridden only where inheritance breaks
 - [ ] Wildcard sets container defaults: `title`, `background`, `border`, `dropShadow`, `padding`
 - [ ] `dropShadow.show: false` in wildcard
+- [ ] Declutter defaults set in wildcard: `categoryAxis.gridlineShow: false`, `showAxisTitle: false` on both axes, faint `valueAxis` gridlines, `legend.showTitle: false`, `labels.show: false`
 - [ ] At least `textbox` and `image` have type-specific overrides disabling container chrome
 - [ ] Filter pane (`outspacePane`) and filter cards (`filterCard` with `$id: Available/Applied`) styled in wildcard
 - [ ] Theme validates with `pbir theme validate "Report.Report"` (or `jq empty` as fallback)

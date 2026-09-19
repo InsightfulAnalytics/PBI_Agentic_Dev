@@ -350,6 +350,8 @@ Deneb is the preferred choice for **advanced custom visuals** that need interact
 - Fine-grained control over visual encoding, animation, and interactivity
 - Vector-based rendering (crisp at any size)
 
+Absence from the native set is a feasibility fact, not a justification: it means Deneb can draw the form, not that the form is the right one for the reader (the form gate lives in the `pbi-report-design` skill, `references/chart-selection.md`).
+
 **Use SVG measures instead** for simple inline graphics in tables/cards (sparklines, data bars, progress bars) where interactivity is not needed. **Use Python/R instead** for statistical visualizations (distribution analysis, regression, correlation) where the focus is analytical rigor over interactivity.
 
 ## References

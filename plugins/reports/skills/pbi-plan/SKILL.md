@@ -131,14 +131,22 @@ Status: open
 Blocked by: 02, 05
 Exit: `python <pbir-cli skill>/scripts/close-plan.py "Sales.Report" --enforce`
 
-What to build: one horizontal bar chart, spend by category, sorted descending, top 12
-plus an "other" band.
+What to build: the page lands "three categories carry two thirds of spend". One
+horizontal bar chart, spend by category, sorted descending, top 12 plus an "other" band.
 
 - [ ] passes the insight test
-- [ ] title states the insight, not the shape
+- [ ] title states the insight on a `narrative` page, the subject on the other four shapes
 - [ ] tooltip decided, even if the decision is "default"
 - [ ] alt text written
 ```
+
+**On a `page` or `visual` ticket, `What to build:` opens with the sentence the page is meant
+to land, then the shape that lands it.** A ticket that names only the chart leaves the claim
+to whoever writes it up, a session later and with less context. Where the claim lands is the
+page shape's decision, not the ticket's: a `narrative` page puts it in the headline, and the
+other four shapes keep a subject title and carry the claim in a callout or a measure-driven
+title (`reports:pbi-report-design`, `references/page-titles.md`). `plan-board.py` renders the
+first line of the ticket body as the card summary, so that sentence is what the board shows.
 
 | Field | Rule |
 |---|---|

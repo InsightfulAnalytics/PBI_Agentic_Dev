@@ -15,6 +15,7 @@ Fill this single block, then present it for approval. Keep every field concrete;
 ```yaml
 audience: who reads this and what they already know
 purpose: the one outcome this report exists to drive
+stakes: what it costs if nobody acts, as a number the report can draw
 
 decision_questions:        # 2 to 5; the questions a viewer answers at a glance
   - are we ahead of last year and where
@@ -49,7 +50,7 @@ Pull most of this straight from answers already collected; do not start a fresh 
 
 ### audience and purpose
 
-Lift these from the Step 1 exploration and the vague-prompt answers. Audience sets the detail level (a board wants summary, an analyst wants granularity). Purpose is the single outcome, stated in one line.
+Lift these from the Step 1 exploration and the vague-prompt answers. Audience sets the detail level (a board wants summary, an analyst wants granularity). Purpose is the single outcome, stated in one line. `stakes` names what going unactioned costs, and it has to resolve to a number, because that figure becomes a threshold the report draws: a reference line, a conditional-format rule boundary, or a KPI goal. A stakes line nobody can reduce to a number leaves a purpose nobody can verify.
 
 ### decision_questions
 
