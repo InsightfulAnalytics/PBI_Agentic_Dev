@@ -182,7 +182,10 @@ Format: `ReportName.Report/PageName.Page/VisualName.Visual`
   - `**/*.Report/**/*.Visual`; all visuals across all reports
 - Properties via `get` or `set` and dot notation: `"Report.Report/Page.Page/Visual.Visual.title.fontSize"`
 - Filters/bookmarks: `"Report.Report/filter:Name"`, `"Report.Report/bookmark:Name"`
-- If multiple reports match, disambiguate with parent folder prefix
+- If multiple reports match, disambiguate with parent folder prefix. With an active connection
+  (`pbir connect`, or a `.pbir/active` file in the working directory) a relative
+  `folder/Name.Report` path silently resolves to the connected report instead; use an absolute path
+  there (see `references/cli-reference.md`, "Report Creation and Management")
 - Absolute filesystem paths work too: `"C:\Reports\Sales.Report"`, `"C:\Reports\Flash.pbix"` (globs do not combine with absolute paths)
 - Workspace destinations use `.Workspace` suffix: `"My Workspace.Workspace/Report.Report"`
 
