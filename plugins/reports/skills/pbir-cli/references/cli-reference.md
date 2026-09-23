@@ -143,13 +143,29 @@ pbir open "Report.Report"                          # Open in Power BI Desktop
 pbir validate "Report.Report"                      # Validate structure
 ```
 
-**An active connection hijacks relative creation paths.** When a prior `pbir connect` has set an
+**An active connection hijacks relative report paths.** When a prior `pbir connect` has set an
 active report, `pbir new report "sub/Name.Report"` can create the report beside the *active*
 report's project instead of in the current working directory, and drop the `sub/` folder from the
-path on the way. Nothing errors. Pass an **absolute** report path, or `pbir connect` the intended
-target first, and confirm where the report actually landed with `pbir ls` before continuing. A
-report created in the wrong tree keeps working, and every later relative path compounds the
-mistake.
+path on the way. Read commands are hijacked too: `pbir validate "sub/Name.Report"` (and the `./sub/`
+and `../` forms) validates the *connected* report instead, even when the path does not exist, and
+exits 0 with a normal pass. pbir reads the path as an object path inside the connected report (its
+help says connected "page/visual paths may be report-relative"), so `pbir ls "sub/Name.Report"`
+prints `Error: Cannot list Property` and still exits 0.
+
+The connection lives in two places: `active_profile` in the pbir config, and a `.pbir/active` file
+that `pbir connect` writes in the directory it runs from. That file applies only in that exact
+directory (not in its subdirectories), takes precedence over the config, and keeps hijacking after
+`pbir connect` reports "Not connected", so look for it as well as asking `pbir connect`. Pass an
+**absolute** report path, which resolves correctly with or without a connection, or for creation
+`pbir connect` the intended target first. On Windows a backslash relative path (`sub\Name.Report`)
+also resolves correctly for `validate` and `ls`; on macOS, where a backslash is part of a file
+name, use the absolute path. Then confirm the target: `pbir validate` prints the report it checked
+on its first line, `Validating <name>`, and `pbir ls` shows where a new report landed. That line
+gives the report's name, not its path, so it cannot tell two same-named reports apart. A report
+created in the wrong tree keeps working, and every later relative path compounds the mistake.
+[`validate`, `ls` and `.pbir/active` behaviour observed on pbir 0.9.32 on Windows.
+Verified 2026-09-23.]
+Retest: where `pbir connect` has set another report, `pbir validate "sub/Name.Report"`, then read the `Validating` line.
 
 `report link` records the published identity locally (never in the report definition); `pbir usage` and other remote commands read it to skip re-resolving. It differs from `report rebind`, which re-points a report at a different model.
 

@@ -97,6 +97,10 @@ pbir report merge-to-thick "./sales-pbip/Sales.Report" \
   "./sales-pbip/Sales.SemanticModel" --output ./sales-project
 ```
 
+If `pbir connect` has set an active report, pass absolute paths to these two `pbir` commands: a
+relative `./folder/Name.Report` path can resolve to the connected report instead. See the
+`reports:pbir-cli` skill, `references/cli-reference.md`, "Report Creation and Management".
+
 This keeps report creation inside `pbir`; do not scaffold PBIR JSON manually, except on
 Linux where `pbir` cannot be installed at all. See the
 [pbip](../../../../pbip/skills/pbip/SKILL.md) skill for project structure.
