@@ -36,6 +36,9 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   (`audit` and `migrate` commands, renderer shims, the 2.0 Vega bundle), the `reports/deneb-reviewer`
   agent and the `performant-matrix` grid reference. Fork-original work; upstream's Deneb skill had
   not been updated for 2.0 at that date.
+- Set the Omarchy report themes in `useful-stuff/themes/` (upstream 26.31.4 and 26.31.5) to
+  Consolas, a font from Power BI's own list, in place of upstream's JetBrains Mono stack
+  (2026-09-25).
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -55,6 +58,9 @@ Modified upstream-authored files, which **will** conflict on a harvest:
 - The learnings instruction in `fabric-cli/SKILL.md`, `connect-pbid/SKILL.md` and
   `pbir-cli/SKILL.md`, each now carrying a `<!-- boundary-rule:begin -->` block. Keep the fork's
   version and re-run `python scripts/sync-boundary-rule.py`.
+- `useful-stuff/themes/*.json` (every font line) and the font note in
+  `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
+  `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.
 
 The defect fixes in the `fix: correct skill content that currently makes agents fail` commit touch
 upstream-authored content and should be offered upstream, which turns a future harvest of those
