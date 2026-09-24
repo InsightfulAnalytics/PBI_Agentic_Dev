@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Original guidance; each section cites its sources.
 
-**Working with `te`:** build the agg table with `te`-native verbs (`te add table`, hide columns), then map `AlternateOf` via `te script` (TOM) since `te set -q` does not expose it. Audit the >= 10x grain ratio with `te query`; confirm cache hits via a trace (connect-pbid / DAX Studio), not `te query` alone.
+**Working with `te`:** build the agg table with `te`-native verbs (`te add table`, hide columns), then map `AlternateOf` via `te script` (TOM) since `te set -p` does not expose it. Audit the >= 10x grain ratio with `te query`; confirm cache hits via a trace (connect-pbid / DAX Studio), not `te query` alone.
 
 ## The cascade decision rule and the user-defined-aggregation example
 

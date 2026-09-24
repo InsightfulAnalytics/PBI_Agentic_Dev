@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Original guidance; each section cites its sources.
 
-**Working with `te`:** build a dimension with `te add table "Dim" --columns "Key:Int64,Attr:String" --save` and relate it via `te add relationship "Fact[Key]->Dim[Key]" --save`. Build junk / bridge / SCD calc tables with `te script` (TOM `CROSSJOIN` / `ADDCOLUMNS`) when there is no source, then hide keys with `te set <col> -q isHidden -i true --save`.
+**Working with `te`:** build a dimension with `te add table "Dim" --columns "Key:Int64,Attr:String" --save` and relate it via `te add relationship "Fact[Key]->Dim[Key]" --save`. Build junk / bridge / SCD calc tables with `te script` (TOM `CROSSJOIN` / `ADDCOLUMNS`) when there is no source, then hide keys with `te set <col> -p IsHidden=true --save`.
 
 ## Slowly changing dimensions (SCD2): durable keys and version-safe counting
 

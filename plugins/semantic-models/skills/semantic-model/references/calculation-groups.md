@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Original guidance; each section cites its sources.
 
-**Working with `te`:** `te add calculationGroup "Time Intelligence" --save`, then `te add calculationItem ...`. Read / set group precedence with `te set <group> -q precedence`; selection expressions, `selectionExpressionBehavior`, and variant guards that `te set` does not expose go through `te script` (TOM).
+**Working with `te`:** `te add calculationGroup "Time Intelligence" --save`, then `te add calculationItem ...`. Read group precedence with `te get <group> -p Precedence`, set it with `te set <group> -p Precedence=<n> --save`; selection expressions, `selectionExpressionBehavior`, and variant guards that `te set` does not expose go through `te script` (TOM).
 
 ## Only one measure axis per visual: the second one has to be a calculation group
 
@@ -16,7 +16,7 @@ Sources: `<repo>/examples/pl-switch-lab/` (PL Bridge Demo)
 
 When two calc groups have an item in filter context at once, the engine nests them: each item's `SELECTEDMEASURE()` token is textually replaced by the next-lower-precedence item's DAX, down to the base measure. The group with the **highest** `precedence` integer is the **outermost** wrapper. The output is order-dependent and rarely commutative ; a high-precedence `SELECTEDMEASURE()*2` over a lower `SELECTEDMEASURE()+2` on measure=10 gives `((10)+2)*2 = 24`, not 14. When a higher-precedence item uses `CALCULATE`/context transition, it rewrites the filter context the inner item sees (Time Intelligence at higher precedence makes YTD wrap both numerator and day-count denominator of an average). Precedence also decides whose dynamic format string wins: only the highest group's `formatStringDefinition` is evaluated, and a measure's own dynamic format string ranks below every calc group, though the winning item can still reach it through `SELECTEDMEASUREFORMATSTRING()` (see below).
 
-Precedence lives on the **group** (not per-item `ordinal`, which is only within-group sort order ; do not confuse them, and see *Item order comes from declaration order* below for where that ordinal gets its value). Inspect with `te set <group> -q precedence` before setting; assign distinct integers when groups co-occur in one visual, or apply order is undefined. If `te set` cannot reach it, fall to a `te script` C# pass (`CalculationGroupPrecedence`) or edit the `precedence:` line in TMDL last. A calc item only modifies an expression containing a measure reference; with no `SELECTEDMEASURE()` in scope it is a no-op.
+Precedence lives on the **group** (not per-item `ordinal`, which is only within-group sort order ; do not confuse them, and see *Item order comes from declaration order* below for where that ordinal gets its value). Inspect with `te get <group> -p Precedence` before setting; assign distinct integers when groups co-occur in one visual, or apply order is undefined. If `te set` cannot reach it, fall to a `te script` C# pass (`CalculationGroupPrecedence`) or edit the `precedence:` line in TMDL last. A calc item only modifies an expression containing a measure reference; with no `SELECTEDMEASURE()` in scope it is a no-op.
 
 ### Two groups: whose format string wins, and the base-measure escape hatch
 

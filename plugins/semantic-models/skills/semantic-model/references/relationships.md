@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Original guidance; each section cites its sources.
 
-**Working with `te`:** enumerate with `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"` (`te ls` cannot list relationships). Create with `te add relationship "Sales[K]->Date[K]" --save`; set cross-filter / active / security behavior with `te set Relationships/<name> -q <prop>`, or `te script` (TOM) when the property is not exposed.
+**Working with `te`:** enumerate with `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"` (`te ls` cannot list relationships). Create with `te add relationship "Sales[K]->Date[K]" --save`; set cross-filter / active / security behavior with `te set Relationships/<name> -p <Property>=<value> --save` (list the names with `te get Relationships/<name> --properties`), or `te script` (TOM) when the property is not exposed.
 
 ## Detecting limited relationships and the silent drops they cause
 

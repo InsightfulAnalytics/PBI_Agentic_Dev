@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). The full audit workflow and per-category checks. Drives inspection through the te-cli-first cascade; produces prioritized, actionable findings rather than a pass/fail.
 
-**Working with `te`:** gather context with `scripts/get_model_info.py`; inspect with `te load`, `te ls Measures`, `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"`, and `te vertipaq --columns --detail`; gate findings with `te validate` and `te bpa run --fail-on error`.
+**Working with `te`:** gather context with `scripts/get_model_info.py`; inspect with `te get . --model <path>` for a summary, `te ls Measures`, `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"`, and `te vertipaq --columns --detail`; gate findings with `te validate` and `te bpa run --fail-on error`.
 
 ## Workflow
 
@@ -10,7 +10,7 @@ Companion to the `semantic-model` skill (SKILL.md). The full audit workflow and 
 Run `scripts/get_model_info.py -w <workspace-id> -m <model-id>` for storage mode, model size, connected reports, deployment pipeline, endorsement, sensitivity label, data sources, refresh schedule, last refresh, capacity SKU. Then ask the user: what business process the model serves; who consumes it (report developers, analysts, executives, Copilot/AI); whether they own the model, the reports, or both; whether it is in dev, test, or production; and where findings should be documented. Severity shifts with context: a model for three analysts is judged differently from one Copilot queries org-wide.
 
 ### Step 1: inspect structure
-Read the model with the cascade. `te load ./model` for a summary, `te ls Measures` / `te ls Tables`, `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"` for relationships (`te ls` cannot enumerate them), `te vertipaq --columns --detail` for size. Drop to `connect-pbid` for traces and storage DMVs when the endpoint is unreachable from `te`.
+Read the model with the cascade. `te get . --model ./model` for a summary, `te ls Measures` / `te ls Tables`, `te query -q "EVALUATE INFO.VIEW.RELATIONSHIPS()"` for relationships (`te ls` cannot enumerate them), `te vertipaq --columns --detail` for size. Drop to `connect-pbid` for traces and storage DMVs when the endpoint is unreachable from `te`.
 
 ### Step 2: audit by category
 Walk the categories below; each links to the topic reference with the mechanics and the fix.
