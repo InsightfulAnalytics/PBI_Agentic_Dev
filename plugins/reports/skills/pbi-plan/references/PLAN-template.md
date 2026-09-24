@@ -73,7 +73,7 @@ Exit: `python <pbir-cli skill>/scripts/close-plan.py "<Name>.Report" --enforce`
 What to build: the KPI strip and the trend chart.
 
 - [ ] every chart passes the insight test
-- [ ] title states the insight, not the shape
+- [ ] title states the insight on a `narrative` page, the subject on the other four shapes
 - [ ] tooltip decided for every visual (a deliberate "off" counts)
 - [ ] alt text written
 

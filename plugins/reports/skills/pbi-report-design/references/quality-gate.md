@@ -2,7 +2,7 @@
 
 Final checks run before declaring a design done. This is a closing gate, not a planning-stage checklist: the planning-stage checks belong to the report-creation workflow and run before the build; the design gate runs after, against the finished artifact, and decides whether it ships.
 
-Run all five checks. Report each finding in the same shape as the Evaluation Output in `SKILL.md`: **issue, location, severity (critical / warning / suggestion), fix.**
+Run all six checks. Report each finding in the same shape as the Evaluation Output in `SKILL.md`: **issue, location, severity (critical / warning / suggestion), fix.**
 
 ## The honesty caveat
 
@@ -39,6 +39,7 @@ Every annotation, highlighted point, and written conclusion is verifiable agains
 - sample the data with `pbir model -q` and confirm each asserted number, ranking, or trend actually holds
 - no callout states a figure the data does not support; an annotation the model contradicts is a critical finding
 - a highlighted "top" or "worst" point is the actual extreme, not an assumed one
+- a recommendation callout (see `references/tooltips-and-annotations.md`) sits only on a `narrative` page, and is told apart from a finding by more than color; one on an `exploration` page is a finding
 
 ## 5. Accessibility
 
@@ -46,6 +47,14 @@ Every annotation, highlighted point, and written conclusion is verifiable agains
 - color is never the only signal; status and sentiment pair with an icon, shape, or label
 - fonts are readable at the rendered page size
 - alt text is present on data visuals
+
+## 6. Emphasis spent
+
+Decluttering is the first of two passes. Removal frees attention; it does not spend it. Check 1 only refuses a page that spends emphasis more than once, so a page stripped to uniform grey passes it untouched. This check asks what the freed attention was then spent on.
+
+- every data visual spends its emphasis once: one `dataPoint` accent on the focal series (a neutral unscoped fill plus one scoped override, or the measure-driven form where the focal category moves with the data; both are in `references/visual-colors.md`), one reference line with `dataLabelShow` set true, or one visible data label. A visual that is uniformly neutral and carries no label is a warning
+- the spend points at the thing the words name: a title or headline that states a finding no mark points at is a critical finding, the rendered-page form of insight test 5 in `SKILL.md`
+- the accent is the hue already locked in `references/design-identity.md`, never a new one; the add-back primitives and their commands live in `references/tooltips-and-annotations.md`
 
 ## Output
 
@@ -56,4 +65,4 @@ severity: critical | warning | suggestion
 fix:      <command or pattern>
 ```
 
-Critical findings (identity not propagated, a page with two intents, a callout the data contradicts, a contrast failure) block "done". Warnings and suggestions are reported and can ship with the user's acknowledgement.
+Critical findings (identity not propagated, a page with two intents, a callout the data contradicts, a contrast failure, a stated finding no mark points at) block "done". Warnings and suggestions are reported and can ship with the user's acknowledgement.

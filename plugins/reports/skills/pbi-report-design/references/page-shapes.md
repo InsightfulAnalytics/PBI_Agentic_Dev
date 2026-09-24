@@ -68,12 +68,15 @@ layout lean: equal-weight panels across one band; axes synchronized so length ca
 ```yaml
 question: here is the finding, and why
 belongs:
+  - a page headline stating the finding, written with `pbir add title`
   - one dominant focal visual
   - annotation forward; callouts and reference lines explain the point
   - subordinate supporting context around the focal visual
+  - the next step, stated on the page, plus an `actionButton` routing to where the work happens; the callout form it takes is in `references/tooltips-and-annotations.md`
 keep off:
   - co-equal visuals fighting for the focal role; a narrative has one lead
   - dense detail that competes with the story
+  - a finding with nothing to do about it; the shape ends at the next step, not at the evidence
 layout lean: one large focal visual, smaller supporting visuals subordinate to it; editorial-tone-friendly
 ```
 
@@ -87,3 +90,4 @@ Tone (see `references/design-identity.md`) and shape reinforce each other but ar
 - Two shapes on one page (a summary KPI band stapled to an exploration surface); split it
 - Choosing a shape by what visuals are handy rather than by the reader's question; intent leads, inventory follows
 - A monitoring page sorted alphabetically; severity ordering is the whole point of the shape
+- A narrative page that stops at the finding; name the next step and route to it, or the page argues a case nobody can act on

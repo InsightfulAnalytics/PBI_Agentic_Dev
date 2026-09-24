@@ -2,7 +2,7 @@
 
 ## Default Ranking
 
-Prefer in-repo code paths over packaged third-party visuals. In-repo code (Deneb, SVG-via-DAX, Python/R) lives inside the report or model, travels with it, renders anywhere the engine is enabled, and requires no per-visual admin approval.
+Prefer in-repo code paths over packaged third-party visuals. In-repo code (Deneb, SVG-via-DAX, Python/R) lives inside the report or model, travels with it, renders anywhere the engine is enabled, and requires no per-visual admin approval. The ranking settles who builds and who maintains the form; it says nothing about whether the reader can read it, and ranks 2 to 4 make an unfamiliar form cheap to build while leaving its decoding cost untouched.
 
 ```
 1. Core Power BI visual       -- no dependencies, fastest
@@ -15,6 +15,12 @@ Prefer in-repo code paths over packaged third-party visuals. In-repo code (Deneb
 
 Reach for a packaged custom visual only when the interaction model genuinely requires it: a rich pre-built hierarchy/network slicer, a specialized gauge type, or a visual category with no reasonable in-repo alternative.
 
+Justify the form before the tier. The two-condition gate in `references/chart-selection.md` ("Leaving the default vocabulary") applies at every rank in this list, not only at rank 5: a beeswarm, sankey or hex map has to satisfy the same condition whether a Deneb spec, an SVG measure, a script visual or a packaged visual draws it. Record the condition on the visual, so the next agent reads a decision rather than re-deriving one:
+
+```bash
+pbir add annotation "Page/Visual.Visual" --text "beeswarm: <why this form and not a core type>" --category Design
+```
+
 ## AppSource and Org-Store Tradeoffs
 
 An AppSource visual is an external dependency on a third party's code, AppSource availability, and three tenant settings (allow custom visuals, allow specific visual, allow uncertified). It can vanish, lose certification, or be policy-blocked at any time.
@@ -22,7 +28,7 @@ An AppSource visual is an external dependency on a third party's code, AppSource
 When a packaged custom visual is warranted:
 - Prefer the org store over ad-hoc AppSource (centralizes the approved version, single admin toggle)
 - Prefer certified visuals (Microsoft-reviewed, sandboxed)
-- Record the dependency in a PBIR annotation: name, source, certification status, approver
+- Record the dependency in a PBIR annotation: name, source, certification status, approver, and the form justification above (provenance says where the visual came from, not why this form)
 
 ## Licensing and Deployment Gaps
 

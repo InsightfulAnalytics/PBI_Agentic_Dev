@@ -61,6 +61,8 @@ Match the visualization type to the analytical question being asked.
 | What is the part-to-whole? | Stacked bar (100%), waterfall | Pie chart (poor perceptual accuracy) |
 | How does this vary by category? | Small multiples, matrix with conditional formatting | Single cluttered chart |
 
+Rows routed to Deneb or SVG name a build path, not a licence for the form: box plot, swarm, slope chart and dumbbell each charge every reader a decoding step a core form does not. Justify the form separately from the tier that builds it, against the two conditions in `pbi-report-design`, `references/chart-selection.md`.
+
 ### Charting Best Practices
 
 - Visuals should provide sufficient meaning and context to be interpretable and should leverage pre-attentive attributes
@@ -69,7 +71,7 @@ Match the visualization type to the analytical question being asked.
 - Avoid pie and donut charts. If the user wants one, suggest a donut with smaller radius slices
 - Tables and matrices should not have too many columns or try to show too much at once. Sufficient padding (4 is usually enough), not too much conditional formatting. Values should have sufficient rounding to avoid showing too much detail, but users may prefer full unformatted numbers
 - Visuals should have sort order applied: typically descending by the key value field, ascending if negative numbers require more attention, or categorical for date fields (quarter, month, year, workdays MTD, etc.)
-- Data labels: Use instead of axis ticks if feasible for bar charts. If data labels are shown, the axis may not be needed (but keep the axis title for context)
+- Data labels: Use instead of axis ticks if feasible for bar charts. If data labels are shown, the value axis may not be needed. The axis title stays off either way: it is a wildcard theme decision, and the visual title already says what is being measured (`pbi-report-design`, `references/chart-selection.md`)
 
 ### Anti-Patterns
 
@@ -77,7 +79,7 @@ Match the visualization type to the analytical question being asked.
 - **Dual-axis charts:** Misleading when scales differ; use small multiples or separate visuals instead
 - **Gauges:** Take up space, show one value poorly; use a card with trend instead
 - **Default visual interactions:** Avoid deviating from default interactions unless there's an explicit reason to do so
-- **Too many custom/macgyvered visuals:** SVG, R, Python, or heavily customized core visuals using atypical properties to achieve unique results increase maintenance burden disproportionately
+- **Too many custom/macgyvered visuals:** Deneb, SVG, R, Python, or heavily customized core visuals using atypical properties to achieve unique results increase maintenance burden disproportionately
 
 ## Formatting and Conditional Formatting
 
@@ -85,7 +87,7 @@ Match the visualization type to the analytical question being asked.
 - Formatting should be functional and consistent between visuals, pages, and related reports. This should be reflected in a good, common theme reused across reports
 - Formatting is more about what to take away than what to add
 - Static formatting should ideally be in the theme, not in bespoke visual overrides. When the theme changes, it should propagate to all downstream visuals. Some visual overrides are inevitable and necessary, but the theme should carry the baseline
-- If data labels are shown, the axis may not be needed -- but keep the axis title so it's clear what is being measured
+- If data labels are shown, the value axis may not be needed. Turning the axis title back on per visual is not the fix: it is off at the theme wildcard by design, and an axis title reinstated on one visual is a theme-compliance finding
 
 ## Color Usage
 

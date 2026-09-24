@@ -53,6 +53,8 @@ pbir set "Page.Page/Hero.Visual.y1AxisReferenceLine.id($ID).lineColor" --value "
 
 **Callout with leader:** a chrome-off textbox (title/background/border/shadow all `show=false`) plus a thin shape as the leader line. Keep callouts as separate visuals so they are independently `cp`-able and themeable.
 
+**Recommendation callout:** the same chrome-off textbox, stating what to do rather than what is. It is gated by page shape: allowed on a `narrative` page, forbidden on `exploration`, where `references/page-shapes.md` already refuses asserted callouts. The reason is mechanical, not editorial: an exploration surface is re-filtered by the reader, so a recommendation authored against one filter state goes stale on the first slicer click. On a `monitoring` page the next step belongs in the triage table as an owner or next-step column, not in a callout. Distinguish a recommendation from a finding by a fixed word opening the text, never by color alone and never by varying the one callout treatment the signature locks in `references/design-identity.md`. Every figure inside one still faces the evidence check in `references/quality-gate.md`.
+
 **Reveal pacing:** prefer a page sequence plus a page navigator over bookmarks for step-by-step story reveals. Bookmarks are fragile and capped; reserve them for in-page state toggles.
 
 **Reading order / scent:** set `tabOrder` so traversal is headline -> hero visual -> callouts -> detail panel.
@@ -61,11 +63,12 @@ pbir set "Page.Page/Hero.Visual.y1AxisReferenceLine.id($ID).lineColor" --value "
 
 These are not caught by `pbir bpa`:
 
-- Headline textbox is a chart-type label ("Bar Chart: Revenue") rather than a finding
+- On a `narrative` page, the headline textbox is a chart-type label ("Bar Chart: Revenue") rather than a finding. On the other four shapes the same label is still wrong, but the repair is a subject title, not a claim (`references/page-titles.md`)
 - Every series at full saturation with no grey context series
 - A reference or target line exists but `dataLabel` is off
 - Callouts present but `tabOrder` does not follow the story
 - Story carried entirely by a Copilot Narrative visual with no deterministic fallback
+- A recommendation callout on an `exploration` or `monitoring` page, or one the reader cannot tell apart from a finding
 
 ### Pitfalls
 

@@ -19,6 +19,10 @@ A useful test: *"If this number changed 20%, should someone act differently?"* I
 
 Comparative metrics (orders vs. prior year) outperform absolute ones because they immediately signal relative performance.
 
+The audience decides *which* measure is bound to the card, not only how much detail the page carries. One stock position reads as days of stock to an operations lead and as cash tied up in stock to a CFO; bind the card to the form the audience acts on, and demote the other to the tooltip field well or a detail page rather than dropping it (`pbir visuals bind "Page.Page/Card.Visual" --list-roles` to find the role that accepts it).
+
+When the model carries only the operational form, that is a model gap to propose, not a report gap to work around. Take the same route as a missing target (see **Sourcing Targets**), and use `AskUserQuestion` when the conversion basis itself, such as a margin rate or a cost of capital, is not in the model.
+
 ## Sourcing Targets
 
 Every KPI needs a target. Where the target comes from depends on the model and context:
@@ -238,6 +242,7 @@ Icons should be used sparingly and only when they add information beyond what co
 | Red/green only (no secondary cue) | Inaccessible to colorblind users | Pair with arrow/icon |
 | Relying on Auto display units | Custom format strings override Auto, showing raw numbers | Query values, set explicit display units per visual |
 | Vanity metrics | Don't drive decisions | Apply the "20% change" test |
+| Metric in a form the audience must translate | Reader converts before deciding | Bind the measure the audience acts on; propose it to the model if it does not exist |
 
 ## Visual Type Selection
 

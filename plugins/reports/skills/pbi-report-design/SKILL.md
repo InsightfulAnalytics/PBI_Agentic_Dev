@@ -34,7 +34,7 @@ Recording tone and signature once is what turns "use muted colors" into a propag
 5. **Semantic Models:** Reports in Power BI are complex. They are dependant on an underlying semantic model (either in the .SemanticModel folder, called a "thick report" or a published model in Power BI/Fabric, called a "thin report"). Much of the functionality from a Power BI report comes from its semantic model design or DAX code
 6. **Report extensions, or thin report measures:** It is possible to create calculation logic in Power BI report, called "thin report measures" or "visual calculations". These should be used sparingly and only for "report-specific" scenarios
 7. **Visual fields:** All data visuals should have field bindings, and all field bindings should be for fields that actually exist in the model; there is no reason for visuals to exist that have no fields bound
-8. **Chart selection:** Make smart choices about what visuals to use for each scenario. Visual vocabulary is essential for this skill.
+8. **Chart selection:** Build from the default vocabulary. The routing block in `references/chart-selection.md` maps each analytical task to the core visual type that answers it, and a familiar form costs the reader nothing to decode. A form outside that block is built only when it clears the two-condition gate in the same file ("Leaving the default vocabulary"), and the condition is stated before the build rather than defended after it.
 9. **Use of color:** Color and formatting decisions must cite the locked identity (the chosen tone and signature), not be picked per visual. Colors come from the theme (themedataColor) rather than inline hex, so the identity propagates and re-themes cleanly. Colors should be muted and soft; colors that implicitly encode meaning (like red=bad, green=good) should be avoided unless using them for that encoding. Consider colorblindness and use accessible palettes (blues instead of greens with reds, for instance).
 10. **Pre-attentive attributes:** Styles and colors should be used to steer and direct attention, and not to decorate charts. Formatting of visuals should be intentional and not purely aesthetic. Styles should where possible be stored in the theme and not in bespoke visual configuration.
 11. **Fonts:** Prefer *Segoe UI* and *Segoe UI Semibold*. Do not use custom fonts, since they aren't guaranteed to render on user computers. Evaluate whether fonts are sufficiently large to be readable given the visual and page size.
@@ -49,6 +49,15 @@ A chart is cheap to reject on the spec and expensive to reject on the canvas. Ru
 3. **Every figure has a denominator, and one denominator.** A percentage whose base is unstated is unreadable; a panel that mixes two bases in one frame is wrong, not merely unclear.
 4. **No panel restates its neighbour.** If a tooltip, card, or sub-chart shows only what the visual it sits beside already prints, it is a duplicate. This is the most common failure and the easiest to see on the spec.
 5. **The title points the same direction as its own measure.** A title claiming growth over a measure that falls is a defect that survives every schema validation, because nothing in the JSON knows what the words mean.
+
+A title that is true is not yet the right title. A chart supports several true readings, and the one that ships is the one that answers the decision question the page serves (the brief's `decision_questions`). If two readings both need asserting, that is two visuals, and if they answer different questions it is two pages (core rule 12).
+
+Test 1 produces a claim, and in Power BI a claim goes stale the moment the reader moves a slicer. What pins it is how the claim is written, not only which page it sits on:
+
+- **Measure-driven:** the title recomputes with the filters, so it cannot go stale, and it is valid on any shape. Bind it through title conditional formatting, clearing the literal title first, with the `SELECTEDVALUE` fallback mandatory; the **`create-pbi-report`** skill carries the pattern
+- **Literal:** the words are fixed, so they survive only where the filters cannot move them, which is a `narrative` page with the filter cards that could move it locked (`references/page-shapes.md`, `references/filter-pane.md`)
+
+On the other four shapes a literal title names the subject and the finding moves into a callout, which the closing gate then checks against the model (`references/tooltips-and-annotations.md`, `references/page-titles.md`).
 
 **When a chart fails:** simplify it to a single comparison, or cut it. Do not repair it in place through successive renders; that is how one bad panel consumes an evening. Record which you chose, and why, in the plan's fog list (see the **`pbi-plan`** skill) so the decision is not rediscovered next session.
 
@@ -113,6 +122,8 @@ pbir add title "Report.Report/Page.Page" "Page Title" --width 500
 - Top-left corner, inside the page margin
 - Enough height for the chosen font without clipping
 - Width: 400-600px (or page width minus margins)
+
+A page title names the subject; the `narrative` shape is the one documented exception, per the insight test above. Title implementation, the visual container's own title and subtitle slots, and accessible title wording are in **`references/page-titles.md`**.
 
 ## Theme Guidelines
 
@@ -212,11 +223,11 @@ For complete guidance on KPI design, targets, trends, formatting hierarchy, icon
 - Sort by value descending (unless time-based)
 - Minimize gridlines and axes clutter
 - Use muted colors for non-essential elements
-- Highlight key data points sparingly
+- Highlight key data points sparingly: the neutral is the base and the accent is the exception, one per visual. The selectors and commands are in `references/visual-colors.md`
 
 For chart-type selection (encoding hierarchy, Cleveland-McGill ranking), data-label discipline, and small-multiples guidance, consult **`references/chart-selection.md`**.
 
-**Refuse common LLM defaults.** Gauge-as-KPI, monochrome categorical bars, missing sort, card walls, raw field names as titles, inline hex, off-grid drift, dual y-axis, 3D, and oversized pies are plausible-looking attractors that defeat the reader. When a request reaches for one, push back with the better option; see **`references/anti-patterns.md`**.
+**Refuse common LLM defaults.** Gauge-as-KPI, monochrome categorical bars, missing sort, card walls, raw field names as titles, inline hex, off-grid drift, dual y-axis, 3D, oversized pies, two hues for one quantity, and an exotic build path for a form a core visual already draws are plausible-looking attractors that defeat the reader. When a request reaches for one, push back with the better option; see **`references/anti-patterns.md`**.
 
 ### Tables and Matrices
 
@@ -286,7 +297,7 @@ When evaluating, provide:
 
 ### The design gate
 
-Before declaring a design done, run the closing gate in **`references/quality-gate.md`**. It is not the planning-stage checklist that runs before the build; it runs against the finished artifact and decides whether it ships. It verifies the identity propagated, every page has one intent, spacing and margins are equal and on-grid, callouts are backed by model evidence, and accessibility is met. Because an agent cannot see the canvas, pair the gate with the screenshot-review loop in the **`pbir-cli`** skill: render the pages, look, and confirm what the JSON inferred.
+Before declaring a design done, run the closing gate in **`references/quality-gate.md`**. It is not the planning-stage checklist that runs before the build; it runs against the finished artifact and decides whether it ships. It verifies the identity propagated, every page has one intent, spacing and margins are equal and on-grid, callouts are backed by model evidence, accessibility is met, and each visual spent its emphasis once on the thing its title names. Because an agent cannot see the canvas, pair the gate with the screenshot-review loop in the **`pbir-cli`** skill: render the pages, look, and confirm what the JSON inferred.
 
 ## Implementing an approved design
 
@@ -310,6 +321,7 @@ any design source.
 - Use muted color palette
 - Apply detail gradient
 - Hide non-essential elements
+- Then spend what the hiding freed: one accent, one reference line with its label on, or one endpoint label per visual. A page that has only had things taken away is empty, not finished
 
 ### Issue: Inconsistent Spacing
 
@@ -334,19 +346,19 @@ any design source.
 ## References
 
 - **`references/design-identity.md`** -- Commit-first identity: tone budgets (restrained/corporate/editorial/technical), the signature catalog, and serializing identity into the theme
-- **`references/page-shapes.md`** -- Routing each page to one shape by intent (summary/monitoring/exploration/comparison/narrative): what belongs, what stays off, layout lean
-- **`references/anti-patterns.md`** -- Cross-cutting defaults to refuse (gauge-as-KPI, monochrome bars, missing sort, card walls, raw titles, inline hex, off-grid, dual-axis, 3D, oversized pie) with the repair
-- **`references/quality-gate.md`** -- The design gate: closing checks (identity propagated, one intent per page, equal spacing, evidence-backed callouts, accessibility) in issue/location/severity/fix form
-- **`references/cards-and-kpis.md`** -- KPI card design: targets, gaps, trends, formatting hierarchy, icons, accessible palettes, anti-patterns, review checklist
+- **`references/page-shapes.md`** -- Routing each page to one shape by intent (summary/monitoring/exploration/comparison/narrative): what belongs, what stays off, layout lean, and the narrative shape's headline and next step
+- **`references/anti-patterns.md`** -- Cross-cutting defaults to refuse (gauge-as-KPI, monochrome bars, missing sort, card walls, raw titles, inline hex, off-grid, dual-axis, 3D, oversized pie, two hues for one quantity, an exotic build path for a core form) with the repair
+- **`references/quality-gate.md`** -- The design gate: six closing checks (identity propagated, one intent per page, equal spacing, evidence-backed callouts, accessibility, emphasis spent) in issue/location/severity/fix form
+- **`references/cards-and-kpis.md`** -- KPI card design: binding the measure the audience acts on, targets, gaps, trends, formatting hierarchy, icons, accessible palettes, anti-patterns, review checklist
 - **`references/tables-and-matrices.md`** -- Table and matrix design: decision-making framework, subtract-don't-add philosophy, conditional formatting, sorting, sparklines, matrix hierarchies, row-label indentation (U+00A0), anti-patterns
 - **`references/layout-guidelines.md`** -- Canvas dimensions, spacing tiers (intra-group/inter-group/margin), alignment rules, performance cost model
-- **`references/visual-colors.md`** -- Color principles, CF basis decision (gradient vs rules vs field-value vs icons), semantic tokens, accessibility
-- **`references/page-titles.md`** -- Title implementation, accessible title wording, hidden-title/alt-text rule
-- **`references/chart-selection.md`** -- Encoding hierarchy (Cleveland-McGill ranking), chart type routing, data-label discipline, small multiples
-- **`references/tooltips-and-annotations.md`** -- Report-page tooltip design, when not to use one, annotation primitives for guided analytics
+- **`references/visual-colors.md`** -- Color principles, the neutral-base-plus-one-accent emphasis moves and which selector picks the focal series, contrast channels beyond hue, CF basis decision (gradient vs rules vs field-value vs icons), semantic tokens, accessibility
+- **`references/page-titles.md`** -- Title implementation, the visual container's title and subtitle slots, the narrative-page exception to the subject-title rule, accessible title wording, hidden-title/alt-text rule
+- **`references/chart-selection.md`** -- Encoding hierarchy (Cleveland-McGill ranking), chart type routing, the gate for leaving the default vocabulary, repair before retyping, the axis and data-label pairing, legend versus direct labelling, small multiples
+- **`references/tooltips-and-annotations.md`** -- Report-page tooltip design, when not to use one, annotation primitives for guided analytics, recommendation callouts and the page shapes that allow them
 - **`references/filter-pane.md`** -- Lock vs hide, card naming, card order, Applied/Available styling, report-level settings
 - **`references/mobile.md`** -- Phone layout as a curated subset, `mobile.json` mechanics, what to include/exclude
-- **`references/custom-visuals.md`** -- Build-vs-buy ranking, AppSource/org-store tradeoffs, licensing gaps
+- **`references/custom-visuals.md`** -- Build-vs-buy ranking, justifying the chart form separately from the build tier, AppSource/org-store tradeoffs, licensing gaps
 - **`references/implementing-a-design.md`** -- Turning an approved design into a report: delta-only application, preserving existing chrome, shared-object scope discipline, validate-then-look verification, deferred cleanup, and the reverse design brief with its template
 
 ## Related Skills
