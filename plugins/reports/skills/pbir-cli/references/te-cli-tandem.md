@@ -7,7 +7,7 @@ Use `te` for semantic-model objects and `pbir` for report objects. A model refac
 | Semantic model | `te` | Tables, columns, measures, relationships, DAX, format strings, descriptions, display folders, validation, BPA, deployment |
 | Report | `pbir` | Visual bindings, filters, conditional formatting, sort definitions, pages, bookmarks, themes, validation, Desktop refresh |
 
-Modern `te mv` cascades model-internal references and reports the number changed. It cannot see report bindings, so follow a model rename or move with `pbir fields replace` or `pbir fields replace-table`. Do not run a blanket `te replace` after `te mv`; use it only for deliberately reviewed text that the cascade did not cover.
+Modern `te mv` cascades model-internal references and reports the number changed. It cannot see report bindings, so follow a model rename or move with `pbir fields replace` or `pbir fields replace-table`. There is no whole-model text replace in `te` (`te replace` was removed); for text the cascade did not cover, locate it with `te find` and change it with `te script`.
 
 In one interactive shell, `te connect <workspace> <model>` sets the active model. In separate agent shell calls, pass `-s <workspace> -d <model>` each time or use a named `TE_SESSION`. Every `te` mutation needs `--save` to persist.
 
@@ -67,10 +67,10 @@ pbir validate "Report.Report" --fields
 Author complete measure metadata in one model mutation, validate it, refresh the report's model definition, then bind it:
 
 ```bash
-te add "'_Measures'[Margin %]" -t Measure -i "DIVIDE([Margin], [Revenue])" \
-  -q formatString -i "0.0%" \
-  -q displayFolder -i "Profitability" \
-  -q description -i "Margin as a percentage of revenue" \
+te add "'_Measures'[Margin %]" -t Measure -p Expression="DIVIDE([Margin], [Revenue])" \
+  -p FormatString="0.0%" \
+  -p DisplayFolder="Profitability" \
+  -p Description="Margin as a percentage of revenue" \
   --save -s "Workspace" -d "Model"
 te validate --errors-only -s "Workspace" -d "Model"
 te bpa run --fail-on error -s "Workspace" -d "Model"
@@ -84,7 +84,7 @@ pbir validate "Report.Report" --fields
 For a new thin report, deploy the model first, then create the report against it:
 
 ```bash
-te deploy ./Model.SemanticModel -s "Workspace" -d "Model" --force --non-interactive
+te deploy --model ./Model.SemanticModel --target-server "Workspace" --target-database "Model" --execute --force --non-interactive
 pbir new report "Margin.Report" --connection "Workspace/Model.SemanticModel"
 ```
 
@@ -94,8 +94,8 @@ Changing a measure's expression, format string, description, display folder, or 
 
 ```bash
 te set "'_Measures'[Revenue]" \
-  -q formatString -i '$#,0' \
-  -q description -i "Net recognized revenue" \
+  -p FormatString='$#,0' \
+  -p Description="Net recognized revenue" \
   --save -s "Workspace" -d "Model"
 te validate --errors-only -s "Workspace" -d "Model"
 pbir desktop refresh "Report.Report"

@@ -4,7 +4,7 @@ Guide for applying theme templates, copying themes between reports, and managing
 
 ## Applying a Template
 
-Templates are pre-built themes stored in `~/.pbir/templates/themes/`.
+Templates are pre-built themes stored in the user template library under the platform data directory; `pbir config paths` prints the location (the legacy `~/.pbir/templates/` is migrated on first run after upgrading).
 
 ```bash
 # List available templates

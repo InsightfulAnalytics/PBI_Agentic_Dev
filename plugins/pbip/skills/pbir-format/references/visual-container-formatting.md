@@ -149,7 +149,7 @@ The catalog is preview (0.1.x) and can lag the shipping product, so treat its en
 
 - `pbir visuals list` lists the built-in visual type ids (add `--vco` for container object names, `--selectors` for instance-selector objects)
 - `pbir visuals capabilities <type>` shows the valid `objects` and their properties plus the data roles for one built-in visual type
-- `pbir validate --semantic` (or `--all`) flags `visualType`, `objects`, and `visualContainerObjects` names that the catalog does not recognize; `--strict` promotes those advisories to errors
+- `pbir validate --semantic` (or `--all`) flags `visualType`, `objects`, and `visualContainerObjects` names that the catalog does not recognize; `--strict` fails on warnings but leaves these core-catalog advisories as warnings, because the catalog may lag the product
 
 ## Common Container Configurations
 

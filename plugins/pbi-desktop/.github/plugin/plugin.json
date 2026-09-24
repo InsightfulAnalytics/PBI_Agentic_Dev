@@ -1,0 +1,23 @@
+{
+  "name": "pbi-desktop",
+  "version": "26.26",
+  "description": "The live model in Power BI Desktop via TOM and ADOMD.NET; no MCP needed.",
+  "author": {
+    "name": "Kurt Buhler",
+    "url": "https://data-goblins.com"
+  },
+  "homepage": "https://data-goblins.com",
+  "repository": "https://github.com/InsightfulAnalytics/PBI_Agentic_Dev",
+  "license": "GPL-3.0",
+  "keywords": [
+    "power-bi",
+    "pbi-desktop",
+    "analysis-services",
+    "tom",
+    "adomd",
+    "dax"
+  ],
+  "skills": "./skills/",
+  "agents": "./agents/",
+  "hooks": "./hooks/copilot-hooks.json"
+}

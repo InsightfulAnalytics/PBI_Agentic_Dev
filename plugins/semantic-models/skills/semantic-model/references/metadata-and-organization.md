@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Original guidance; each section cites its sources.
 
-**Working with `te`:** `te set <obj> -q displayFolder -i "Sales" --save`, `te set <obj> -q isHidden -i true --save`, `te set <obj> -q formatString -i "..." --save`. To rename, `te mv` or `te set <obj> -q name`, but renaming breaks downstream references: follow `references/refactoring-renaming.md` first (lineage check, then propagate with pbir-cli / fabric-cli).
+**Working with `te`:** `te set <obj> -p DisplayFolder="Sales" --save`, `te set <obj> -p IsHidden=true --save`, `te set <obj> -p FormatString="..." --save` (several `-p` in one call is fine). To rename, `te move` or `te set <obj> -p Name="..."`, but renaming breaks downstream references: follow `references/refactoring-renaming.md` first (lineage check, then propagate with pbir-cli / fabric-cli).
 
 ## Measure tables: how many, where they sort, and the DirectQuery gotcha
 

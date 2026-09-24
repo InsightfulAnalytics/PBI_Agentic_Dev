@@ -12,7 +12,7 @@ pbir validate "Report.Report" --all      # + fields + QA + semantic
 pbir validate "Report.Report" --fields   # + field references resolve in the model
 pbir validate "Report.Report" --qa       # + quality rules (overlap, hidden, filters, counts, layout, role cardinality)
 pbir validate "Report.Report" --semantic # + visual type ids / objects / vCO names vs the core visual catalog
-pbir validate "Report.Report" --strict   # promote field/QA/semantic warnings to errors
+pbir validate "Report.Report" --strict   # warnings fail (exit 1); core-catalog advisories stay warnings
 pbir validate "Report.Report" --json     # machine-readable
 ```
 

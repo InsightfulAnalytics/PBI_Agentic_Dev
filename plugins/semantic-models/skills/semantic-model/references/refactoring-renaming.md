@@ -2,7 +2,7 @@
 
 Companion to the `semantic-model` skill (SKILL.md). Renaming or moving a model object is never a local edit; the name is a contract that downstream consumers depend on. Run the lineage check first, then rename, then propagate.
 
-**Working with `te`:** rename with `te mv <old> <new> --save` or `te set <obj> -q name -i "<new>" --save`, but ONLY after the lineage check below. Never rename a model object in isolation.
+**Working with `te`:** rename with `te move <old> <new> --save` or `te set <obj> -p Name="<new>" --save`, but ONLY after the lineage check below. Never rename a model object in isolation.
 
 ## Why renaming is dangerous
 
@@ -20,7 +20,7 @@ A measure, column, or table name is referenced far beyond the model. Renaming br
 1. **Lineage check FIRST.** Find every consumer before touching the name:
    - the `lineage-analysis` skill, or `fab` (fabric-cli), to list reports and downstream models bound to this model across workspaces
    - `te deps "<obj>"` and `te find "<obj>" --in expressions --paths-only` for model-internal references
-2. **Rename in the model:** `te mv` or `te set <obj> -q name`, then `te validate`.
+2. **Rename in the model:** `te move` or `te set <obj> -p Name="<new>"`, then `te validate`.
 3. **Propagate to reports:** rebind every affected visual, filter, and bookmark with the `pbir-cli` skill (`pbir` locates and updates the references); for service-side items use `fabric-cli` (`fab`).
 4. **Re-validate:** `te validate` the model and `pbir validate` each report.
 

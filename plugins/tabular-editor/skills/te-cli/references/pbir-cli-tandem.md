@@ -2,7 +2,7 @@
 
 `te` owns semantic-model objects; `pbir` owns report objects. The contract between them is the `Table.Field` identity used by report bindings.
 
-Modern `te move` cascades references inside the semantic model and reports how many it changed. It cannot see report bindings, filters, sort definitions, or conditional formatting. After a model rename or move, update the report separately with `pbir fields replace` or `pbir fields replace-table`. Do not run a blanket `te replace` after `te move`; reserve it for reviewed text the cascade did not cover.
+Modern `te move` cascades references inside the semantic model and reports how many it changed. It cannot see report bindings, filters, sort definitions, or conditional formatting. After a model rename or move, update the report separately with `pbir fields replace` or `pbir fields replace-table`. There is no whole-model text replace in `te`; for text the cascade did not cover, locate it with `te find` and change it with `te script`.
 
 Every `te` mutation needs `--save`. Use `te connect <workspace> <model>` in an interactive shell; in separate agent calls, pass `-s` and `-d` each time or use a named `TE_SESSION`.
 
@@ -44,10 +44,10 @@ pbir fields replace "Report.Report" --from "Actuals.Margin" --to "_Measures.Marg
 Create the expression and metadata together, validate the model, refresh report schema discovery, then bind the measure:
 
 ```bash
-te add "'_Measures'[Margin %]" -t Measure -i "DIVIDE([Margin], [Revenue])" \
-  -q formatString -i "0.0%" \
-  -q displayFolder -i "Profitability" \
-  -q description -i "Margin as a percentage of revenue" \
+te add "'_Measures'[Margin %]" -t Measure -p Expression="DIVIDE([Margin], [Revenue])" \
+  -p FormatString="0.0%" \
+  -p DisplayFolder="Profitability" \
+  -p Description="Margin as a percentage of revenue" \
   --save -s "Workspace" -d "Model"
 te validate --errors-only -s "Workspace" -d "Model"
 
@@ -77,9 +77,10 @@ te validate --errors-only -s "Workspace" -d "Model"
 ## Deploy and publish order
 
 ```bash
-te validate --errors-only -m ./Model.SemanticModel
-te bpa run --fail-on error -m ./Model.SemanticModel
-te deploy ./Model.SemanticModel -s "Workspace" -d "Model" --force --non-interactive
+te validate --errors-only --model ./Model.SemanticModel
+te bpa run --fail-on error --model ./Model.SemanticModel
+te deploy --model ./Model.SemanticModel --target-server "Workspace" --target-database "Model"   # dry run: prints the TMSL
+te deploy --model ./Model.SemanticModel --target-server "Workspace" --target-database "Model" --execute --force --non-interactive
 pbir report rebind "Report.Report" "Workspace.Workspace/Model.SemanticModel"
 pbir validate "Report.Report" --all
 pbir publish "Report.Report" "Workspace.Workspace/Report.Report" -f
