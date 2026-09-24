@@ -50,9 +50,12 @@ SKILL_TIP="Tip: use the pbir-format skill if you are modifying PBIR files direct
 TOOL_NAME=$(echo "$INPUT" | jq -r '.tool_name // empty' 2>/dev/null)
 FILE_PATH=""
 
-if [[ "$TOOL_NAME" == "Write" || "$TOOL_NAME" == "Edit" ]]; then
-    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // empty' 2>/dev/null)
-elif [[ "$TOOL_NAME" == "Bash" ]]; then
+# Claude Code names the tools Write/Edit; Copilot CLI passes its own lowercase
+# names (create/edit) and hosts may use a different path key, so accept both.
+case "$TOOL_NAME" in Write|Edit|write|edit|create) IS_FILE_TOOL=1 ;; *) IS_FILE_TOOL=0 ;; esac
+if [[ "$IS_FILE_TOOL" == 1 ]]; then
+    FILE_PATH=$(echo "$INPUT" | jq -r '.tool_input.file_path // .tool_input.path // empty' 2>/dev/null)
+elif [[ "$TOOL_NAME" == "Bash" || "$TOOL_NAME" == "bash" || "$TOOL_NAME" == "powershell" ]]; then
     COMMAND=$(echo "$INPUT" | jq -r '.tool_input.command // empty' 2>/dev/null)
     [[ -z "$COMMAND" ]] && exit 0
     FILE_PATH=$(echo "$COMMAND" | grep -oE '"[^"]*definition\.pbir"' 2>/dev/null | tr -d '"' | head -1)

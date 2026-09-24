@@ -117,7 +117,19 @@ Inside Copilot CLI:
 - **Skills** load identically; Copilot CLI reads `skills/<name>/SKILL.md`.
 - **Agents** use the `*.agent.md` extension required by Copilot CLI's documented convention. Claude Code matches any `*.md` file in `agents/`, so the dual extension works in both tools.
 - **MCP servers** load from `.mcp.json` (plugin root) or `.github/mcp.json`. Two plugins ship MCP declarations: `fabric-cli` (`microsoft-learn`, HTTP) and `custom-visuals` (`pbiviz`, stdio via `npx`).
-- **Hooks** are registered via `hooks.json` and reference scripts using `${CLAUDE_PLUGIN_ROOT}`. Copilot CLI **≥ 1.0.26** (2026-04-14) sets `CLAUDE_PLUGIN_ROOT` for plugin hooks ([changelog](https://github.com/github/copilot-cli/blob/main/changelog.md)); older builds do not, which causes hook commands to resolve to broken paths. Run `copilot update` if hooks fail to fire. Native Windows bash users may also hit a separate path-format bug tracked upstream at [claude-code#11984](https://github.com/anthropics/claude-code/issues/11984).
+- **Hooks** ship twice. Claude Code reads `hooks/hooks.json` (with per-hook `if` path filters). Copilot CLI reads `.github/plugin/plugin.json`, which points it at `hooks/copilot-hooks.json`: the same scripts, wired with explicit `bash` and `powershell` commands so a Windows host without Git Bash on `PATH` gets a clean no-op instead of a failed launch. Copilot has no `if` filter and denies a tool call on any non-zero PreToolUse exit, so every script also re-applies its own path and command filters and exits 0 on anything unrelated. Requires Copilot CLI **>= 1.0.26** (2026-04-14) for `CLAUDE_PLUGIN_ROOT` ([changelog](https://github.com/github/copilot-cli/blob/main/changelog.md)); older builds skip the hooks rather than fail. Native Windows bash users may also hit a separate path-format bug tracked upstream at [claude-code#11984](https://github.com/anthropics/claude-code/issues/11984).
+- **Scope** is always user-wide in Copilot CLI: plugins install to `~/.copilot/installed-plugins/` and their hooks run in every session on the machine. There is no per-project install, so the "prefer project scope" advice below applies to Claude Code only; in Copilot, install a plugin only while you need it.
+
+</details>
+
+<details>
+<summary><strong>Uninstalling in Copilot CLI on Windows</strong></summary>
+
+`/plugin rm` or `copilot plugin uninstall` can fail with `Access is denied. (os error 5)`. This is an open Copilot CLI bug, not a plugin problem: the installer swaps the plugin folder by renaming it, and Windows refuses the rename while another process holds a handle on it. VS Code's Copilot extension keeps directory watchers on every installed plugin's `hooks/`, `agents/` and `skills/` folders, and a second Copilot CLI session does the same. Tracked at [github/copilot-cli#4095](https://github.com/github/copilot-cli/issues/4095) and [#4151](https://github.com/github/copilot-cli/issues/4151).
+
+1. Close every VS Code window and every other Copilot CLI session, then retry the uninstall.
+2. If it still fails, delete the plugin by hand: remove its folder under `%USERPROFILE%\.copilot\installed-plugins\` (or `%COPILOT_HOME%\installed-plugins\`) and restart Copilot CLI.
+3. To stop the hooks without uninstalling, delete the plugin's `hooks` folder from that same location.
 
 </details>
 

@@ -1,0 +1,15 @@
+{
+  "version": 1,
+  "description": "Copilot CLI wiring for the paginated report (.rdl) validation hook. Claude Code uses hooks.json instead; see README.md.",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "type": "command",
+        "matcher": "Write|Edit|write|edit|create",
+        "bash": "[ -f \"$CLAUDE_PLUGIN_ROOT/hooks/validate-rdl.sh\" ] || exit 0; bash \"$CLAUDE_PLUGIN_ROOT/hooks/validate-rdl.sh\"; [ $? -eq 2 ] && exit 2; exit 0",
+        "powershell": "$ErrorActionPreference='Stop'; try { & \"$env:CLAUDE_PLUGIN_ROOT\\hooks\\run-hook.ps1\" validate-rdl.sh; exit $LASTEXITCODE } catch { exit 0 }",
+        "timeoutSec": 10
+      }
+    ]
+  }
+}

@@ -25,7 +25,9 @@ mp.write_text(text, encoding="utf-8")
 changed.append(mp)
 
 plugin_count = 0
-for pj in root.glob("plugins/*/.claude-plugin/plugin.json"):
+# Copilot CLI reads .github/plugin/plugin.json (where present) ahead of the Claude
+# manifest, so both must carry the same version.
+for pj in [*root.glob("plugins/*/.claude-plugin/plugin.json"), *root.glob("plugins/*/.github/plugin/plugin.json")]:
     text = pj.read_text(encoding="utf-8")
     if f'"version": "{OLD}"' in text:
         pj.write_text(text.replace(f'"version": "{OLD}"', f'"version": "{NEW}"'), encoding="utf-8")
