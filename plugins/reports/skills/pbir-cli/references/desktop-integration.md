@@ -109,6 +109,7 @@ Each open report is a separate Desktop process with its own bridge endpoint and 
 - **"Report view is not active"**: switch the Desktop window to the Report view and retry the screenshot.
 - **Transient errors right after a refresh** (HostNotReady): handled automatically; the CLI honors the bridge's retry protocol.
 - **Bridge unreachable**: enable the preview feature (see Requirements) and restart Desktop.
+- **Bridge fault after a Desktop upgrade** (seen with the August 2026 Desktop release): the named-pipe bridge can break in place. Since 0.9.31 the CLI tells this apart from a timeout or a closed report, prints Repair guidance for the Desktop installation (Windows Settings > Apps > Power BI Desktop > Repair), and emits a distinct bridge-fault diagnostic in automation output. Do not retry in a loop; repair Desktop, reopen the report, then `pbir desktop list`.
 - **ADOMD client not found** when querying a local model: install DAX Studio or set `PBIR_ADOMD_DIR`.
 
 ## Desktop Writes Back: Re-read Positions at Task Start

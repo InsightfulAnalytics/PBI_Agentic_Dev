@@ -16,7 +16,7 @@ for a quarter-gigabyte clone. Fetch them on demand instead:
 
 ```bash
 ./fetch.sh            # newest release
-./fetch.sh v0.9.29    # a specific one
+./fetch.sh v0.9.32    # a specific one
 ```
 
 That downloads the build matching your platform into this folder:

@@ -7,7 +7,7 @@ Two surfaces share one model:
 - **`pbir set` / `pbir get`**. dot-path reads and scalar edits on existing CF entries. Primary surface for daily work.
 - **`pbir visuals cf`**. structural authoring: create CF from scratch, copy CF between visuals, convert to theme tokens, convert to measure-driven.
 
-The old `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all` flags are **deprecated** and redirect to `pbir set`/`pbir get`. See the [Deprecated Flags](#deprecated-flags) section.
+The old `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all` flags no longer exist. See the [Removed Flags](#removed-flags) section for the rewrite table.
 
 ## CF Types
 
@@ -412,11 +412,11 @@ pbir visuals cf "Visual.Visual" --rules --field "Table.Field" \
 
 This table is a starting point, not the catalog. Run `pbir schema describe <type>.<container>` for the authoritative list on any visual type.
 
-## Deprecated Flags
+## Removed Flags
 
-The following `pbir visuals cf` flags are **deprecated** and will be removed in 1.0.0. They emit a red error, print the equivalent `pbir set` / `pbir get` command, and exit with status 1. Update your scripts using the rewrite table below.
+The following `pbir visuals cf` flags were deprecated in 0.9.29 and removed in 0.9.30 (the CLI now rejects them as unknown options). Rewrite older scripts with the table below.
 
-| Deprecated flag | Replacement |
+| Removed flag | Replacement |
 |---|---|
 | `--info dataPoint.fill` | `pbir get "<path>.dataPoint.fill.cf"` |
 | `--list` | `pbir get "<path>.**.cf"` |

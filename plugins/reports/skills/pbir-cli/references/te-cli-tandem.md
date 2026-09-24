@@ -84,7 +84,7 @@ pbir validate "Report.Report" --fields
 For a new thin report, deploy the model first, then create the report against it:
 
 ```bash
-te deploy ./Model.SemanticModel -s "Workspace" -d "Model" --force --non-interactive
+te deploy --model ./Model.SemanticModel --target-server "Workspace" --target-database "Model" --execute --force --non-interactive
 pbir new report "Margin.Report" --connection "Workspace/Model.SemanticModel"
 ```
 

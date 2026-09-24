@@ -95,7 +95,7 @@ Flag reference:
 | (none) | schema + structure |
 | `--qa` | + quality checks (overlaps, hidden visuals, filter sanity) |
 | `--fields` | + validate field refs against the connected model |
-| `--strict` | promote warnings to errors |
+| `--strict` | warnings fail (exit 1); core-catalog advisories stay warnings |
 | `--all` | schema + fields + qa (best default for diagnostics) |
 
 ### Step 3 — TMDL validation (only if `definition/` exists in `.SemanticModel/`)

@@ -513,7 +513,7 @@ The full command reference lives in **`references/cli-reference.md`**. Always ru
 Quick map of command groups:
 
 ```yaml
-Getting started:     config, connect (+ --profile), profile, new
+Getting started:     config (show, init, set, paths), connect (+ --profile), profile, new
 Browse and query:    ls (+ --tree), find, get, cat, model     # `tree` is an alias of `ls --tree`
 Modify:              set, add, mv, cp, rm, visuals, pages
 Data:                fields, filters, dax, bookmarks, annotations
@@ -531,6 +531,8 @@ Notes on the less-obvious groups:
 - **bpa**: Best Practice Analyzer. `pbir bpa run "Report.Report"` reports rule violations; `--fix --save` applies safe fixes. `pbir bpa rules list/ignore/unignore` manages the rule set.
 - **color**: `pbir color list` enumerates every hard-coded color literal and where it is used; `pbir color replace --from <hex> --to <hex>` swaps one across the report (scope with `--theme`/`--report`). Distinct from the `theme` group, which edits the theme JSON rather than inline literals.
 - **fonts**: the typography mirror of `color`. `pbir fonts list` audits families/sizes/weights across report + theme; `pbir fonts replace --from --to` swaps a family everywhere; `pbir fonts clear` drops per-visual font/format overrides so the theme default applies. To set the theme's own fonts, use `pbir theme set-fonts`.
+- **batch**: `pbir batch` runs a reviewed JSON spec (`version: 2`) of many steps against globbed targets; `plan` prints a `plan_digest` and `run --plan-digest` refuses to execute a drifted plan. Use it for repeatable, auditable bulk edits; see the Batch Automation section of `references/cli-reference.md`.
+- **config paths**: prints where configuration, auth state, templates, backups, and caches live on this OS. Storage is platform-native since 0.9.30; never assume `~/.pbir/`.
 - **usage**: `pbir usage "Report.Report"` (or a workspace / published report) pulls views, viewers, pages, and load times from the Power BI service via your `az login` token. `--model` adds the workspace usage metrics model for richer detail (Contributor+, generates a hidden model). Relies on undocumented service telemetry.
 
 ## Global Flags
@@ -586,14 +588,14 @@ Mutating commands validate their own writes. Run `pbir validate "Report.Report"`
 --qa: also run quality-assurance rules (overlap/overflow, hidden visuals, visual filters, field counts, layout and role-cardinality heuristics, and color-contrast checks where the installed build has them)
 --semantic: also check visual type ids + objects/visualContainerObjects names against the core visual catalog
 --all: structure + schema + fields + QA + semantic
---strict: promote field/QA/semantic warnings to errors
+--strict: every non-advisory warning becomes a failure (core-catalog advisories stay warnings)
 --json / --tree: output format
 --allow-download-schemas: download missing schemas on the fly
 ```
 
 The same checks run implicitly on mutations. To bypass a category deliberately, use the global flags before the subcommand: `--skip <category>` (`structure, schema, schema-version, fields, enums, qa, roles, layout, theme`; repeatable, comma-separated) or `--rawdog` (skip all). Prefer fixing the cause over skipping.
 
-`--semantic` is backed by the core visual catalog bundled and pinned by the CLI. It flags unrecognized `visualType`, `objects`, and `visualContainerObjects` names as advisory warnings (info for unlisted properties); `--strict` makes them errors. The catalog is preview and may lag the product, so unknown but plausible names and custom visuals can still be valid. Treat semantic findings as a quick authoring check, not a hard gate.
+`--semantic` is backed by the core visual catalog bundled and pinned by the CLI. It flags unrecognized `visualType`, `objects`, and `visualContainerObjects` names as advisory warnings (info for unlisted properties); `--strict` leaves those advisories as warnings while failing on everything else. Files containing `NaN` or `Infinity` are rejected as invalid JSON; measure-only bar and column charts are valid and no longer flagged as unrenderable. The catalog is preview and may lag the product, so unknown but plausible names and custom visuals can still be valid. Treat semantic findings as a quick authoring check, not a hard gate.
 
 **Schema version errors**: Fix with `pbir schema fetch --yes` then `pbir schema upgrade "Report.Report"`.
 
