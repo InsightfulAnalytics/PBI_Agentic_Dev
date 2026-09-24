@@ -6,6 +6,8 @@ Card (`cardVisual`) and Slicer (`advancedSlicerVisual`) visuals support SVG meas
 
 ### Binding
 
+> Verified wiring for the card image area and for per-button slicer images (2026-09-19) is in `svg-template-matrix.md`; prefer it over the bindings below.
+
 Card visuals render SVG via `callout.imageFX`. Bind the SVG measure to the card's `calloutValue` field, then configure `imageFX`:
 
 ```json
