@@ -39,12 +39,16 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 - Set the Omarchy report themes in `useful-stuff/themes/` (upstream 26.31.4 and 26.31.5) to
   Consolas, a font from Power BI's own list, in place of upstream's JetBrains Mono stack
   (2026-09-25).
+- Registered the Tabular Editor 3 MCP server (3.27.0+, HTTP on `127.0.0.1:42100`) in the
+  `tabular-editor` plugin's `.mcp.json`, so it loads only where that plugin is enabled
+  (2026-09-26). It connects only while TE3 is open with Tools > MCP Server started.
 
 ### Fork-owned files, for upstream harvest resolution
 
 New files, so they merge at file granularity even though upstream owns the containing directory:
 
 - `LEARNINGS.md`, `.devcontainer/**`
+- `plugins/tabular-editor/.mcp.json`
 - `plugins/pbip/skills/tmdl/references/authoring-gotchas.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/desktop-lifecycle.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/assembly-discovery.md`
