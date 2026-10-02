@@ -72,6 +72,17 @@ See [`.devcontainer/README.md`](.devcontainer/README.md).
 > (The local folder **and** the GitHub repo were renamed from `PBI_Automated_Development` on
 > 2026-07-12; the paths above were corrected then.)
 
+> **When Claude Code refuses the `directory` marketplace.** From Claude Code 2.1.251 (September
+> 2026), a `directory` marketplace on a drive Claude Code cannot classify as local was refused
+> (seen on an exFAT data drive): every plugin failed with `Plugin source path refused: ./plugins/<name>
+> does not stay inside its marketplace directory`, and only `claude plugin list` showed the error; the
+> session's skill listing just omitted the skills. A link from another drive to the same folder was
+> refused too. The skills-directory loader has no such gate: link each plugin folder to
+> `~/.claude/skills/<plugin>` (a directory junction on Windows) and it registers as
+> `<plugin>@skills-dir` with its skills, agents and hooks, still live from the repo, toggled by
+> `enabledPlugins` under that name. A plugin added to the fork needs its own link.
+> Retest: after a Claude Code update, run `claude plugin list` and look for the refusal.
+
 ## Personalizing a skill
 
 On this machine, with the `directory` registration:
@@ -152,6 +163,77 @@ git cherry-pick <sha>                          # bring in a specific value-add c
 The maintainer also runs a weekly scheduled agent that checks upstream for new commits and reports them classified value-add vs noise.
 
 Avoid a blanket `git merge upstream/main` — the fork has diverged (renamed marketplace, migrated personal skills, deleted skills), so cherry-picking specific commits is cleaner than a full merge.
+
+### Harvest playbook
+
+Never `git merge upstream/main`. Both sides diverged heavily, and some fork changes also landed
+upstream in a refined form, so a merge conflicts on the fork's own deliberate divergences.
+Harvest **by area**.
+
+**Per area, decide wholesale or surgical.** Take a skill directory wholesale
+(`git checkout upstream/main -- <dir>`) only when the fork's sole divergence there is a change
+upstream also merged and then refined. Check with `git log <mergebase>..main -- <path>` against
+`git log <mergebase>..upstream/main -- <path>`. Re-derive that set every harvest; a previous
+harvest's "only three files differ" does not carry over. Take `plugins/reports/` surgically: it is
+the most diverged area. After a wholesale checkout, `git diff --stat upstream/main -- <dir>` should
+reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FORK-CHANGES.md).
+
+**Re-apply after any import** (upstream reintroduces the pre-fork state):
+
+- The marketplace rename `@power-bi-agentic-development` to `@power-bi-agentic-dev`. Leave the
+  `data-goblin/power-bi-agentic-development` GitHub URL alone.
+- `pbir-cli/references/cli-reference.md`: the removal of the dead reference to an
+  `undocumented-apis.md` rules file that ships with neither repo.
+- `pbir-cli/examples/K201-MonthSlicer.Report/definition.pbir`: the sanitized workspace name and
+  all-zero semantic model GUID.
+- `plugins/{pbip,pbi-desktop,paginated-reports}/.github/plugin/plugin.json` (Copilot CLI
+  manifests) carry the fork's repo URL, version and descriptions, like the `.claude-plugin`
+  manifests. Skip upstream's version bumps to them.
+- `useful-stuff/themes/*.json`: every font line is `Consolas` (see FORK-CHANGES.md).
+
+**Deliberate exclusions; do not harvest:**
+
+- The `goblin-mode` plugin (beginner onboarding).
+- Upstream's removal of the theme references from `modifying-theme-json`: the fork's
+  `power-bi-theme` delegates to them.
+- Version bumps, README changes and marketplace-rename commits. The fork keeps its own scheme.
+- `fabric-cli/.../export_semantic_model_as_pbip.py` stays fork-local.
+- Skills removed from the fork on purpose stay removed: `pbi-lifecycle`, `pbi-project-hub`,
+  `fabric-app-bootstrap`, `fabric-app-lakehouse-live`, `fabric-app-sqldb-writeback`, `pbi-theme`.
+
+**Gotchas:**
+
+- Upstream documents CLI flags before they ship. Check the installed CLI and PyPI before
+  "correcting" upstream's forward-looking text; leaving it alone avoids a permanent divergence.
+- `py_compile` drops `__pycache__/` next to imported scripts. It is gitignored; remove it anyway.
+- Upstream's syntax sweeps (`te`, `pbir`) fix only the files upstream touched. After harvesting one,
+  grep the whole repo for the old forms, including multi-line commands (`-q X -i` on continuation
+  lines) and removed verbs.
+- Merging by hand on Windows: a tracked file sitting in the working tree as CRLF over an LF blob
+  makes `git merge-file` in place report a whole-file conflict. Write the LF blob out first
+  (`git show HEAD:<path> > <path>`). In Git Bash, set `MSYS_NO_PATHCONV=1` for
+  `git show upstream/main:.claude-plugin/...`, and then pass `git merge-file` Windows-style paths.
+- An agent that rewrites a whole markdown file on Windows can write it back as CRLF. `autocrlf`
+  hides that from `git diff --stat`, and it lands as a whole-file rewrite that conflicts with every
+  later cherry-pick. Before committing a multi-agent change set, compare each changed file's line
+  endings with `HEAD`'s:
+
+  ```bash
+  python -c "
+  import io,subprocess
+  for p in subprocess.run(['git','diff','--name-only'],capture_output=True,text=True).stdout.split():
+      cur=io.open(p,'rb').read(); head=subprocess.run(['git','show','HEAD:'+p],capture_output=True).stdout
+      if (cur.count(b'\r\n')>0)!=(head.count(b'\r\n')>0): print('FLIP:',p)
+  "
+  ```
+
+**After every harvest:** re-run `python codex/install.py` and its `--check` (see
+[codex/README.md](codex/README.md)), then `bash scripts/validate-plugins.sh` and
+`python scripts/check-skill-hygiene.py`.
+
+Fixes to upstream-authored text stay fork fixes. This repo is not a GitHub fork of upstream, so
+GitHub cannot open a pull request from it; such fixes surface as small conflicts or no-ops on the
+next harvest.
 
 ## Revert to the original data-goblin skills
 

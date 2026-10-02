@@ -93,7 +93,7 @@ a copied page is not self-contained. See [page.md](./page.md), "Cloning a page o
 | Path | Description |
 |------|-------------|
 | `singleVisual.display.mode: "hidden"` | Hide the visual (the actual mechanism for bookmark show/hide) |
-| `singleVisual.display.mode: "visible"` | Show the visual (explicitly set visible in this bookmark) |
+| no `display` key at all | Show the visual. There is no `"visible"` mode: the bookmark schema's enum is `maximize`, `spotlight`, `elevation`, `hidden`, and `pbir validate` rejects `"visible"`. To reveal a visual whose container has `isHidden: true`, leave `display` out of its entry (verified in Desktop 26.08, 2026-09-22) |
 | `singleVisual.objects.merge` | Override specific formatting properties |
 | `singleVisual.activeProjections` | Active drill-down field |
 | `filters.byExpr[]` | Visual-level filter state |

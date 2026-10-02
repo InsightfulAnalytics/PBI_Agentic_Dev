@@ -246,6 +246,26 @@ Never use `Table.TransformColumnTypes` with `Replacer.ReplaceValue` or locale-de
 | `type logical` | Boolean flags |
 | `Percentage.Type` | Rates, percentages |
 
+## Keys: Power Query is case-sensitive, the model is not
+
+Power Query (and `Table.Group`, `Table.Join`, and pandas upstream of it) compares text
+**case-sensitively**; the tabular engine's default collation does not. A key that has N distinct values
+in M can have N-1 once loaded, and if it is the one side of a relationship the refresh fails with
+"contains a duplicate value", naming the value but not the cause. Source data supplies these: one
+title published as both `A Woman With No Filter` and `A Woman with No Filter`.
+
+Case-fold (`Text.Lower`) any key built in Power Query that is the one side of a relationship or a
+primary key. Fold only those keys: leave display columns as published, because folding a column
+nothing relates on can silently change published row counts.
+
+## The privacy firewall and a secret read from a file
+
+M that reads a secret from a local file and passes it as a header to `Web.Contents` trips the data
+privacy firewall ("references other queries or steps, so it may not directly access a data source").
+Set `fastCombine` under `dataAccessOptions` in `model.tmdl`: the project-level equivalent of "Ignore
+the Privacy Levels", which travels with the PBIP instead of living in one machine's Desktop options.
+Keep the secret file itself out of source control.
+
 ## Anti-Patterns
 
 ### Pulling Entire Tables Then Filtering

@@ -85,6 +85,22 @@ template changes.
 | `disable-model-invocation: true` keeps `pbi-plan` user-invoked only | Codex ignores the key, so the skill is model-invocable there. The AGENTS.md block says not to plan a build unless asked; treat that as the only guard |
 | Plugin marketplace manages versions/updates | `git pull` + re-run the installer |
 
+## Not yet verified against real Codex
+
+Install, re-run and uninstall are idempotent, the transforms are correct, junctions are safe to
+remove, and `--project` mode and the MCP `config.toml` merge work, all checked locally. The layer has
+**not** yet been run against a real Codex session, so four things are open:
+
+1. Whether Codex skill discovery follows directory junctions. If not, use `--mode copy`.
+2. How Codex shortens descriptions over its budget (see Troubleshooting). The AGENTS.md routing
+   table is the backstop; a curated trim map is the fallback plan.
+3. Whether Codex obeys the run-the-validator-after-edit instructions, since it has no file-edit
+   hooks.
+4. Whether the Windows `npx` stdio MCP server (pbiviz) starts reliably.
+
+New skills need a routing-table row in `AGENTS-pbi.md`; `install.py --check` reports the ones
+missing.
+
 ## Troubleshooting
 
 - **Skills don't appear in `/skills`**: check `~/.agents/skills/<name>/SKILL.md` exists;

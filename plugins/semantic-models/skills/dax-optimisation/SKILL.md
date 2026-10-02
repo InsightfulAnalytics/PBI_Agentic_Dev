@@ -26,6 +26,24 @@ Trace capture and performance profiling:
 - **Remote models (Fabric Service / XMLA):** Run DAX with the Tabular Editor CLI `te query` (`-s <workspace> -d <model>`) against the workspace XMLA endpoint; see the [`te-cli` skill](../../../tabular-editor/skills/te-cli/) (tabular-editor plugin).
 - **Power BI Modeling MCP:** also available for trace and query if you prefer an MCP tool; reach for it after the options above.
 
+**Measure before rewriting.** On a 2026 Desktop engine, every classic Tier 1 rewrite on one large P&L
+model was measured as performance-neutral although textbook anti-patterns were present: whole-table
+`FILTER` arguments converted to `KEEPFILTERS` column predicates (187 sites), repeated sub-expressions
+cached in iterators, multi-scan base measures collapsed, iterator domains restricted. Every rewrite
+was result-identical and inside the timing noise; the engine already deduplicates repeated
+sub-expressions and handles small dimension filters cheaply. So:
+
+1. Benchmark first, per visual: rebuild each visual's query from its PBIR, override the measure under
+   test with `DEFINE MEASURE` (A against B in one query file, the model untouched), clear the cache,
+   trace cold and warm.
+2. Check the storage side before touching DAX (`pbi-desktop:connect-pbid`
+   `references/vertipaq-stats.md`). Auto date/time tables are the usual big win: one sentinel date
+   such as 9999-12-31 in a date column builds a calendar to the year 9999. Deleting two such tables,
+   two dead fact columns and a dead date column took one model from 967 MB to 348 MB.
+3. Do not promise a win from pattern-matching an anti-pattern. When the cost is per cell (deep
+   measure chains times matrix cells), rewrites inside the chain do not touch it; see
+   `custom-visuals:performant-matrix`.
+
 Every capture route above times the DAX query. None of them evaluate a dynamic format string, which a rendered visual pays once per cell, so a visual can cost materially more than the query the harness measures. See [`references/dax-performance-optimization.md`](./references/dax-performance-optimization.md), Trace Capture Methods.
 
 ## Related Skills

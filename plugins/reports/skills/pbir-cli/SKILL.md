@@ -608,6 +608,7 @@ The same checks run implicitly on mutations. To bypass a category deliberately, 
 references/cli-reference.md: full syntax for any command with all flags; Windows console encoding
 references/exploration.md: exploring an unfamiliar report systematically
 references/desktop-integration.md: driving Power BI Desktop; canvas refresh, page screenshots, auto-refresh, local model queries, troubleshooting
+references/cli-traps.md: commands that exit 0 and did something else; screenshot always page one, `desktop list` truncation and early rows, `refresh --model` limits, `validate --fields` false negatives from a stale compiled model, report-level `add filter -r`, thick-project publish
 references/create-new-report.md: building a report from scratch
 references/add-new-visual.md: adding visuals, layout patterns, bulk creation
 references/add-image.md: image visuals from file, URL, or a measure; the ImageUrl measure contract

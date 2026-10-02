@@ -119,6 +119,7 @@ For detailed report design guidance (layout, spacing, visual hierarchy, color, a
 | Format a slicer (dropdown, header, height) | **`references/visual-json.md`** -- Slicer Formatting: `objects.data` mode, the slicer object set, the 76px floor |
 | Set an axis title | **`references/visual-json.md`** -- Axis Titles: the property is `titleText`, not `axisTitle` |
 | A formatting change did nothing | **`references/visual-container-formatting.md`** (What Goes Wrong) + **`references/schema-patterns/selectors.md`** (a missing `{"id": "default"}` selector) |
+| A slicer, button, navigator, bookmark or shape renders wrong though `pbir validate` passes | **`references/silent-render-traps.md`** -- slicer object sets, button states, navigator page ids, data bookmarks, theme wildcard reach, textbox heights, project-file blank opens |
 | Write PBIR or TMDL from a script | **`references/validation.md`** -- no UTF-8 BOM, and what a clean validate does not prove |
 | Sync slicers across pages | **`references/visual-json.md`** -- syncGroup (groupName, fieldChanges, filterChanges) |
 | Edit visual interactions | **`references/visual-json.md`** + **`references/page.md`** -- visualInteractions in page.json (NoFilter, Filter, Highlight) |
@@ -172,6 +173,7 @@ A report must be connected to a semantic model. There are two ways to do this:
 - **`references/pbir-structure.md`** -- PBIR folder structure, adding or removing a page or visual by hand (folder discovery vs `pages.json` `pageOrder`), mobile.json storage mechanics, git hygiene
 - **`references/schemas.md`** -- Schema versions, URLs, and embedded schema coupling
 - **`references/validation.md`** -- Conformance dimensions and how to validate (schema, names and ids, required fields, fields, enums, roles, layout, theme, semantic); `pbir validate` categories; audit and discovery commands; the failures a clean validate misses, the no-BOM rule, and verifying the render with or without Desktop
+- **`references/silent-render-traps.md`** -- Per-visual PBIR that validates and still renders wrong: slicers, buttons, navigators, bookmarks, shapes, textboxes, container objects, theme wildcards, blank opens from entry-point files
 - **`references/enumerations.md`** -- Valid property enumerations
 - **`references/version-json.md`** -- version.json format (concise)
 - **`references/platform.md`** -- .platform file format (concise)

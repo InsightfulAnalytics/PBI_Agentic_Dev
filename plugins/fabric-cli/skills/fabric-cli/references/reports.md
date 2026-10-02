@@ -304,7 +304,7 @@ Same three steps as a paginated export, against a Power BI report:
 2. Poll `.../exports/{eid}` until `Succeeded` ; [Step 2](./paginated-reports.md#step-2-poll-export-status)
 3. `GET .../exports/{eid}/file` ; [Step 3](./paginated-reports.md#step-3-download-exported-file)
 
-It works on trial capacity, and it renders certified custom visuals, Deneb included, so it is a genuine visual check rather than a layout dump.
+It works on trial capacity, and it renders certified custom visuals, Deneb included, so it is a genuine visual check rather than a layout dump. It does depend on the export-to-file tenant settings: in a tenant or workspace where they are off, `ExportTo` answers **403** and there is no headless render of a published report at all. Fall back to `executeQueries` DAX against the refreshed model plus the identical local PBIR rendered in Desktop, and hand the user the report URL to look at.
 
 Two mechanics decide whether the loop works at all:
 

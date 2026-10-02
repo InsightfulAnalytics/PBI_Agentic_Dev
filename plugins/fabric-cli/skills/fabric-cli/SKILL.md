@@ -564,6 +564,8 @@ Check references before admin work:
 
 - [admin.md](./references/admin.md)
 - [permissions.md](./references/permissions.md) for workspace / item ACL exposure audits
+- [consumer-access.md](./references/consumer-access.md) when a consumer opens a report and sees an error or no data: Build for API query paths, RLS role membership, empty role intersections, Direct Lake single sign-on
+- [usage-and-lineage.md](./references/usage-and-lineage.md) for report-page usage, Scanner lineage gaps (Direct Lake sources, model to model), and per-report capacity cost
 
 
 ### Definitions and deployment (item definitions, deployment pipelines, git integration, cicd)
@@ -671,6 +673,8 @@ governance / deploy
 - [Notebooks](./references/notebooks.md) - Python/PySpark kernels, metadata, cell CRUD, Livy execution, scheduling
 - [Workspaces](./references/workspaces.md) - Create, manage, permissions
 - [Permissions](./references/permissions.md) - Sharing and distribution, workspace roles, item permissions, apps, embed, B2B, deployment pipeline permissions, licensing and capacity SKUs
+- [Consumer Access](./references/consumer-access.md) - Why a consumer sees no data: Build for API queries, RLS membership and empty intersections, Direct Lake SSO versus a fixed identity, binding traps
+- [Usage and Lineage](./references/usage-and-lineage.md) - Where report-page views live (usage metrics models only), Workspace Monitoring as a proxy, Scanner lineage gaps, why report-level CU is an allocation
 - [Deployment Pipelines](./references/deployment-pipelines.md) - CI/CD, deploy stages, selective deploy, LRO polling
 - [Dataflows](./references/dataflows.md) - Gen1 and Gen2, refresh, publish, admin
 - [Dashboards](./references/dashboards.md) - Tiles, clone (dashboards are not reports)

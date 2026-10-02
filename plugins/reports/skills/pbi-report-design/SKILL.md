@@ -63,6 +63,8 @@ On the other four shapes a literal title names the subject and the finding moves
 
 The test is deliberately blind to how good the chart could be. It discriminates on whether the chart says something, which a render cannot tell you any better than the spec can.
 
+Two habits that catch what the five tests miss. A panel that explains the **method** behind a number (how a ranking is computed, when its basis changed) fails test 1 even when every word is true; state what the method does to the thing the reader is looking at, then prove it. And judge a generated artboard or page by **rendering it and looking**, cropping a region to read it closely: extracting its text and positions is for editing, never for judging, because it shows a neighbour's title but not that the neighbour already draws the chart you are about to add.
+
 ## Page Layout Guidelines
 
 ### Check Page Size Before Modifying
