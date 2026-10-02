@@ -10,6 +10,10 @@
 # intact; flip this back to true to re-enable everything.
 all_hooks_enabled: true
 
+# Print session-context.md (the Power BI skill routing table and Desktop rules)
+# at session start. Not covered by all_hooks_enabled, which governs validation.
+session_context: true
+
 # JSON syntax validation (jq empty)
 json_syntax: true
 

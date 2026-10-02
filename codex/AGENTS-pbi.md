@@ -10,6 +10,11 @@ checklists live there and are referenced by absolute path below.
 Codex should auto-activate these from their descriptions; this table is the backstop
 index. Invoke explicitly with `$<name>` when a match is obvious.
 
+Read `{{REPO}}/plugins/pbip/hooks/session-context.md` before starting Power BI work. It carries
+which skill wins when two apply, and the Power BI Desktop rules (one instance per project, batched
+writes, no programmatic refresh against an open Desktop). Claude Code injects it with a
+SessionStart hook; Codex has no hooks, so read it yourself.
+
 | Area | Skill | Use when |
 |---|---|---|
 | Model | `semantic-model` | Any semantic model/dataset work: design, build, measures, relationships, RLS, calc groups, review, audit. Drives `te` CLI first, then TOM, then TMDL |

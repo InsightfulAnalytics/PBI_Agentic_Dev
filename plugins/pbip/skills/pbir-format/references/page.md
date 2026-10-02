@@ -58,7 +58,19 @@ Key properties:
 - `type: "Tooltip"` -- marks this as a tooltip page
 - `visibility: "HiddenInViewMode"` -- hides from page tabs (users shouldn't navigate to it)
 - `displayOption: "ActualSize"` -- tooltip pages don't scale
-- Common sizes: 320x240 (default), 400x120 (wide/compact), or custom
+- Common sizes: 320x240 (default), 400x120 (wide/compact), or custom. Any size works, but a tooltip
+  page does not scroll or grow: anything past its height is cut off.
+- **The page-level `"type": "Tooltip"` is what Desktop reads, not `pageBinding`.** A
+  `pageBinding: {"name": "...", "type": "Tooltip", "parameters": []}` is also in the page schema,
+  validates, and survives a Desktop save, but with only that the page tab shows the ordinary hidden
+  page icon and every hover falls back to the default tooltip. Tooltip pages authored in Desktop
+  carry page-level `type` and no `pageBinding`. (Verified 2026-09-11 against page schema 2.1.0.)
+- **A tooltip page arrives filtered by every column the raising visual projects**, not just the
+  mark under the pointer. A measure that needs the wider population (the other entries in the
+  hovered week) sees only rows matching all projected columns and returns a plausible wrong number.
+  Rebuild the population from `ALL ( table )` and re-apply only the filter you mean. See
+  `reports:pbir-cli` `references/interactions.md` and, for why `REMOVEFILTERS` on one column is not
+  always enough, `semantic-models:dax-standard` `references/filter-context-traps.md`.
 
 The tooltip page contains regular visuals (cards, textboxes, charts) that show contextual data. Put visuals on it like any other page.
 
@@ -83,6 +95,11 @@ To make a visual show this tooltip page on hover, set `visualTooltip` in the vis
   then silently ignored, so the tooltip never appears (verified 2026-08-04, WW W29 project). Check with
   `pbir schema describe <visualType> visualTooltip --json`.
 - `section` -- the `name` property from the tooltip page's page.json (NOT the displayName)
+- Desktop writes only `type` and `section` here when a person wires the tooltip; `show` is optional.
+  On a Deneb visual the spec decides as well: see `custom-visuals:deneb-visuals`,
+  `references/silent-traps.md`, "Report-page tooltips". `pbir set` cannot reach `visualTooltip` on a
+  custom visual (`Unknown component: visualTooltip`, it is not in the core catalog), so edit the
+  visual.json directly.
 
 To disable tooltips on a visual: `"show": {"expr": {"Literal": {"Value": "false"}}}`.
 

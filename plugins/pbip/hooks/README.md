@@ -1,11 +1,13 @@
 # PBIP Validation Hooks
 
-PostToolUse hooks that validate PBIR and TMDL files after Write, Edit, and Bash tool use.
+PostToolUse hooks that validate PBIR and TMDL files after Write, Edit, and Bash tool use, and one
+SessionStart hook that loads the Power BI skill routing table and Desktop rules.
 
 ## Hook files
 
 | Hook | Trigger | Scope |
 |---|---|---|
+| `session-context.sh` | SessionStart (startup, resume, clear, compact) | prints `session-context.md` into the session context; off with `session_context: false` |
 | `validate-pbir.sh` | Write, Edit, Bash | .json/.pbir files in .Report/ |
 | `validate-report-binding.sh` | Write, Edit, Bash | definition.pbir binding validation (byPath/byConnection) |
 | `validate-tmdl.sh` | Write, Edit, Bash | .tmdl files in .SemanticModel/ or .Dataset/ |

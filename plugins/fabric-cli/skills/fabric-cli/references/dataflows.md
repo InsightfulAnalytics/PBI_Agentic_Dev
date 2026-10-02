@@ -497,3 +497,38 @@ which reads as model corruption and is not. The `PowerPlatform.Dataflows` source
 - The Publish job must complete before a Refresh job reflects definition changes
 - Gen2 notifications are not available via the API -- use the Monitoring Hub instead
 - Check current documentation for updates on Run API reliability; earlier previews had limitations where triggered runs would accept but not execute
+
+### Gen2 incremental refresh: "not folding" can be the validator, not the query
+
+Gen2's incremental refresh folding **validator** recognises only the SQL Server family (SQL Server,
+Synapse, Azure SQL). For other connectors (Amazon Redshift, Databricks, MySQL over ODBC) it reports
+"A query with incremental refresh is not folding. Please make sure the query is folding, then
+re-publish the dataflow" **whatever the query contains**. The diagnostic that settles it: a bare
+Source, Navigation, Navigation query with no transform steps fails the same way. Stop editing M.
+
+The fix is Incremental refresh, Advanced options, untick **"Require incremental refresh query to
+fully fold"**. That disables the validator, not folding. On Redshift the bucket filter still folded
+at runtime: the source's query log showed the bucket bounds as literal `TIMESTAMP` predicates and the
+change-detection `max()` pushed down. A run whose activities include `..._Incremental_CreateDestination`
+and `Apply_..._Incremental_Over_Periods` proves the buckets engaged rather than a silent full load.
+
+- Rewrites that do not move the validator, all tried: merging the Source and Navigation steps into one
+  expression, swapping `Table.DuplicateColumn` for `Table.AddColumn` (the indicator turns green, the
+  validator still fails), `Value.NativeQuery(..., [EnableFolding = true])`, and casting the date to
+  a timestamp to match the range parameters.
+- To see what reached the source, query its own log through the same Power Query connection (on
+  Redshift, `stl_query` joined to `stl_querytext` via `Value.NativeQuery`), so no separate database
+  access is needed. Redshift logs in UTC.
+- The folding indicators are not sequential: a not-folding icon on a `Navigation` step is normal,
+  and each icon describes the whole query up to that step.
+- Gen2 injects its `RangeStart`/`RangeEnd` filter as the last step at validation time and never
+  exposes the parameters, so the semantic-model trick of writing them into SQL text is unavailable.
+- "Same column for filtering and detecting changes" is a warning, not a block.
+- Other requirements: an explicitly set Lakehouse, Warehouse or Azure SQL destination (the default
+  destination is unsupported), a fixed schema, the Replace update method, at most 50 buckets per query
+  and 150 per dataflow.
+- A steady-state run has a floor of over a minute of Fabric overhead even when both buckets are
+  skipped and the source answers in seconds. Gen1 writes internal storage with no bucket
+  orchestration, so it is not a fair target; do not chase that floor with query changes.
+
+(Diagnosed against Redshift, July 2026.)

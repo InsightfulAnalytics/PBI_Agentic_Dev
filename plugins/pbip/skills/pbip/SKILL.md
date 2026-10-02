@@ -14,6 +14,7 @@ PBIP (Power BI Project) is the developer-mode file format for Power BI. It decom
 - **PBIX is a black box; PBIP is transparent.** PBIX is a single binary that cannot be diffed or edited externally. PBIP splits the same content into text files. Convert between them with File > Save As in PBI Desktop.
 - **Thick vs thin reports:** A thick report bundles `.Report/` + `.SemanticModel/` in the same project (`definition.pbir` uses `byPath`). A thin report has `.Report/` only, connecting to a remote model via `byConnection`. Thin reports are preferred for managed/shared BI.
 - **A project can contain multiple items.** Multiple `.Report/` and `.SemanticModel/` folders can coexist. The `.pbip` file is optional -- open `definition.pbir` directly.
+- **One project per folder.** Scaffold every new PBIP into its own subfolder, with its `.pbip`, `.Report/`, `.SemanticModel/`, `.gitignore` and any `.pbir/active` inside it, never loose at a parent root beside another project. Two projects at one root share one `.pbir/active` and make relative `pbir` paths ambiguous; moving the `.pbip`/`.Report`/`.SemanticModel` trio together keeps their relative references intact.
 - **UTF-8 without BOM.** All files must be saved as UTF-8 without BOM. A BOM prefix causes parse errors in some tools.
 - **Git line endings:** PBI Desktop writes CRLF. Configure `core.autocrlf` or `* text=auto` in `.gitattributes` to normalize.
 - **260-char Windows path limit.** Use short root paths. Deep nesting of page/visual GUIDs can exceed this limit.
@@ -274,6 +275,7 @@ For a `SharedResources` package with an item `{ "path": "BaseThemes/Fluent2-CY26
 3. **Rename and update `.pbip`** -- rename the `.pbip` file and update `artifacts[].report.path` to point to the renamed `.Report` folder.
 4. **Update `.pbir`** -- if the report uses `byPath`, update the path to point to the renamed `.SemanticModel` folder.
 5. **Update `.platform` files** -- set `displayName` to the new project name in each `.platform` file. Regenerate `logicalId` (new GUID) if deploying as a separate Fabric item.
+6. **Refresh before judging the fork.** A copy made without `.pbi/cache.abf` opens with empty import tables, so every data-fed visual (Deneb included) draws only its chrome until the model is refreshed. See the `pbi-desktop:connect-pbid` skill's `references/desktop-lifecycle.md`, "First open of a hand-authored PBIP shows no data".
 
 ## Verification
 

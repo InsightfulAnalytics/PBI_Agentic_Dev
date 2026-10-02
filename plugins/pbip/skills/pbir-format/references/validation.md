@@ -66,6 +66,11 @@ reject, or silently mis-render, things it passes. Every row below validates clea
 | a slicer's `mode` set on `general` instead of `data` | the slicer stays a vertical list | [visual-json.md](./visual-json.md), "Slicer Formatting" |
 | `axisTitle` in place of `titleText` | the axis title falls back to a concatenation of every measure on that axis | [visual-json.md](./visual-json.md), "Axis Titles" |
 | a malformed dynamic text run in a textbox | the run renders as literal text | [textbox.md](./textbox.md) |
+| a wrong `$schema` URL in the `.pbip` or `version.json`, or no `themeCollection` | Desktop opens a blank "Untitled" window with no error at all | [silent-render-traps.md](./silent-render-traps.md), "Project files" |
+| extra hand-written objects on a classic slicer | the slicer takes clicks and stops filtering other visuals | [silent-render-traps.md](./silent-render-traps.md), "Slicers" |
+| `visualHeader` or `visualTooltip` under `objects` instead of `visualContainerObjects` | the setting does nothing | [silent-render-traps.md](./silent-render-traps.md), "Shapes, textboxes and containers" |
+| a navigator `pages` selector naming a display name, an `actionButton` icon outside its enum, a `ClearAllSlicers` button for slicers a bookmark hid | the button never appears, draws nothing, or does nothing | [silent-render-traps.md](./silent-render-traps.md), "Buttons, navigators and bookmarks" |
+| a custom theme's `*` padding and shadow | shapes and slicers come out inset, shadowed, or a column short | [silent-render-traps.md](./silent-render-traps.md), "Theme wildcards reach further than expected" |
 
 ### Never write a UTF-8 BOM into PBIR or TMDL
 

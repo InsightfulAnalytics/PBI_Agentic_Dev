@@ -96,6 +96,7 @@ references/documentation-and-bpa.md:    data dictionary, BPA documentation gate,
 references/refactoring-renaming.md:    safe rename workflow (lineage check first, then propagate via pbir-cli / fabric-cli)
 references/review-checklist.md:        full audit checklist with remediation
 references/performance.md:             performance testing, unused-column detection, memory analysis
+references/synthetic-datasets.md:      building a themed, seeded, star-schema mock dataset for a demo or stress test
 scripts/get_model_info.py:             model metadata overview (mode, size, reports, endorsement, sources, refresh)
 scripts/manage-ai-metadata.csx:        read/write AI instructions and AI schema through TOM culture linguistic metadata
 scripts/get_semantic_model_ai_metadata.py: Fabric CLI service-definition readback for AI instructions and AI schema

@@ -145,6 +145,8 @@ datum[''Order Lines''] - datum[''Order Lines (PY)'']
 
 Single quotes that are NOT part of field name escaping (e.g., string literals in filter expressions like `datum.Series == 'Actuals'`) work as-is because they don't conflict with the outer single-quote wrapper.
 
+An apostrophe inside a data string is different: a colour domain listing `Queen's Pawn Game` must carry it doubled (`Queen''s Pawn Game`) in the stored literal. When generating the literal from a spec object, double every single quote, `"'" + json.dumps(spec).replace("'", "''") + "'"`, which also produces the field-name form above; Power BI un-doubles on load.
+
 ### Responsive Sizing (Vega)
 
 Use Deneb's built-in signals for responsive container sizing. Two names exist for the same thing:
@@ -301,6 +303,8 @@ cell over 32,766 characters, capping a base64 payload at roughly 24 KB of source
 
 ## Gotchas (hard-won)
 
+More silent failures (report-page tooltips from a Deneb visual, the container clipping marks, field-well grain, the `dataset` entry's `format`, template placeholders, a dozen Vega-Lite compiler traps, rendering outside Deneb) are in **`references/silent-traps.md`**. Read it before debugging a Deneb visual that renders blank, wrong or clipped.
+
 - **Dataset field names are the DISPLAY names from the Values well, and `nativeQueryRef` is not a rename.** To feed a spec expecting `datum['Amount']` from a measure named `NM Amount`, the projection must carry `"nativeQueryRef": "NM Amount", "displayName": "Amount"`. Getting this wrong fails silently: the query runs, the fields arrive under their native names, every spec reference is undefined, and a null-guarded spec renders an intact skeleton with all-blank cells (axes with explicit scale domains draw even with zero rows). Nothing errors. (Verified 2026-08-24, PL Bridge Demo.)
 
 - **Cross-filtering OUT of a Deneb visual does not behave like a native visual.** An in-visual "slicer" built from Vega signals will not filter the rest of the report. For report-level filtering, place a native slicer next to the Deneb visual and treat Deneb selection as internal to the visual unless `enableSelection` is explicitly configured and tested.
@@ -352,6 +356,8 @@ Deneb is the preferred choice for **advanced custom visuals** that need interact
 
 Absence from the native set is a feasibility fact, not a justification: it means Deneb can draw the form, not that the form is the right one for the reader (the form gate lives in the `pbi-report-design` skill, `references/chart-selection.md`).
 
+**The house split: native visuals for anything people interact with, Deneb for display-only KPIs.** Charts, tables and slicers that users click to cross-filter or sort stay native, because native interaction is far easier to use. A KPI nobody clicks is where Deneb earns its place: one pixel-controlled tile can combine several figures (the selected month, its average, the variance in value and percent, a verdict) that would otherwise take four cards. Do not turn an interactive visual into static Deneb art.
+
 **Use SVG measures instead** for simple inline graphics in tables/cards (sparklines, data bars, progress bars) where interactivity is not needed. **Use Python/R instead** for statistical visualizations (distribution analysis, regression, correlation) where the focus is analytical rigor over interactivity.
 
 ## References
@@ -362,6 +368,7 @@ Absence from the native set is a feasibility fact, not a justification: it means
 - **`references/pbir-structure.md`** -- PBIR JSON structure (literal encoding, query state, the field-naming contract of `displayName` vs `nativeQueryRef` and its all-blank-skeleton failure, interactivity example)
 - **`references/capabilities.md`** -- Full Deneb 2.0 object properties reference (with 1.9 deltas), template format (`usermeta` v2 schema, v1 legacy shape) and the supporting-fields defaults matrix
 - **`references/deneb-2-migration.md`** -- Deneb 2.0 migration and compatibility: timeline, what 2.0 changes on first open, compatibility matrix, authoring rules during the transition, audit/migrate commands, docs errors and unverified claims, the dated follow-up for flipping the defaults
+- **`references/silent-traps.md`** -- Silent failures: report-page tooltip row resolution and hover bands, the container clip rect and the padded re-render that catches it, field-well grain, the `dataset` entry's `format`, certified loader, template placeholders, Vega-Lite compiler traps, Vega rendering traps, rendering outside Deneb
 - **`references/advanced-patterns.md`** -- Advanced cross-filtering (Vega expression functions `pbiCrossFilterApply`/`pbiCrossFilterClear`), performance engineering lever order, and community template round-trip from the terminal
 - **`examples/visual/bullet-chart.json`** -- PBIR visual.json: faceted bullet chart with conditional indicators and cross-filtering (Vega-Lite)
 - **`examples/visual/kpi-card.json`** -- PBIR visual.json: KPI card with layered text and conditional % change coloring (Vega-Lite)

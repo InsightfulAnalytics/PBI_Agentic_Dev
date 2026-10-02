@@ -62,6 +62,11 @@ renders it as an HTML board the user can watch the journey on.
   A plan written before the data is understood is a list of guesses that then has to be
   defended.
 
+**On a dataset you did not build (a challenge, a vendor extract, anything with a brief that
+asserts findings), triage it before writing the map.** Run the fabrication checks in
+`references/data-triage.md`, report the verdict, and let the user decide whether the build is
+worth doing. The same file says how to word a "cannot use this column" verdict.
+
 **Hand-offs.** This skill plans. It does not build. Each ticket is executed by the skill
 that owns that work:
 
@@ -327,6 +332,7 @@ what was done. It does not record what was learned, and those are different file
 
 ```yaml
 references/PLAN-template.md: a filled PLAN.md to copy, with the four mandatory sections and four worked tickets
+references/data-triage.md: fabrication checks to run on a dataset you did not build before any planning, and how to word a "cannot use this column" verdict
 scripts/plan-board.py: renders PLAN.md to a self-contained PLAN.html; --frontier prints the next tickets and any plan problems
 ```
 

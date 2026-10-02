@@ -350,6 +350,10 @@ full reconciliation.
   wrong call (a filter argument that constrains the column being aggregated), the FE/SE
   optimization model, the debugging toolbox, and how this skill coexists with the
   `semantic-models:dax-optimisation` performance skill.
+- [`references/filter-context-traps.md`](references/filter-context-traps.md): measures that are
+  right in a clean context and wrong in the report's. A second calendar's relationship, calculation
+  items that block time intelligence, report-page tooltips inheriting every projected column, a
+  breakdown that must ignore its own slicer, a variable named after a keyword.
 
 ## Related skills
 

@@ -39,6 +39,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 - Set the Omarchy report themes in `useful-stuff/themes/` (upstream 26.31.4 and 26.31.5) to
   Consolas, a font from Power BI's own list, in place of upstream's JetBrains Mono stack
   (2026-09-25).
+- Moved the rest of the fork maintainer's Power BI notes out of per-machine memory and into the
+  plugins (2026-10-03): a `pbip` SessionStart hook (`hooks/session-context.sh`) that prints the
+  skill routing table and the Power BI Desktop rules in every session where `pbip` is enabled, and
+  new references for silent failures: PBIR render traps, Deneb traps, `pbir` CLI traps, DAX
+  filter-context traps, Desktop UI Automation, consumer access and usage telemetry in the Service,
+  data triage before planning, and synthetic demo datasets. Corrected the bookmark `display` table,
+  which listed a `"visible"` mode the schema rejects.
 - Registered the Tabular Editor 3 MCP server (3.27.0+, HTTP on `127.0.0.1:42100`) in the
   `tabular-editor` plugin's `.mcp.json`, so it loads only where that plugin is enabled
   (2026-09-26). It connects only while TE3 is open with Tools > MCP Server started.
@@ -52,6 +59,15 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/pbip/skills/tmdl/references/authoring-gotchas.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/desktop-lifecycle.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/assembly-discovery.md`
+- `plugins/pbi-desktop/skills/connect-pbid/references/desktop-ui-automation.md`
+- `plugins/pbip/hooks/session-context.{md,sh}`
+- `plugins/pbip/skills/pbir-format/references/silent-render-traps.md`
+- `plugins/custom-visuals/skills/deneb-visuals/references/silent-traps.md`
+- `plugins/reports/skills/pbir-cli/references/cli-traps.md`
+- `plugins/reports/skills/pbi-plan/references/data-triage.md`
+- `plugins/semantic-models/skills/dax-standard/references/filter-context-traps.md`
+- `plugins/semantic-models/skills/semantic-model/references/synthetic-datasets.md`
+- `plugins/fabric-cli/skills/fabric-cli/references/{consumer-access.md,usage-and-lineage.md}`
 - `scripts/{bootstrap-agent-env.sh,record-learning.sh,check-skill-hygiene.py,sync-boundary-rule.py,denylist-add.py}`
 - `.github/denylist-hashes.txt`, `.github/denylist-patterns.txt`
 
@@ -62,6 +78,16 @@ Modified upstream-authored files, which **will** conflict on a harvest:
 - The learnings instruction in `fabric-cli/SKILL.md`, `connect-pbid/SKILL.md` and
   `pbir-cli/SKILL.md`, each now carrying a `<!-- boundary-rule:begin -->` block. Keep the fork's
   version and re-run `python scripts/sync-boundary-rule.py`.
+- `plugins/pbip/hooks/{hooks.json,config.yaml,README.md}`: the `SessionStart` entry, the
+  `session_context` toggle and its table row. Keep them when taking upstream hook changes.
+- One-line links to the fork-owned references above, added to upstream-authored files:
+  `pbir-format/SKILL.md` and its `references/{validation,page,bookmarks}.md`, `pbip/SKILL.md`
+  (one project per folder, fork step 6), `deneb-visuals/SKILL.md` (also the native-versus-Deneb
+  split and the apostrophe rule), `pbir-cli/SKILL.md`, `connect-pbid/SKILL.md`, `fabric-cli/SKILL.md`, `semantic-model/SKILL.md`,
+  `pbi-report-design/SKILL.md` (two habits after the insight test), and the appended sections in
+  `power-query/references/best-practices.md`, `fabric-cli/references/dataflows.md`,
+  `fabric-cli/references/warehouses.md` and `fabric-cli/references/reports.md` (the ExportTo 403
+  note). Small conflicts; keep both sides.
 - `useful-stuff/themes/*.json` (every font line) and the font note in
   `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
   `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.

@@ -1,6 +1,18 @@
 {
-  "description": "Validates PBIP project files (PBIR structure, TMDL syntax, report binding) after Write/Edit modifications",
+  "description": "Loads the Power BI skill routing table and Desktop rules at session start, and validates PBIP project files (PBIR structure, TMDL syntax, report binding) after Write/Edit modifications",
   "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/session-context.sh\"",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "Edit",

@@ -201,6 +201,25 @@ Parse the file into named blocks, drop the blocks the generator owns, reinsert t
 assert the final count. Run the generator **twice** as an idempotency test, and hash both trees, model
 and report: a generator that doubles measures passes a report-only hash without a flicker.
 
+The same rule covers two generators that insert in front of one shared anchor line. The lazy
+idempotence idiom, "find my first doc-comment line, delete from there to the anchor, re-insert", is
+only correct for whichever generator ran last: once both have run, the file reads
+`... block A ... block B ... anchor`, so re-running A deletes B's measures as collateral. Nothing
+reports it. The file parses, the model loads, and `pbir validate --fields` passes because it resolves
+against a model that no longer claims those measures. Remove by name, not by span, and the order of
+generators stops mattering. A measure object is its `///` lines plus its `measure` line, and every
+line after that down to (not including) the next non-blank line at the `measure` line's own indent
+or shallower.
+
+Give generated relationships **stable names**. A generator that mints a fresh GUID per relationship on
+every run makes a `.pbi/cache.abf` restored across the regeneration raise a relationships banner in
+Desktop, because the cached model no longer recognises any of them.
+
+If Power BI Desktop has the project open while a generator runs, it can apply the model during the
+seconds a measure is missing, and the visual that uses it then stays broken after the measure is
+back. See `pbi-desktop:connect-pbid` `references/desktop-lifecycle.md`, "A field Desktop saw deleted
+stays broken until a reload".
+
 ## What offline validation actually proves
 
 A powerbi-modeling-mcp offline (`ConnectFolder`) connection validates parse and bind. It cannot run
@@ -262,6 +281,59 @@ that supports compatibility level 1702, which fails the deploy with the same aut
 An explicit `description` property is valid TMDL, but `///` is what Power BI Desktop serializes.
 Author descriptions as `///` so the first Desktop save does not rewrite them and round-trip diffs stay
 stable.
+
+At least one Desktop build refused it outright: 2.154.1260.0 (May 2026) failed a project with
+`description:` on tables, measures and columns with `Parsing error type - UnknownKeyword. Detailed
+error - Unsupported property - description is not a supported property in the current context!`. If
+you see that message, convert every `description:` to `///` rather than deleting the descriptions.
+
+## Names that must be quoted, and one that is reserved
+
+- **`table Week` fails.** `Week` collides with the TMDL calendar grammar. Write `table 'Week'`.
+- **A name that begins with `_` must be quoted**: `table '_Measures'`, and its partition name too.
+- Both fail with `TomInternalException: An internal error has occured.` and nothing else: no file, no
+  line, no property. When you see that bare message, suspect a quoting fault and bisect by
+  deserializing one table file at a time; reading the TMDL will not find it. (Verified 2026-09-11
+  through `TmdlSerializer::DeserializeDatabaseFromFolder`.)
+- **`Measures` is a reserved table name.** A table called `Measures` makes Power BI Desktop refuse
+  the whole project with `Unable to open document: Unsupported Table name "Measures" has been found in
+  data model schema`. `pbir validate` and `validate_pbip.py` both pass it. Use `Measure Table` (the
+  `semantic-models:date-table` default) or `'_Measures'`. (Desktop 26.08, verified 2026-09-16.)
+- A measure may share its name with a column in a **different** table (`'Measure Table'[Sales]` beside
+  `'Sales sample'[Sales]`). The collision the engine rejects is a measure against a column in the
+  **same** table.
+
+Retest: deserialize a `definition/` folder holding one `table Week` file, then the same file with the
+name quoted.
+
+## A relationship takes no `///`
+
+Relationships have no description. A `///` line above a `relationship` block fails with
+`Property 'description' is unknown and is not expected in the situation it appears.` That is the
+same text an older TOM assembly produces for a model that uses descriptions correctly (see "DAX UDFs
+need compatibility level 1702" above), so check the relationships for a stray `///` before blaming the
+assembly.
+
+## `ref table` lists tables only
+
+`model.tmdl`'s `ref table` entries name tables. Shared M expressions and parameters live in
+`expressions.tmdl` and are never `ref table`d, even though they appear in `PBI_QueryOrder`. A
+validator note that the `ref table` list "stops early" because the expressions are missing from it is
+noise; leave it alone.
+
+## Nothing after `=` on a multi-line measure
+
+A multi-line measure's declaration line ends at `=`. A comment written after it
+(`measure 'Page Views' = // views from the usage model`) breaks the expression block; put the comment
+on the first line inside the body instead. The house layout in `semantic-models:dax-standard`
+(blank line after `=`, body indented two levels) already satisfies this.
+
+## Dropping a column from a CSV-backed table
+
+Three places have to agree with the CSV header, in order and in count: the `column` declarations,
+`Csv.Document(..., [Columns = N, ...])`, and the `Table.TransformColumnTypes` list in the partition.
+Then grep every `visual.json` for the old column name: a stale `"Property": "<DroppedColumn>"` fails
+the visual and surfaces as a model error, not a report one.
 
 ## Adding to this file
 
