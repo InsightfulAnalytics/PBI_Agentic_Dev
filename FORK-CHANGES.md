@@ -49,6 +49,15 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 - Registered the Tabular Editor 3 MCP server (3.27.0+, HTTP on `127.0.0.1:42100`) in the
   `tabular-editor` plugin's `.mcp.json`, so it loads only where that plugin is enabled
   (2026-09-26). It connects only while TE3 is open with Tools > MCP Server started.
+- Promoted the learnings from a UDF-heavy report build (2026-10-03): a DAX user-defined function
+  that calls a newly added function can fail to load in Power BI Desktop while `te validate` passes
+  it, so a `functions.tmdl` change is proven only by `INFO.USERDEFINEDFUNCTIONS()` (`tmdl`
+  authoring gotchas, `model-change` step 5, `dax-standard`); Tabular Editor 3's false error on
+  `TABLE EXPR` before 3.24 (`te-docs`); a visual's title and subtitle go in its container slots,
+  never a textbox above it (`pbi-report-design`, `pbir-format`, `deneb-visuals`), with a
+  `find_title_textboxes.py` check; and the `pbir` title commands writing apostrophes undoubled
+  (`pbir-cli` CLI traps). Corrected the subtitle font size in `page-titles.md` from 11 to the
+  canon's 12pt floor, and a `pbir visuals format -p title.text` example the CLI rejects.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -67,6 +76,7 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/reports/skills/pbi-plan/references/data-triage.md`
 - `plugins/semantic-models/skills/dax-standard/references/filter-context-traps.md`
 - `plugins/semantic-models/skills/semantic-model/references/synthetic-datasets.md`
+- `plugins/reports/skills/pbi-report-design/scripts/find_title_textboxes.py`
 - `plugins/fabric-cli/skills/fabric-cli/references/{consumer-access.md,usage-and-lineage.md}`
 - `scripts/{bootstrap-agent-env.sh,record-learning.sh,check-skill-hygiene.py,sync-boundary-rule.py,denylist-add.py}`
 - `.github/denylist-hashes.txt`, `.github/denylist-patterns.txt`
@@ -83,8 +93,12 @@ Modified upstream-authored files, which **will** conflict on a harvest:
 - One-line links to the fork-owned references above, added to upstream-authored files:
   `pbir-format/SKILL.md` and its `references/{validation,page,bookmarks}.md`, `pbip/SKILL.md`
   (one project per folder, fork step 6), `deneb-visuals/SKILL.md` (also the native-versus-Deneb
-  split and the apostrophe rule), `pbir-cli/SKILL.md`, `connect-pbid/SKILL.md`, `fabric-cli/SKILL.md`, `semantic-model/SKILL.md`,
-  `pbi-report-design/SKILL.md` (two habits after the insight test), and the appended sections in
+  split, the apostrophe rule and best practice 11 on titles), `pbir-cli/SKILL.md`, `connect-pbid/SKILL.md`, `fabric-cli/SKILL.md`, `semantic-model/SKILL.md`,
+  `pbi-report-design/SKILL.md` (two habits after the insight test, the visual-title clause in core
+  rule 2, the subtitle floor and the script line), `pbi-report-design/references/{page-titles,quality-gate}.md`
+  (the rewritten visual title section and one gate bullet), `pbir-format/references/{textbox,visual-container-formatting}.md`,
+  `pbir-cli/references/add-new-visual.md`, `tmdl/SKILL.md` (two pointers to the UDF load trap),
+  `te-docs/SKILL.md` (the TE3 diagnostics section and two trigger phrases), and the appended sections in
   `power-query/references/best-practices.md`, `fabric-cli/references/dataflows.md`,
   `fabric-cli/references/warehouses.md` and `fabric-cli/references/reports.md` (the ExportTo 403
   note). Small conflicts; keep both sides.

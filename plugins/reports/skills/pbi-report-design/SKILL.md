@@ -28,7 +28,7 @@ Recording tone and signature once is what turns "use muted colors" into a propag
 ## Core rules
 
 1. **3-30-300 Rule:** The most important and least detailed information should be in the top-left (KPIs, cards, etc.) while the least important and most detailed information should be in the bottom-right
-2. **Titles:** All report pages should have a title using a `textBox` visualType or a title in a background image added to the report page canvas
+2. **Titles:** All report pages should have a title using a `textBox` visualType or a title in a background image added to the report page canvas. A visual's own title and subtitle go in its container `title` and `subTitle` slots, never in a separate textbox placed above or over it. Textboxes are for the page title, a header over several visuals, a callout, a line that mixes formatting inside it, and text that belongs to no single visual (`references/page-titles.md`)
 3. **Visual positioning, alignment, and spacing:** All visuals must have equal spacing between them and equal spacing between the edge of the page (the margin). If visuals are unaligned or this spacing is unequal, fix it to ensure alignment and equal spacing
 4. **Themes:** Reports should use a theme that differs from the default Power BI themes; a suggested theme is the `sqlbi` theme (see the `modifying-theme-json` skill for applying templates). Themes are preferred because they provide a set of default styles for all charts that can adhere to good design practices and brand or style guidelines
 5. **Semantic Models:** Reports in Power BI are complex. They are dependant on an underlying semantic model (either in the .SemanticModel folder, called a "thick report" or a published model in Power BI/Fabric, called a "thin report"). Much of the functionality from a Power BI report comes from its semantic model design or DAX code
@@ -190,7 +190,7 @@ All visuals should include descriptive alt text:
 
 ### Font Sizes
 
-- **Minimum readable:** 12pt
+- **Minimum readable:** 12pt, subtitles included: they are usually the smallest text on the page
 - **Recommended for charts:** 14pt
 - **Titles:** 16-24pt
 - **KPI values:** 24-48pt
@@ -355,13 +355,14 @@ any design source.
 - **`references/tables-and-matrices.md`** -- Table and matrix design: decision-making framework, subtract-don't-add philosophy, conditional formatting, sorting, sparklines, matrix hierarchies, row-label indentation (U+00A0), anti-patterns
 - **`references/layout-guidelines.md`** -- Canvas dimensions, spacing tiers (intra-group/inter-group/margin), alignment rules, performance cost model
 - **`references/visual-colors.md`** -- Color principles, the neutral-base-plus-one-accent emphasis moves and which selector picks the focal series, contrast channels beyond hue, CF basis decision (gradient vs rules vs field-value vs icons), semantic tokens, accessibility
-- **`references/page-titles.md`** -- Title implementation, the visual container's title and subtitle slots, the narrative-page exception to the subject-title rule, accessible title wording, hidden-title/alt-text rule
+- **`references/page-titles.md`** -- Title implementation, a visual's own title and subtitle slots (never a textbox above it) and moving an existing title textbox into them, the narrative-page exception to the subject-title rule, accessible title wording, hidden-title/alt-text rule
 - **`references/chart-selection.md`** -- Encoding hierarchy (Cleveland-McGill ranking), chart type routing, the gate for leaving the default vocabulary, repair before retyping, the axis and data-label pairing, legend versus direct labelling, small multiples
 - **`references/tooltips-and-annotations.md`** -- Report-page tooltip design, when not to use one, annotation primitives for guided analytics, recommendation callouts and the page shapes that allow them
 - **`references/filter-pane.md`** -- Lock vs hide, card naming, card order, Applied/Available styling, report-level settings
 - **`references/mobile.md`** -- Phone layout as a curated subset, `mobile.json` mechanics, what to include/exclude
 - **`references/custom-visuals.md`** -- Build-vs-buy ranking, justifying the chart form separately from the build tier, AppSource/org-store tradeoffs, licensing gaps
 - **`references/implementing-a-design.md`** -- Turning an approved design into a report: delta-only application, preserving existing chrome, shared-object scope discipline, validate-then-look verification, deferred cleanup, and the reverse design brief with its template
+- **`scripts/find_title_textboxes.py`** -- Read-only check that lists every textbox standing in for one visual's title (`references/page-titles.md`, "Checking a finished page")
 
 ## Related Skills
 

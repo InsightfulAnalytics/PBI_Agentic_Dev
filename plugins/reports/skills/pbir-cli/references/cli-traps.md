@@ -4,7 +4,7 @@ Commands that exit 0 and did something other than what was asked, or that report
 there. The relative-path hijack by an active connection is the biggest of these and lives in
 [cli-reference.md](./cli-reference.md), "Report Creation and Management"; this file carries the rest.
 
-Every item was observed on pbir 0.9.x under Windows between July and September 2026. Before relying
+Every item was observed on pbir 0.9.x under Windows between July and October 2026. Before relying
 on one, run the command's `--help` and check whether a newer release changed it.
 
 ## `pbir desktop`
@@ -87,6 +87,20 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   (`pbip:pbir-format` `references/page.md`, Tooltip Pages). `pbir pages set-tooltip` sets the page's
   `type` and `displayOption`; set `visibility` to `HiddenInViewMode` separately.
 - **`pbir visuals title` takes `--show` / `--no-show`.** There is no `--hide` and no `-f`.
+- **`pbir add title` and `pbir add subtitle` add page-level textboxes; they never set a visual's
+  title.** A visual's own title and subtitle are `pbir visuals title "<Visual>" --text "..." --show`
+  and `pbir visuals subtitle`, or `--title` on `pbir add visual`. A textbox standing in for one
+  visual's title is a design finding (`reports:pbi-report-design` `references/page-titles.md`).
+- **The title commands write an apostrophe undoubled.** `pbir visuals title --text "Each store's
+  sales"` stores `'Each store's sales'`, and `pbir visuals subtitle --text` and
+  `pbir add visual --title` do the same. A PBIR string literal needs the apostrophe doubled, and
+  `pbir validate` reports the broken one as valid. Pass it already doubled,
+  `--text "Each store''s sales"`, which pbir stores as `'Each store''s sales'`. In PowerShell, use
+  double quotes around the argument so the two apostrophes reach pbir as typed. (pbir 0.9.32.
+  Verified 2026-10-03.)
+
+  Retest: `pbir visuals title "<Visual>" --text "It's"`, then read the `title` entry in that
+  visual.json.
 
 ## Publishing
 

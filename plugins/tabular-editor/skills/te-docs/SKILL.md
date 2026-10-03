@@ -1,7 +1,7 @@
 ---
 name: te-docs
 version: 26.26
-description: Tabular Editor documentation search and configuration file guidance (.tmuo, Preferences.json, UiPreferences.json, Layouts.json). Automatically invoke when the user asks about "TE docs", "Tabular Editor features", "TE3 preferences", ".tmuo files", "workspace database settings", "DAX editor settings", "per-model TE3 configuration", or needs to search Tabular Editor documentation for how-to guidance.
+description: Tabular Editor documentation search and configuration file guidance (.tmuo, Preferences.json, UiPreferences.json, Layouts.json). Automatically invoke when the user asks about "TE docs", "Tabular Editor features", "TE3 preferences", ".tmuo files", "workspace database settings", "DAX editor settings", "per-model TE3 configuration", "TE3 shows an error on valid DAX", "red underline on a UDF", or needs to search Tabular Editor documentation for how-to guidance.
 ---
 
 # Tabular Editor Documentation & Configuration
@@ -100,6 +100,28 @@ pbi-search sync --descriptions   # fetches meta descriptions; ~30s extra
 ```
 
 ---
+
+## TE3 editor diagnostics are not the engine's verdict
+
+**A red underline on a UDF signature such as `( t : TABLE EXPR ) =>` is a Tabular Editor 3 false
+positive, not a DAX error.** The form is valid: Microsoft Learn's "DAX user-defined functions" page
+uses it in its `CountRowsLater` example. TE3's 3.24.0 release notes record the fix: "Our Semantic
+Analyzer will no longer show a false error when using certain UDF parameter type hints in
+combinations that are valid, for example: `(a: TABLE EXPR) => ...`". The same release stopped false
+errors on UDF expression parameters passed to `LOOKUPVALUE` or `GROUPBY`. In the build that showed
+the false error, untyped `x : EXPR` parameters showed none. Microsoft lists the same class of false
+positive for its own editors: red underlines when passing columns as `expr` parameters or using
+unqualified column references ("Considerations and limitations" on the same Learn page).
+
+So check the build under Help > About before treating a red line on a UDF as a fault. The reverse
+holds too: a clean TE3 editor does not prove that a function loads. Power BI Desktop has refused a
+function that TE3 and `te validate` both accepted. The engine's verdict is
+`EVALUATE INFO.USERDEFINEDFUNCTIONS()`, read through its `ErrorMessage` column (`pbip:tmdl`
+`references/authoring-gotchas.md`, "A function that calls a newly added function can fail to load").
+(Fixed in TE3 3.24.0, October 2025. Verified 2026-09-30.)
+
+Retest: in TE3, create a function `(a : TABLE EXPR) => a` and see whether the type hint is
+underlined.
 
 ## Configuration Files (.tmuo)
 

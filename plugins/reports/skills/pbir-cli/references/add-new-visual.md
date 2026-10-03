@@ -148,6 +148,16 @@ pbir add title "Report.Report/Page.Page" "Sales Dashboard"
 pbir add subtitle "Report.Report/Page.Page" "Q4 2025 Performance"
 ```
 
+These are page-level textboxes, for the page title. A visual's own title and subtitle go in its
+container slots, never in a textbox above it:
+
+```bash
+pbir visuals title "Report.Report/Page.Page/Visual.Visual" --text "Depth by month" --show
+pbir visuals subtitle "Report.Report/Page.Page/Visual.Visual" --text "Number = weeks on promotion" --show
+```
+
+Double any apostrophe in `--text` yourself (`"Each store''s sales"`); see `references/cli-traps.md`.
+
 ## Layout Patterns
 
 ### KPI Row (4 cards)

@@ -77,6 +77,8 @@ Cheapest first, and it catches syntax errors in seconds rather than after a slow
   measures. TE3's DLL is .NET 8 and will not load under PS 5.1.
 - An offline `ConnectFolder` connection validates parse and bind only — **it cannot run DAX.**
   Offline-clean is not query-correct.
+- None of these, `te validate` included, sees whether the engine loads a DAX user-defined
+  function. A `functions.tmdl` change is proven only in step 5.
 
 ## 5. Prove it against real data
 
@@ -98,6 +100,13 @@ propagates into `ALLSELECTED` and changes the answer. Build the full axis with
 
 PowerShell quoting: bracketed names and `{}` break PS string parsing. Pass DAX via
 single-quoted here-strings (`@'...'@`).
+
+**Changed `functions.tmdl`?** Once the edit is applied, run `EVALUATE INFO.USERDEFINEDFUNCTIONS()`.
+A non-empty `ErrorMessage` is a function that failed to load. Every measure built on it then fails
+with `Failed to resolve name '<function>'`, and the name is the caller, not the helper you just
+added. With no Desktop and no workspace to run it in, hand the query to the user and do not report
+the change as working. The trap and its workaround are in `pbip:tmdl`
+`references/authoring-gotchas.md`, "A function that calls a newly added function can fail to load".
 
 ## Wrap-up
 

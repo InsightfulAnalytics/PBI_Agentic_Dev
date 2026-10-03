@@ -276,6 +276,72 @@ For the UDFs themselves the referee is a parser that understands 1702: Power BI 
 Windows, or, where Desktop is unavailable, an XMLA deploy of the model to a workspace on a capacity
 that supports compatibility level 1702, which fails the deploy with the same authority.
 
+## A function that calls a newly added function can fail to load
+
+Symptom: helper functions are added to `functions.tmdl` and called from a function that already
+existed. Every measure built on the existing function breaks at once. Visuals show
+`Something's wrong with one or more fields`, the field well puts a warning icon on those measures,
+and the measure editor says:
+
+```
+Failed to resolve name 'Sales.Weighted'. It is not a valid table, variable, or function name.
+```
+
+The name in that message is the **calling** function, not the helper. The caller failed to load, so
+nothing can call it. Reading the helper for the fault, because it is the new code, is the wrong
+lead.
+
+What was seen in Power BI Desktop: the new helpers went to the end of the model, and Desktop's next
+save of `functions.tmdl` wrote them below every existing function, the caller included. Two unrelated
+helper designs failed the same way: helpers taking `TABLE EXPR` parameters, and helpers with no
+parameters built only from patterns that already worked elsewhere in the same model (a filter table
+applied with `KEEPFILTERS`, a scalar `CALCULATE`). Writing the helpers' logic inline in the caller
+fixed it. Every function that loaded called only functions above it in the file.
+
+Until the cause is isolated:
+
+- A function calls only functions that sit **above** it in `functions.tmdl`.
+- When a new helper would be called from an existing function, write the logic inside the caller
+  instead of adding the helper.
+
+Not isolated: nobody has tried reordering alone (helper moved above the caller, then a full close and
+reopen of Desktop). It is not known whether file order is the cause, or whether adding the helper in
+the same change that edits the caller is the trigger. Inlining avoids both. (Observed in Power BI
+Desktop, build not recorded. Verified 2026-09-30.)
+
+Retest: in a model whose function `A` loads, add a function `B` at the end of `functions.tmdl` and
+edit `A` to call it; open in Desktop and run the query below. Then move `B` above `A`, close and
+reopen Desktop, and run it again.
+
+### Find the function that failed, and why
+
+The measure error names only the caller. The engine records each function's own state:
+
+```dax
+EVALUATE INFO.USERDEFINEDFUNCTIONS()
+```
+
+Read the `State` and `ErrorMessage` columns. A non-empty `ErrorMessage` marks each function that
+failed to load and says why. The query needs write permission on the model; it runs in Desktop's DAX
+query view, through the `pbi-desktop:connect-pbid` skill against the local instance, or over XMLA
+against a deployed model, so a Codespace with a workspace can run it too.
+
+### Offline checks pass it
+
+`te validate` reported 0 errors on both versions that failed to load in Desktop. Several independent
+review agents also read the DAX against Microsoft Learn and concluded that both would run. Neither
+check loads the functions the way the engine does. A red underline in an editor is no more reliable
+in the other direction: see `tabular-editor:te-docs`, "TE3 editor diagnostics are not the engine's
+verdict". (Tabular Editor CLI 0.7.1.2 preview. Verified 2026-09-30.)
+
+Retest: `te validate --model <definition folder>` on a model where an existing function calls a
+function added below it.
+
+So after any change to `functions.tmdl`, treat the change as unproven until the engine has loaded it
+and the query above shows no `ErrorMessage`: in Desktop once the edit is applied (the "Apply external
+changes" banner, or a reopen), or after a deploy to a workspace. Where neither is available, say so in
+the handover, give the user the query to run, and do not report the change as working.
+
 ## Prefer `///` over an explicit `description` property
 
 An explicit `description` property is valid TMDL, but `///` is what Power BI Desktop serializes.

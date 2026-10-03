@@ -4,6 +4,11 @@
 
 Textbox visuals (`visualType: "textbox"`) are used for static text content, titles, descriptions, and annotations on report pages.
 
+Not for one visual's title or subtitle. Those go in that visual's own `title` and `subTitle`
+container slots ([visual-container-formatting.md](./visual-container-formatting.md), "Title and
+subtitle text"). A textbox is for the page title, a section header over several visuals, a callout,
+a line that mixes formatting inside it, and text that belongs to no single visual.
+
 ## Minimal Working Structure
 
 **CRITICAL:** Modern textboxes use direct array format for paragraphs, NOT `expr.Literal.Value` wrapper:

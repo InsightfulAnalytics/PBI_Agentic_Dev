@@ -185,6 +185,33 @@ The catalog is preview (0.1.x) and can lag the shipping product, so treat its en
 }
 ```
 
+### Title and subtitle text
+
+A visual's title and subtitle belong in these two slots, never in a textbox placed above the visual
+or over its top. The design rule, and the short list of things a textbox is still for, is in the
+`reports:pbi-report-design` skill's `references/page-titles.md`.
+
+Literal text is single-quoted inside the `Value`, and an apostrophe inside it is doubled
+(`'Each store''s sales'`). `pbir validate` passes an undoubled apostrophe, and the `pbir` title
+commands write one if handed it (`reports:pbir-cli` `references/cli-traps.md`), so check any title
+text that contains one.
+
+```json
+"visualContainerObjects": {
+  "title": [{ "properties": {
+    "show": { "expr": { "Literal": { "Value": "true" } } },
+    "text": { "expr": { "Literal": { "Value": "'Depth by month'" } } }
+  } }],
+  "subTitle": [{ "properties": {
+    "show": { "expr": { "Literal": { "Value": "true" } } },
+    "text": { "expr": { "Literal": { "Value": "'Number = weeks on promotion. Highlight = peak band.'" } } }
+  } }]
+}
+```
+
+A subtitle is a single run of text with no paragraphs. Leave its font, size and colour to the theme's
+`visualStyles["*"]["*"].subTitle` rather than setting them here (see [theme.md](./theme.md)).
+
 ### Accessible visual (with altText)
 
 `altText` lives at `visualContainerObjects.general[].properties.altText`, NOT inside `objects`. The value is an `expr`, so it can be either a static literal or a dynamic measure reference.
