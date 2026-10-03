@@ -345,6 +345,7 @@ More silent failures (report-page tooltips from a Deneb visual, the container cl
 8. **Test field names** -- verify the projection's display label (`displayName` when set, otherwise `nativeQueryRef`) matches spec field references
 9. **Avoid external data** -- AppSource certification prevents loading external URLs
 10. **Escaping depends on context** -- double quotes in standalone specs, doubled single quotes in PBIR visual.json (see escaping rules above)
+11. **Title it in the container or the spec, never in a textbox above it** -- use the visual container's `title` and `subTitle` (themed like every other visual on the page; PBIR in the `pbip:pbir-format` skill's `references/visual-container-formatting.md`), or the spec's `title` with `subtitle` (`"title": {"text": "...", "subtitle": "..."}`, in Vega and Vega-Lite alike). Use one, not both. A spec title takes its font from the spec's `config`, not from the theme's container title settings, so set its font, size and colour there to match the container titles elsewhere on the page. An apostrophe in either is doubled in the stored literal
 
 ## When to Use Deneb
 

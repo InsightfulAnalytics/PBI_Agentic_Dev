@@ -31,6 +31,9 @@ Gaps and margins are uniform and on the grid. Reuse the vocabulary in `reference
 - every gap between adjacent visuals is the same value; every edge margin is the same value
 - positions sit on the grid unit
 - vertical gutters are continuous across rows: the column splits in row two line up with row one
+- no textbox acts as one visual's title: `python scripts/find_title_textboxes.py "<Report>.Report"`
+  lists each one, and the fix is to move its text into that visual's `title` and `subTitle`
+  (`references/page-titles.md`, "A Visual's Own Title and Subtitle"). A warning
 
 ## 4. Callouts backed by evidence
 

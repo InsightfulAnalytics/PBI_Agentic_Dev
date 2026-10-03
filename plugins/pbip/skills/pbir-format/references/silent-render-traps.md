@@ -152,8 +152,10 @@ the exact box height. A legacy `shapeType: line` did not render at all.
 `padding` block does not buy the space back. A minimum height that renders clean is
 `ceil(pt * 96/72 * 1.45 * lines) + 12` (an 8pt single line needs about 24 to 28px, not 16). A
 standalone textbox also carries enough top padding that a 10pt caption clipped to a sliver below
-about 48px; put a subtitle in the title textbox as a second paragraph rather than giving it its own
-visual.
+about 48px; put a page subtitle in the page-title textbox as a second paragraph rather than giving it
+its own visual. A visual's own subtitle never needs a textbox: it goes in the visual's `subTitle`
+slot ([visual-container-formatting.md](./visual-container-formatting.md), "Title and subtitle
+text").
 
 **Container objects live under `visualContainerObjects`, never `objects`.** `visualHeader`,
 `visualTooltip`, `visualLink`, `title`, `background`, `border` and `padding` written under
