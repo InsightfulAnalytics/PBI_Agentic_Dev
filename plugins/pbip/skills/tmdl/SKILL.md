@@ -45,7 +45,7 @@ Activate only when the Tabular Editor CLI, Power BI MCP server, or `connect-pbid
 | `database.tmdl` | Compatibility level, model ID | `definition/` |
 | `relationships.tmdl` | All relationships between tables | `definition/` |
 | `expressions.tmdl` | Shared M expressions and parameters | `definition/` |
-| `functions.tmdl` | DAX user-defined functions (reusable parameterized DAX); requires `compatibilityLevel: 1702` in `database.tmdl` and Power BI Desktop 26.06+, see `references/authoring-gotchas.md` | `definition/` |
+| `functions.tmdl` | DAX user-defined functions (reusable parameterized DAX); requires `compatibilityLevel: 1702` in `database.tmdl` and Power BI Desktop 26.06+; a function that calls one added below it can fail to load while every offline check passes, see `references/authoring-gotchas.md` | `definition/` |
 | `roles/<RoleName>.tmdl` | One file per security role (RLS filters, role members, OLS) | `definition/roles/` |
 | `perspectives/<Name>.tmdl` | One file per perspective (object membership) | `definition/perspectives/` |
 | `dataSources.tmdl` | Legacy data source definitions (if present) | `definition/` |
@@ -472,7 +472,7 @@ For the complete property reference for every object type, see **`references/obj
 - **`references/column-properties.md`** - Column-specific property guide with `summarizeBy` rules, `formatString` patterns, `PBI_FormatHint` behavior
 - **`references/naming-conventions.md`** - SQLBI naming conventions, display folder conventions, measure table conventions, and calculation group naming
 - **`references/bim-to-tmdl.md`** - Converting between `model.bim` (TMSL) and `definition/` (TMDL) via Tabular Editor CLI or TOM TmdlSerializer
-- **`references/authoring-gotchas.md`** - Failure modes a syntax check does not catch: the calculation group flag, the `///` indent trap, which blank lines are safe and which two placements break, the expression depth that silently deletes format strings, `formatStringDefinition` placement, generator idempotency, what offline validation proves, and DAX UDFs at compatibility level 1702. It is also the in-repo home for new TMDL failure modes: its closing `## Adding to this file` section sets the shape a new entry takes
+- **`references/authoring-gotchas.md`** - Failure modes a syntax check does not catch: the calculation group flag, the `///` indent trap, which blank lines are safe and which two placements break, the expression depth that silently deletes format strings, `formatStringDefinition` placement, generator idempotency, what offline validation proves, DAX UDFs at compatibility level 1702, and the UDF that fails to load in Desktop after offline checks pass (with the `INFO.USERDEFINEDFUNCTIONS()` query that finds it). It is also the in-repo home for new TMDL failure modes: its closing `## Adding to this file` section sets the shape a new entry takes
 - **`references/tmdl-file-examples.md`** - Complete examples for every TMDL file type (model, database, expressions, relationships, roles, perspectives, tables, cultures) including backtick-enclosed expressions, field parameters, calculation groups, and date tables
 
 ### Fetching Docs

@@ -279,6 +279,14 @@ formatting *convention* (scaled, currency, percent, duration) — not one per me
 [daxlib.org](https://daxlib.org) before writing one; installing packages is covered by
 `pbi-desktop:connect-pbid` (`references/daxlib.md`).
 
+**Before one function calls another**, read the UDF load traps in `pbip:tmdl`
+`references/authoring-gotchas.md`. A function that called a helper added below it in
+`functions.tmdl` failed to load in Desktop, the error named the caller rather than the helper, and
+`te validate` passed it. Until that is isolated, write new helper logic inline in the existing
+caller. After any `functions.tmdl` change, run `EVALUATE INFO.USERDEFINEDFUNCTIONS()` and read
+`ErrorMessage` before calling the change done. A red underline under `TABLE EXPR` in Tabular
+Editor 3 is not proof of an error either (`tabular-editor:te-docs`).
+
 ### Gotchas
 
 - The expression must return **text**, and it is evaluated per cell in that cell's filter
