@@ -53,6 +53,8 @@ case "$FORMAT" in
 esac
 [[ -z "$OUTFILE" ]] && OUTFILE="./${RID}.${ext}"
 
+# Hand the bearer token to curl on a file descriptor so it never appears in the process list
+auth_header() { printf 'Authorization: Bearer %s\n' "$TOKEN"; }
 TOKEN="${PBI_TOKEN:-}"
 if [[ -z "$TOKEN" ]]; then
   TOKEN="$(az account get-access-token \
@@ -73,14 +75,14 @@ fi
 
 echo "Exporting report $RID to $FORMAT ..."
 EID="$(curl -fsS -X POST "${BASE}/ExportTo" \
-  -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
+  -H @<(auth_header) -H "Content-Type: application/json" \
   -d "$BODY" | jq -r '.id')"
 [[ -z "$EID" || "$EID" == "null" ]] && { echo "error: ExportTo returned no id" >&2; exit 1; }
 
 EID_ENC="$(python3 -c 'import urllib.parse,sys; print(urllib.parse.quote(sys.argv[1], safe=""))' "$EID")"
 
 for _ in $(seq 1 80); do
-  J="$(curl -fsS "${BASE}/exports/${EID_ENC}" -H "Authorization: Bearer ${TOKEN}")"
+  J="$(curl -fsS "${BASE}/exports/${EID_ENC}" -H @<(auth_header))"
   STATUS="$(echo "$J" | jq -r '.status')"
   PCT="$(echo "$J" | jq -r '.percentComplete // 0')"
   echo "  status: ${STATUS} (${PCT}%)"
@@ -95,6 +97,6 @@ for _ in $(seq 1 80); do
 done
 [[ "$STATUS" != "Succeeded" ]] && { echo "error: export did not finish in time" >&2; exit 1; }
 
-curl -fsS "${BASE}/exports/${EID_ENC}/file" -H "Authorization: Bearer ${TOKEN}" -o "$OUTFILE"
+curl -fsS "${BASE}/exports/${EID_ENC}/file" -H @<(auth_header) -o "$OUTFILE"
 SIZE="$(wc -c < "$OUTFILE" | tr -d ' ')"
 echo "Saved $OUTFILE (${SIZE} bytes)"

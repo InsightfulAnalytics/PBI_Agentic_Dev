@@ -41,6 +41,7 @@ try {
     # Windows PowerShell pipes to native commands in the console code page by
     # default; hook JSON can carry non-ASCII paths and DAX, so pipe as UTF-8.
     $OutputEncoding = New-Object System.Text.UTF8Encoding $false
+    [Console]::InputEncoding = New-Object System.Text.UTF8Encoding $false
     $payload = [Console]::In.ReadToEnd()
     if ($ScriptArgs) {
         $payload | & $bash $posix @ScriptArgs

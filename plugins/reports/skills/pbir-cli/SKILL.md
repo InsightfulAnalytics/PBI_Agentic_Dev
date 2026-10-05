@@ -166,6 +166,9 @@ are per-machine and per-user.
 7. Iterate. Expect multiple rounds. Push back on one-shot expectations from vague prompts.
 8. Record learnings. Route each one by the rule in **Learning from Mistakes** above.
 
+When the user has manually changed a report and asks to pull it down or learn
+from the differences, follow **`references/manual-roundtrip-review.md`**.
+
 ### Path syntax
 
 `pbir` uses a filesystem paradigm for identifying reports, pages, visuals etc. and glob syntax for bulk operations.
@@ -255,35 +258,19 @@ For full model query patterns and field binding workflows, consult **`references
 
 ### Semantic Model + Report Workflows (`te` + `pbir`)
 
-When work crosses both layers, use Tabular Editor CLI (`te`) for semantic-model mutations and `pbir` for report mutations. Model object identity is the boundary: modern `te mv` cascades references inside the model, but report bindings still retain the old `Table.Field` and must be updated with `pbir`.
-
-```powershell
-te connect "Sales Workspace" "Sales Model"
-te mv "'Actuals'[Actuals MTD]" "'Actuals'[Sales MTD]" --save
-te validate --errors-only
-pbir fields replace "Sales Flash Report.Report" --from "Actuals.Actuals MTD" --to "Actuals.Sales MTD" --dry-run
-pbir fields replace "Sales Flash Report.Report" --from "Actuals.Actuals MTD" --to "Actuals.Sales MTD"
-pbir validate "Sales Flash Report.Report" --fields
-pbir desktop refresh "Sales Flash Report.Report"
-```
-
-Use `te deps --downstream` plus `pbir fields find` before a rename, `pbir fields replace-table` after a table rename, and no report rewrite for metadata-only changes such as format strings or descriptions. For renames, moves, additions, deletions, deploy/rebind order, and final gates, consult **`references/te-cli-tandem.md`**.
+Use `te` for semantic-model mutations and `pbir` for report mutations. A model rename can cascade inside the model while report bindings retain the old `Table.Field`; use `te deps --downstream`, then `pbir fields find/replace` and validate both layers. Consult **`references/te-cli-tandem.md`** for deploy order and complete workflows.
 
 ### Desktop Integration (Refresh and Screenshot)
 
-When the report is open in Power BI Desktop (Windows, with the "external tool access" preview feature enabled), drive the running instance directly. This is the fastest way to visually verify changes; no publishing required.
+When a PBIP/PBIR report is open in Power BI Desktop on Windows, use the bridge for the shortest visual feedback loop:
 
 ```bash
-pbir desktop list                                     # Running instances (PID, open file, unsaved state, pages); `status` is an alias
-pbir desktop refresh "Report.Report"                  # Reload on-disk definition into the canvas (`reload` is an alias)
-pbir desktop refresh "Report.Report" -m               # --model: also re-apply the model (TMDL) definition
+pbir desktop list
+pbir desktop refresh "Report.Report"
 pbir desktop screenshot "Report.Report/Page.Page" -o verify.png
-pbir desktop screenshot "Report.Report" --all         # Every page -> ./screenshots (--output-dir to set; --settle <ms> before first capture)
 ```
 
-The edit-verify loop: mutate with `pbir set`/`add`, then `pbir desktop refresh`, then `pbir desktop screenshot`, then read the PNG. Inspect the rendered page after every meaningful change; screenshots catch what validation cannot (overlap, truncation, wrong field, illegible formatting). Set `PBIR_DESKTOP_AUTO_REFRESH=1` to fold the refresh step into every save. `--scale` is clamped to 1-3 (default 2); `--pid` targets a specific instance when several are open.
-
-Screenshots need the Desktop window in the Report view. Refreshing an instance with unsaved changes makes Desktop save first, rewriting the whole definition on disk. PBIX files support screenshot but not refresh. For requirements, multi-instance behavior, and troubleshooting, consult **`references/desktop-integration.md`**.
+Inspect the PNG after every meaningful batch. PBIX supports screenshots but not refresh. See **`references/desktop-integration.md`** for setup, multi-instance behavior, and troubleshooting.
 
 Do not guess a sleep between refresh and screenshot: `--settle` only applies with `--all`, and there is no `--out` (the single-page flag is `-o/--output`). For a single page, use the **`reports:pbi-verify-loop`** skill, which refreshes and then captures until two consecutive screenshots match.
 
@@ -339,6 +326,10 @@ pbir desktop screenshot "Report.Report/Page.Page" -o verify.png   # then Read ve
 
 For bulk visual creation, see **`references/add-new-visual.md`**.
 For formatting workflows, consult **`references/format-visuals.md`** (theme-first approach, property discovery, glob patterns).
+
+### Fast Rendered-Dashboard Loop
+
+For renderer-sensitive iteration, publish cadence, New Card selectors, SVG table density, and latest-only line labels, follow **`references/rendered-dashboard-loop.md`**.
 
 ### Visual Groups
 
@@ -564,18 +555,13 @@ Command-specific output flags such as `--json` or `-F json`, and mutation flags 
 - **DMV queries fail against service-connected models.** For thin reports (`byConnection`), `pbir model -q` runs EVALUATE DAX only; `INFO.TABLES()` and other DMVs return 400 from the service, and schema comes from TMDL. Use `pbir model -d` for schema introspection. Thick reports (`byPath`) open in Desktop query the local engine instead, where the live schema is used.
 - **`pbir desktop refresh` does not work on PBIX files.** Desktop only reloads PBIP/PBIR definitions from disk; PBIX instances support `pbir desktop screenshot` only.
 - **Always run `pbir <command> --help`** before using an unfamiliar command to confirm exact syntax.
+- **A valid write can still be renderer-inert.** Modern visuals use instance selectors. Prefer plain paths on current `pbir` (it routes known objects correctly); if an older build reads the value but Power BI ignores it, compare with `pbir cat` and use `.id(default).` explicitly.
+- **Native table values have no vertical-alignment property.** Do not invent `values.verticalAlignment`; use `pbir visuals table-density` to reduce image height/row padding, or make every affected cell an SVG only when the accessibility and maintenance trade-off is acceptable.
 
 
 ## User Interaction
 
-Use `AskUserQuestion` to interview the user before executing. This is important for:
-
-- **Visual design**: What story should the visual tell? What comparisons matter?
-- **Formatting intent**: One-off bespoke or theme-level change for all visuals of this type?
-- **Complex requirements**: Deneb vs core visual, CF logic, page layout; discuss trade-offs first
-- **Ambiguous field mapping**: When the model has multiple plausible fields, discuss intent
-- **Refresh cadence**: For multi-change requests with Desktop open, ask whether to `pbir desktop refresh` after each step (visible progress) or once at the end
-- **Clearing formatting**: ALWAYS confirm before `pbir visuals clear-formatting`; it is irreversible
+Clarify choices that change the visual story, field mapping, theme-vs-local scope, or Deneb/core trade-off. Confirm before irreversible `visuals clear-formatting`; agree on refresh/publish cadence for multi-batch work. Use **`references/vague-prompts.md`** when intent is genuinely underspecified.
 
 
 ## Validation
@@ -609,6 +595,8 @@ references/cli-reference.md: full syntax for any command with all flags; Windows
 references/exploration.md: exploring an unfamiliar report systematically
 references/desktop-integration.md: driving Power BI Desktop; canvas refresh, page screenshots, auto-refresh, local model queries, troubleshooting
 references/cli-traps.md: commands that exit 0 and did something else; screenshot always page one, `desktop list` truncation and early rows, `refresh --model` limits, `validate --fields` false negatives from a stale compiled model, report-level `add filter -r`, thick-project publish
+references/manual-roundtrip-review.md: safe pull-down and semantic comparison of user edits; New Card and table-width lessons
+references/rendered-dashboard-loop.md: short validate/query/render batches; publish cadence and renderer-sensitive patterns
 references/create-new-report.md: building a report from scratch
 references/add-new-visual.md: adding visuals, layout patterns, bulk creation
 references/add-image.md: image visuals from file, URL, or a measure; the ImageUrl measure contract

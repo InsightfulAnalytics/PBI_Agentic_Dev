@@ -57,9 +57,17 @@ pbir dax measures add "Report.Report" -t Metrics -n "RevenueFormatted" \
 | `-F` / `--format` | Format string (e.g., `"#,0"`, `"0.0%"`) |
 | `--description` | Measure description |
 
+For long DAX, keep the expression in a formatted `.dax` file and pass it to
+`update` with `--expression-file`. This avoids brittle shell quoting and makes
+the expression reviewable before mutation.
+
 ## Managing Measures
 
 ```bash
+# Update by qualified name; preferred when a report has similarly named measures
+pbir dax measures update "Report.Report" "Orders.Order momentum" \
+  --expression-file order-momentum.dax --data-type Text --data-category ImageUrl
+
 # Rename (also rewrites the DAX of other extension measures that reference it)
 pbir dax measures rename "Report.Report" "OldName" "NewName"
 
@@ -69,6 +77,11 @@ pbir rm "Report.Report" --measures -f
 # Remove specific measure (use pbir rm)
 pbir rm "Report.Report" --measure "_Fmt.StatusColor" -f
 ```
+
+`update` accepts either the short measure name or the fully qualified
+`Table.Measure` name. Use the qualified form in automation. If a short name is
+ambiguous, the CLI reports the qualified candidates instead of updating the
+first match.
 
 ## Common Patterns
 

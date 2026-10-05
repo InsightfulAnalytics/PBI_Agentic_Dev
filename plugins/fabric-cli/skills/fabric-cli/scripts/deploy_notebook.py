@@ -47,6 +47,8 @@ Requirements
     Both identities must point at the same tenant/account.
 """
 
+from __future__ import annotations
+
 import argparse
 import base64
 import json
@@ -253,8 +255,12 @@ def main() -> None:
     # One fab call resolves the workspace id; one REST call gives existence + the item id
     # together (cheaper than fab exists + fab get id, and every subprocess hop is latency).
     ws_id = run_fab(["get", workspace, "-q", "id"]).stdout.strip().strip('"')
-    _, _, listing = api("GET", f"{FABRIC_API}/workspaces/{ws_id}/notebooks")
-    item_id = next((it["id"] for it in listing.get("value", []) if it.get("displayName") == display_name), None)
+    item_id = None
+    url = f"{FABRIC_API}/workspaces/{ws_id}/notebooks"
+    while url and item_id is None:
+        _, _, listing = api("GET", url)
+        item_id = next((it["id"] for it in listing.get("value", []) if it.get("displayName") == display_name), None)
+        url = listing.get("continuationUri")
     exists = item_id is not None
 
     if exists and args.create_only:

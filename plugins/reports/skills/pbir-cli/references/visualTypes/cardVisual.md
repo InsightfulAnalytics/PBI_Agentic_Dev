@@ -53,16 +53,24 @@ pbir add visual cardVisual "Page.Page" --title "Customers" -d "Data:Customers.Co
 
 1. **Cards are supporting context, not the main story.** Place cards at the top of the page as a KPI row; they orient the reader before they look at the charts below. Keep them compact
 
-2. **Use visual titles as labels; hide category labels on legacy cards.** The visual title already describes the metric; showing the measure name again as a category label is redundant
+2. **Use one label source.** Prefer the visual-container title for a KPI row and hide the new Card's internal label. Showing both repeats the metric name and consumes the space needed by the callout and comparison.
 
 ```bash
-# Legacy card: hide category label
+# New Card: the CLI routes this to {"id":"default"}, which Power BI renders
+pbir set "Visual.Visual.label.show" --value false
+
+# Legacy card
 pbir set "Visual.Visual.categoryLabels.show" --value false
 ```
 
 3. **Use display units and appropriate precision.** Large numbers should use K/M/B display units; avoid showing unnecessary decimals. Set this at the measure level (format string) or via visual override
 
 ```bash
+# New Card: 0 = Auto and 1 = None; set callout and reference independently
+pbir set "Visual.Visual.value.labelDisplayUnits" --value 1
+pbir set "Visual.Visual.value.labelPrecision" --value 1
+pbir set "Visual.Visual.referenceLabelValue.valueDisplayUnits" --value 1
+
 # KPI only: set display units to millions with 0 decimals
 pbir set "Visual.Visual.indicator.indicatorDisplayUnits" --value 1000000
 pbir set "Visual.Visual.indicator.indicatorPrecision" --value 0
@@ -76,21 +84,42 @@ pbir set "KPI.Visual.status.goodColor" --remove
 pbir set "KPI.Visual.status.badColor" --remove
 ```
 
-5. **Use SVG image measures for rich KPI cards.** The new `cardVisual` supports data-driven images; bind an SVG-producing DAX measure to create inline sparklines, progress bars, or status indicators directly inside the card
+5. **Use SVG image measures for restrained KPI icons.** Prefer official icon paths (for example Fluent UI), a 16-20px fixed image area, and the same semantic-color measure used by the callout. New Card separates the content-group alignment from the icon's alignment inside its image area: use `layout.alignment=top` to lift the group and `image.verticalAlignment=middle` to center the icon beside the number. Rendered inspection still decides the final sizes.
 
-6. **Hide the trend line date on KPIs when space is tight.** The "last date" label can consume valuable space on small KPIs
+```bash
+pbir set "Visual.Visual.layout.alignment" --value top
+pbir set "Visual.Visual.image.show" --value true
+pbir set "Visual.Visual.image.size" --value 16
+pbir set "Visual.Visual.image.fixedSize" --value true
+pbir set "Visual.Visual.image.imageAreaSize" --value 16
+pbir set "Visual.Visual.image.verticalAlignment" --value middle
+```
+
+6. **A KPI needs comparison and sentiment, not only a number.** Add a target/prior value plus a variance detail, then drive both the callout and icon from the same status-color measure.
+
+```bash
+pbir visuals card-reference "Visual.Visual" \
+  --actual "Sales.Revenue" --target "Sales.Revenue PY" \
+  --detail "Sales.Revenue vs PY %" --detail-color "Sales.Revenue Status Color" \
+  --title "Prior year"
+pbir visuals cf "Visual.Visual" \
+  --measure "value.fontColor Sales.Revenue Status Color" \
+  --target-field "Sales.Revenue"
+```
+
+7. **Hide the trend line date on KPIs when space is tight.** The "last date" label can consume valuable space on small KPIs
 
 ```bash
 pbir set "Visual.Visual.lastDate.show" --value false
 ```
 
-7. **KPI goal text should describe the comparison.** Relabel the default "Goal" text to something meaningful like "Plan MTD" or "Target"
+8. **KPI goal text should describe the comparison.** Relabel the default "Goal" text to something meaningful like "Plan MTD" or "Target"
 
 ```bash
 pbir set "Visual.Visual.goals.goalText" --value "Plan MTD"
 ```
 
-8. **Consistent sizing across KPI rows.** All cards in a row should have identical width and height; use the layout grid system
+9. **Consistent sizing across KPI rows.** All cards in a row should have identical width and height; use the layout grid system. Thin text-valued Cards used as dynamic report headers often need 96-110px height despite looking simpler; validate the rendered text before compressing them.
 
 ## Examples
 

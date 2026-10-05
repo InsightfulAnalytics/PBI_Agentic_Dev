@@ -30,7 +30,7 @@
     },
     {
       "name": "reports",
-      "description": "Build, format, and review Power BI reports (PBIR).",
+      "description": "Build, format, and review Power BI reports (PBIR), with a report pane.",
       "source": "./plugins/reports"
     },
     {
@@ -40,13 +40,18 @@
     },
     {
       "name": "fabric-cli",
-      "description": "Fabric and the Power BI service via the fab CLI.",
+      "description": "Fabric and the Power BI service via the fab CLI, with a Fabric pane.",
       "source": "./plugins/fabric-cli"
     },
     {
       "name": "fabric-admin",
       "description": "Audit and govern your Fabric and Power BI tenant.",
       "source": "./plugins/fabric-admin"
+    },
+    {
+      "name": "fabric-data-app",
+      "description": "Browse Fabric Apps in a pane that follows the rayfin CLI.",
+      "source": "./plugins/fabric-data-app"
     },
     {
       "name": "custom-visuals",

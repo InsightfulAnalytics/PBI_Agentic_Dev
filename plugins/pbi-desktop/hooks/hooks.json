@@ -53,6 +53,12 @@
             "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" check-ri",
             "timeout": 60,
             "if": "Bash(*SaveChanges*)"
+          },
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/pbi-hooks.sh\" check-ri",
+            "timeout": 60,
+            "if": "Bash(* -File *.ps1*)"
           }
         ]
       }

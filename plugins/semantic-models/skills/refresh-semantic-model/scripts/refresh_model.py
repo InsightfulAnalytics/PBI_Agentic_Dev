@@ -98,7 +98,11 @@ def fab_api(
             return {"status": 0, "data": None, "error": None}
 
         raw = json.loads(stdout)
-        data = raw.get("text", raw)
+        status_code = raw.get("status_code", 200) if isinstance(raw, dict) else 200
+        data = raw.get("text", raw) if isinstance(raw, dict) else raw
+        if isinstance(status_code, int) and status_code >= 400:
+            detail = json.dumps(data)[:500] if not isinstance(data, str) else data[:500]
+            return {"status": 1, "data": data, "error": f"HTTP {status_code}: {detail}"}
         return {"status": 0, "data": data, "error": None}
 
     except subprocess.TimeoutExpired:
@@ -176,29 +180,39 @@ def trigger_refresh(
     if objects:
         body["objects"] = objects
 
+    previous = latest_request_id(workspace_id, model_id)
+
     resp = fab_api(endpoint, method="POST", body=body)
 
     if resp["error"]:
         return {"success": False, "message": resp["error"], "request_id": None}
 
-    # fab CLI does not expose the Location header, so retrieve the
-    # requestId from the most recent refresh history entry.
+    # fab CLI does not expose the Location header, so wait for a history entry
+    # newer than the one present before the POST and take its requestId.
     request_id = None
-    history_resp = fab_api(
-        f"groups/{workspace_id}/datasets/{model_id}/refreshes?$top=1"
-    )
-    if history_resp["data"]:
-        entries = history_resp["data"]
-        if isinstance(entries, dict):
-            entries = entries.get("value", [])
-        if entries:
-            request_id = entries[0].get("requestId")
+    for _ in range(10):
+        current = latest_request_id(workspace_id, model_id)
+        if current and current != previous:
+            request_id = current
+            break
+        time.sleep(1)
 
     return {
         "success": True,
         "message": f"Refresh triggered ({refresh_type})",
         "request_id": request_id,
     }
+
+
+def latest_request_id(workspace_id: str, model_id: str) -> Optional[str]:
+    """Return the requestId of the most recent refresh history entry, if any."""
+    resp = fab_api(f"groups/{workspace_id}/datasets/{model_id}/refreshes?$top=1")
+    entries = resp["data"]
+    if isinstance(entries, dict):
+        entries = entries.get("value", [])
+    if isinstance(entries, list) and entries:
+        return entries[0].get("requestId")
+    return None
 
 
 def get_refresh_history(
@@ -438,7 +452,10 @@ Examples:
         while elapsed < args.max_wait:
             time.sleep(args.poll_interval)
             elapsed += args.poll_interval
-            refreshes = get_refresh_history(args.workspace_id, args.model_id, top=1)
+            refreshes = get_refresh_history(args.workspace_id, args.model_id, top=5)
+            request_id = result.get("request_id")
+            if request_id:
+                refreshes = [r for r in refreshes if r.get("requestId") == request_id]
             if refreshes:
                 latest = refreshes[0]
                 status = latest.get("status", "Unknown")

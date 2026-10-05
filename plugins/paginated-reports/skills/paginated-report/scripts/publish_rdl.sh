@@ -45,6 +45,8 @@ if [[ -n "$NAME_CONFLICT" && "$NAME_CONFLICT" != "Overwrite" && "$NAME_CONFLICT"
   exit 2
 fi
 
+# Hand the bearer token to curl on a file descriptor so it never appears in the process list
+auth_header() { printf 'Authorization: Bearer %s\n' "$TOKEN"; }
 TOKEN="${PBI_TOKEN:-}"
 if [[ -z "$TOKEN" ]]; then
   TOKEN="$(az account get-access-token \
@@ -64,7 +66,7 @@ BASE="https://api.powerbi.com/v1.0/myorg/groups/${WS_ID}"
 # When the caller did not specify, pick based on whether the report exists.
 if [[ -z "$NAME_CONFLICT" ]]; then
   BASE_NAME="${DISPLAY_NAME%.rdl}"
-  LIST="$(curl -sS -w $'\n%{http_code}' "${BASE}/reports" -H "Authorization: Bearer ${TOKEN}")"
+  LIST="$(curl -sS -w $'\n%{http_code}' "${BASE}/reports" -H @<(auth_header))"
   LIST_CODE="${LIST##*$'\n'}"
   LIST_BODY="${LIST%$'\n'*}"
   if [[ "$LIST_CODE" -lt 200 || "$LIST_CODE" -ge 300 ]]; then
@@ -83,7 +85,7 @@ DISPLAY_NAME_ENC="$(jq -rn --arg s "$DISPLAY_NAME" '$s|@uri')"
 echo "Uploading $(basename "$RDL_PATH") as '$DISPLAY_NAME' (nameConflict=$NAME_CONFLICT) ..."
 RESP="$(curl -sS -w $'\n%{http_code}' -X POST \
   "${BASE}/imports?datasetDisplayName=${DISPLAY_NAME_ENC}&nameConflict=${NAME_CONFLICT}" \
-  -H "Authorization: Bearer ${TOKEN}" \
+  -H @<(auth_header) \
   -F "file=@${RDL_PATH}")"
 HTTP_CODE="${RESP##*$'\n'}"
 IMPORT_JSON="${RESP%$'\n'*}"
@@ -103,7 +105,7 @@ echo "Import id: $IMPORT_ID"
 
 for _ in $(seq 1 60); do
   STATUS_JSON="$(curl -fsS "${BASE}/imports/${IMPORT_ID}" \
-    -H "Authorization: Bearer ${TOKEN}")"
+    -H @<(auth_header))"
   STATE="$(echo "$STATUS_JSON" | jq -r '.importState')"
   echo "  importState: $STATE"
   case "$STATE" in

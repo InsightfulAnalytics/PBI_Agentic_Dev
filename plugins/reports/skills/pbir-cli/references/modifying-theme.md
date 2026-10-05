@@ -143,9 +143,11 @@ pbir theme background "Report.Report" --clear
 
 Use `set-formatting` to define defaults that apply to all visuals of a type (or all types via wildcard).
 
-Path format: `{visualType}.{state}.{property}.{subproperty}`
+Path format: `{visualType}.{style}.{card}.{property}`
 - `visualType`: `*` (all types) or specific type (`card`, `lineChart`, `tableEx`, etc.)
-- `state`: `*` (default) or `hover`, `press`, `selected`
+- `style`: `*` (the default style) or a style preset name such as `Compact`
+- card states (`hover`, `press`, `selected`) go in `--state`, not in the path
+- this is the pbir-cli 1.0 path format; in 0.9.x the second segment is the card state (`*`, `hover`, `press`, `selected`) and named presets cannot be written
 
 ```bash
 # All visuals: default title size
@@ -166,6 +168,12 @@ pbir theme set-formatting "Report.Report" "tableEx.*.grid.gridVertical" --value 
 
 # Set raw JSON for complex values
 pbir theme set-formatting "Report.Report" "card.*.border" --json '{"show": true, "color": "#E0E0E0", "radius": 8}'
+
+# Table style preset: compact grid
+pbir theme set-formatting "Report.Report" "tableEx.Compact.grid.rowPadding" --value 2
+
+# Slicer calendar button: hover state
+pbir theme set-formatting "Report.Report" "slicer.*.calendarButton.iconSize" --value 20 --state hover
 ```
 
 ## Push Visual Formatting to Theme

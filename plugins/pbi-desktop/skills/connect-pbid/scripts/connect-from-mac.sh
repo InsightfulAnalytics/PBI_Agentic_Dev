@@ -22,6 +22,10 @@ VM_NAME="${1:?Usage: $0 <vm-name> <script.ps1> [args...]}"
 SCRIPT="${2:?Usage: $0 <vm-name> <script.ps1> [args...]}"
 shift 2
 EXTRA_ARGS="$*"
+CMD_ARGS=""
+for arg in "$@"; do
+    CMD_ARGS="${CMD_ARGS} \"${arg//\"/\\\"}\""
+done
 
 #endregion
 
@@ -68,6 +72,6 @@ echo "Win path: $WIN_PATH"
 echo "Args: $EXTRA_ARGS"
 echo ""
 
-prlctl exec "$VM_NAME" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$WIN_PATH\" ${EXTRA_ARGS:+\"$EXTRA_ARGS\"}"
+prlctl exec "$VM_NAME" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$WIN_PATH\"${CMD_ARGS}"
 
 #endregion

@@ -118,9 +118,16 @@ from GitHub, including a `github`-source Codespace.
 > manifests currently at `26.25.1` while the `SKILL.md` files are at `26.25` need reconciling before
 > the next release bump.
 
-The 10 plugins you can personalize:
+The 11 plugins you can personalize:
 `semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`,
-`fabric-admin`, `paginated-reports`, `etl`.
+`fabric-admin`, `paginated-reports`, `etl`, and `fabric-data-app` (harvested 2026-10-05; it holds
+only the `/data-app-pane` mod, no skills).
+
+Upstream 26.40 added Claude Code mods: sidebar panes that follow a CLI (`/fabric-pane` in
+`fabric-cli`, `/report-pane` in `reports`, `/data-app-pane` in `fabric-data-app`). They live in each
+plugin's `hooks/` folder as TypeScript modules, need Claude Code 2.1.287 or newer and the fullscreen
+layout, and take their `glyphs`, `follow` and `fontHint` options from the plugin's `userConfig`. On
+Windows, set `glyphs` explicitly; auto detection covers only Linux and macOS.
 
 ## Using with OpenAI Codex
 
@@ -190,12 +197,18 @@ reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FO
   manifests) carry the fork's repo URL, version and descriptions, like the `.claude-plugin`
   manifests. Skip upstream's version bumps to them.
 - `useful-stuff/themes/*.json`: every font line is `Consolas` (see FORK-CHANGES.md).
+- `plugins/*/.claude-plugin/plugin.json`: keep the fork's `version`, `repository` and short
+  `description`; take upstream's `types`, `userConfig` and keyword changes (the mod options).
 
 **Deliberate exclusions; do not harvest:**
 
 - The `goblin-mode` plugin (beginner onboarding).
+- The `databricks-cli` plugin (a Databricks pane; no Databricks work here), and `media/mods/*.gif`,
+  which only upstream's README uses.
 - Upstream's removal of the theme references from `modifying-theme-json`: the fork's
-  `power-bi-theme` delegates to them.
+  `power-bi-theme` delegates to them. The fork keeps its older, longer `modifying-theme-json/SKILL.md`,
+  so fold upstream's changes to that file in by hand (26.40.2's style presets went in as a cascade
+  note and a link to `references/style-presets.md`).
 - Version bumps, README changes and marketplace-rename commits. The fork keeps its own scheme.
 - `fabric-cli/.../export_semantic_model_as_pbip.py` stays fork-local.
 - Skills removed from the fork on purpose stay removed: `pbi-lifecycle`, `pbi-project-hub`,

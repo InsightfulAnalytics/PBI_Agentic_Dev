@@ -295,6 +295,13 @@ pbir visuals padding "Visual.Visual" --top 10 --bottom 10 --left 10 --right 10
 pbir visuals spacing "Visual.Visual"             # Component spacing
 pbir visuals divider "Visual.Visual" --show      # Title/subtitle divider
 
+# Table density and mutually exclusive width modes
+pbir visuals table-density "Table.Visual" --preset compact --row-padding 0 --image-height 30 --stretch-columns
+pbir visuals table-density "Table.Visual" --preset compact --row-padding 0 --image-height 30 --fit-columns-to-content
+
+# New Card target/reference label
+pbir visuals card-reference "Card.Visual" --actual "Sales.Revenue" --target "Sales.Revenue PY" --detail "Sales.Revenue vs PY %" --title "Prior year"
+
 # Header and tooltip
 pbir visuals header "Visual.Visual" --show       # Visual header icons
 pbir visuals tooltip "Visual.Visual"             # Tooltip configuration
@@ -500,7 +507,8 @@ pbir dax measures add "Report.Report" -t _Measures -n "YoY Growth" \
   -e 'DIVIDE([Sales]-[PY Sales],[PY Sales])' --data-type Double
 pbir dax measures add "Report.Report" -t _Fmt -n "StatusColor" \
   -e 'IF([Sales]>[Target],"good","bad")' --data-type Text
-pbir dax measures update "Report.Report" "YoY Growth" -e '<new expression>'  # edit an existing measure
+pbir dax measures update "Report.Report" "_Measures.YoY Growth" -e '<new expression>'
+pbir dax measures update "Report.Report" "_Measures.YoY Growth" --expression-file measure.dax  # preferred for long DAX
 pbir dax measures rename "Report.Report" "OldName" "NewName"
 pbir rm "Report.Report" --measure "MeasureName" -f         # remove ONE measure
 pbir dax measures clear "Report.Report" -f                 # remove ALL measures (destructive); --table to scope, --dry-run to preview

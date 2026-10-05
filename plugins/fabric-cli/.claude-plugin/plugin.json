@@ -1,7 +1,7 @@
 {
   "name": "fabric-cli",
   "version": "26.26",
-  "description": "Fabric and the Power BI service via the fab CLI.",
+  "description": "Fabric and the Power BI service via the fab CLI, with a Fabric pane that follows fab.",
   "author": {
     "name": "Kurt Buhler",
     "url": "https://data-goblins.com"
@@ -9,6 +9,41 @@
   "homepage": "https://data-goblins.com",
   "repository": "https://github.com/InsightfulAnalytics/PBI_Agentic_Dev",
   "license": "GPL-3.0",
+  "types": "./types/index.d.ts",
+  "userConfig": {
+    "glyphs": {
+      "type": "string",
+      "title": "Glyphs",
+      "description": "Icon set: auto uses FabricSymbols NF when it and a Nerd Font are installed and your terminal started after they were, else Nerd Font, else plain Unicode; Nerd Font over SSH, plain Unicode in the desktop app. Auto detection covers Linux and macOS; on Windows pick one to force it.",
+      "default": "auto",
+      "options": [
+        "auto",
+        "fabric",
+        "nerd",
+        "plain"
+      ]
+    },
+    "follow": {
+      "type": "string",
+      "title": "Follow Claude",
+      "description": "on: the tree scrolls to what Claude reads, downloads, uploads or changes. off: the view stays where you put it and only your own scrolling moves it; highlights still show.",
+      "default": "on",
+      "options": [
+        "on",
+        "off"
+      ]
+    },
+    "fontHint": {
+      "type": "string",
+      "title": "Font hint",
+      "description": "on: when auto icons fall back to plain Unicode, Claude is told once per session where to get the fonts. off: no hint.",
+      "default": "on",
+      "options": [
+        "on",
+        "off"
+      ]
+    }
+  },
   "keywords": [
     "power-bi",
     "fabric",
@@ -16,6 +51,8 @@
     "fab",
     "semantic-model",
     "workspace",
-    "lakehouse"
+    "lakehouse",
+    "mod",
+    "explorer"
   ]
 }

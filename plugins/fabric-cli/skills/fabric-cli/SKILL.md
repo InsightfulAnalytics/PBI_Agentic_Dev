@@ -1,7 +1,7 @@
 ---
 name: fabric-cli
 version: 26.26
-description: Expert guidance for using the Fabric CLI (`fab`) to fully interact with Fabric workspaces, items, and configuration. Automatically invoke this skill whenever the user mentions "Fabric" or "Power BI Service" or a "Fabric/Power BI workspace".
+description: "Expert guidance for the Fabric CLI (`fab`) and the Fabric and Power BI REST APIs: workspaces, items, lakehouses, notebooks, pipelines, semantic models, reports, capacities, OneLake, deployment and admin. Also estimates the capacity units (CU) an operation will consume and its impact on the capacity before running it. Automatically invoke whenever the user mentions Fabric, Power BI Service, a Fabric or Power BI workspace, a capacity or F SKU, OneLake, `fab`, or asks to create, run, refresh, schedule, deploy or delete anything in Fabric, including preview items such as Plan, Ontology, Graph or Copilot."
 ---
 
 # Fabric CLI
@@ -120,9 +120,20 @@ are per-machine and per-user.
 - Before first use, ask the user if they have Fabric admin access, sensitivity labels or DLP policies, any API restrictions, or preferences for Fabric/Power BI API usage; remind user to add this to memory files
 - If workspace or item name is unclear, ask the user first, then verify with `fab ls` or `fab exists` before proceeding
 - Ensure that you avoid removing or moving items, workspaces, or definitions, or changing properties without explicit user direction
+- IMPORTANT: Before any operation that consumes capacity units (creating items, running notebooks, pipelines or refreshes, large queries, Copilot, preview items such as Plan, Ontology or Graph, anything scheduled), estimate its CU-hours and its impact on the capacity, and get explicit user approval when the charge is flat or per session, exceeds a quarter of the capacity's daily CU-hours, recurs, cannot be estimated, or the capacity already throttles; a user naming a feature is not consent to its cost. See [Capacity cost](#capacity-cost-estimate-before-acting) and [capacity-cost.md](./references/capacity-cost.md)
 - If a command is blocked in your permissions and you try to use it, stop and ask the user for clarification; never try to circumvent it
 - Create output directories before export: `fab export` does not create intermediate directories; `mkdir -p` the output path first or the command fails with `[InvalidPath]`
 
+
+### Capacity cost: estimate before acting
+
+Bursting hides cost: operations finish fast and their CUs are smoothed into the next 5 to 64 minutes (interactive) or 24 hours (background). On a small F SKU one operation can use more than a day of capacity, and the carry forward then throttles every workspace on it until idle capacity pays it back, which on an F2 can take weeks.
+
+- Check the capacity first: `fab ls .capacities -l` for SKU and state; the Monitoring hub capacity page for utilization, throttling and carry forward. Any carry forward means no headroom
+- Estimate the operation in CU-hours and EUR, and as a share of the SKU's daily budget (an F<n> has 24 * n CU-hours a day; an F2 has 48)
+- Know the flat charges: Plan (preview) bills 30-day sessions per user (Planner 847, Stakeholder 168, Viewer 37 CU-hours); creating and editing a plan by REST was billed as a Stakeholder session (168 CU-h), and a session cannot be ended or refunded
+- Pausing (`fab stop`) bills the whole carry forward at once and clears throttling; scaling up burns it down faster at a similar total cost
+- Full thresholds, formulas, known charges and where to see what an operation cost: [capacity-cost.md](./references/capacity-cost.md)
 
 ### Use `-f` (force) for non-interactive use
 
@@ -683,6 +694,7 @@ governance / deploy
 - [Gateways](./references/gateways.md) - Datasources, credentials, dataset binding
 - [Folders](./references/folders.md) - Organize items into folders via API; includes best practices for structuring workspaces
 - [Tags](./references/tags.md) - Create, apply, and audit tenant/domain tags on items and workspaces via `fab api` (no native `fab tag` command)
+- [Capacity cost](./references/capacity-cost.md) - Estimate CU-hours and capacity impact before acting: SKU budgets, smoothing, throttling stages, carry forward and burndown, pause billing, known flat charges (Plan, Ontology, Copilot)
 - [fab vs az CLI](./references/fab-vs-az-cli.md) - When to use which; capacity, networking, Key Vault, monitoring, CMK, CI/CD
 - [Admin APIs](./references/admin.md) - Cross-workspace search, tenant operations, governance
 - [API Reference](./references/fab-api.md) - Capacities, domains, misc API patterns
@@ -701,6 +713,7 @@ governance / deploy
 - [download_workspace.py](./scripts/download_workspace.py) ; download a full workspace with all item definitions and lakehouse files
 - [run_notebook_checked.py](./scripts/run_notebook_checked.py) ; run a notebook and check its exit value, exiting non-zero when the notebook's own `{ok:false}` verdict fails despite a `Completed` job status (reads the exit value via the notebook job-instance beta endpoint)
 - [deploy_notebook.py](./scripts/deploy_notebook.py) ; create or update a notebook definition fast (~1-2s) by tight-polling the LRO instead of the CLI's ~20s `Retry-After` cadence; auto-detects create vs update, `--poll-interval` is the performance lever. Strongly prefer this over `fab import` / `nb` for any notebook definition change
+- [task_flow.py](./scripts/task_flow.py) ; create, update, export or delete a workspace task flow from a JSON spec (tasks, items as `<displayName>.<Type>`, edges) through the internal metadata endpoints the Fabric UI uses; no public API or `fab` command exists for task flows
 
 See [scripts/README.md](./scripts/README.md) for detailed usage, arguments, and examples. Always search the `scripts/` folder before writing a new helper; a script may already exist for the task.
 
