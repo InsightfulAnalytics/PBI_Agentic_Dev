@@ -58,6 +58,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `find_title_textboxes.py` check; and the `pbir` title commands writing apostrophes undoubled
   (`pbir-cli` CLI traps). Corrected the subtitle font size in `page-titles.md` from 11 to the
   canon's 12pt floor, and a `pbir visuals format -p title.text` example the CLI rejects.
+- Harvested upstream 26.40.0 to 26.40.2 (2026-10-05) without its `databricks-cli` plugin.
+  `pbir-cli/SKILL.md` keeps the fork's `pbi-verify-loop` pointer and Linux route under "Desktop
+  Integration" in place of upstream's condensed paragraph. The fork's
+  `modifying-theme-json/references/advanced-theme-features.md` now greps for `"stylePreset"`, the key
+  a visual actually writes, in place of `"styleName"`. Upstream's new `fabric-cli` `task_flow.py`
+  resolves `az` with `shutil.which`, as the fork's other token scripts already do, so it runs on
+  Windows.
 
 ### Fork-owned files, for upstream harvest resolution
 
