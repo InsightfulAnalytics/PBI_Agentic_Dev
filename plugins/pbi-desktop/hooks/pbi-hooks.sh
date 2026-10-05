@@ -54,29 +54,31 @@ fi
 
 # #region Config
 
-config_is_enabled() {
-    # Checks if a config key is enabled in config.yaml.
-    # Returns 0 (true) if key is missing or set to anything other than "false".
+config_value() {
+    # Prints a config.yaml value lowercased, with any inline "# comment" and whitespace removed.
     local key="$1"
-    if [[ ! -f "$CONFIG_PATH" ]]; then
-        return 0
-    fi
+    [[ -f "$CONFIG_PATH" ]] || return 0
+    grep -E "^${key}:" "$CONFIG_PATH" 2>/dev/null | head -1 | sed 's/^[^:]*://; s/#.*$//' | tr -d '[:space:]' | tr '[:upper:]' '[:lower:]'
+}
+
+config_is_enabled() {
+    # Default-on check: returns 0 (true) unless the key is set to false/no/off/0.
     local val
-    val=$(grep -E "^${key}:" "$CONFIG_PATH" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | tr -d '[:space:]')
-    if [[ "$val" == "false" ]]; then
-        return 1
-    fi
+    val="$(config_value "$1")"
+    case "$val" in
+        false|no|off|0) return 1 ;;
+    esac
     return 0
 }
 
-config_is_explicitly_enabled() {
-    # Opt-in variant for keys guarding irreversible actions: returns 0 ONLY if
-    # the key is present and set to "true". Missing file or key means disabled.
-    local key="$1"
-    [[ -f "$CONFIG_PATH" ]] || return 1
+config_is_true() {
+    # Opt-in check for irreversible actions: returns 0 only when the key is explicitly true/yes/on/1.
     local val
-    val=$(grep -E "^${key}:" "$CONFIG_PATH" 2>/dev/null | head -1 | sed 's/^[^:]*: *//' | tr -d '[:space:]')
-    [[ "$val" == "true" ]]
+    val="$(config_value "$1")"
+    case "$val" in
+        true|yes|on|1) return 0 ;;
+    esac
+    return 1
 }
 
 # #endregion
@@ -205,8 +207,15 @@ extract_bracket_refs() {
     # Filters out: ["..."], ['...'], [$...], [@...], [0], etc.
     local text="$1"
 
-    echo "$text" | grep -oE '\[[^]]+\]' | while IFS= read -r ref; do
+    echo "$text" | grep -oE '\[[^]]+\](::|@\{|\$)?' | while IFS= read -r ref; do
+        # Skip PowerShell type syntax: [Math]::Round, [PSCustomObject]@{...}, [int]$x
+        case "$ref" in
+            *']::'|*']@{'|*']$') continue ;;
+        esac
         local content="${ref:1:${#ref}-2}"
+
+        # Skip array type annotations like [string[]] (matched as "string[")
+        if [[ "$content" == *"["* ]]; then continue; fi
 
         # Skip indexers and qualified refs
         case "$content" in
@@ -258,42 +267,22 @@ has_dax_context() {
 
 suggest_match() {
     # Finds close matches for a name in a list.
-    # Outputs up to $3 suggestions, trying exact (case-insensitive), then substring.
+    # Outputs up to $3 suggestions, trying exact (case-insensitive), then substring, then first word.
     local needle="$1"
     local haystack="$2"
     local max="${3:-3}"
-    local needle_lower
-    needle_lower="$(echo "$needle" | tr '[:upper:]' '[:lower:]')"
+    local found
 
-    # Pass 1: case-insensitive exact
-    local exact
-    exact=$(echo "$haystack" | while IFS= read -r item; do
-        local item_lower
-        item_lower="$(echo "$item" | tr '[:upper:]' '[:lower:]')"
-        if [[ "$item_lower" == "$needle_lower" ]]; then echo "$item"; fi
-    done | head -n "$max")
-    if [[ -n "$exact" ]]; then echo "$exact"; return; fi
+    found=$(printf '%s\n' "$haystack" | grep -iFx -- "$needle" | head -n "$max")
+    if [[ -n "$found" ]]; then echo "$found"; return; fi
 
-    # Pass 2: substring match
-    local contains
-    contains=$(echo "$haystack" | while IFS= read -r item; do
-        local item_lower
-        item_lower="$(echo "$item" | tr '[:upper:]' '[:lower:]')"
-        if [[ "$item_lower" == *"$needle_lower"* ]]; then echo "$item"; fi
-    done | head -n "$max")
-    if [[ -n "$contains" ]]; then echo "$contains"; return; fi
+    found=$(printf '%s\n' "$haystack" | grep -iF -- "$needle" | head -n "$max")
+    if [[ -n "$found" ]]; then echo "$found"; return; fi
 
-    # Pass 3: first word
     local first_word
     first_word="$(echo "$needle" | awk '{print $1}')"
     if [[ ${#first_word} -ge 3 ]]; then
-        local fw_lower
-        fw_lower="$(echo "$first_word" | tr '[:upper:]' '[:lower:]')"
-        echo "$haystack" | while IFS= read -r item; do
-            local item_lower
-            item_lower="$(echo "$item" | tr '[:upper:]' '[:lower:]')"
-            if [[ "$item_lower" == *"$fw_lower"* ]]; then echo "$item"; fi
-        done | head -n "$max"
+        printf '%s\n' "$haystack" | grep -iF -- "$first_word" | head -n "$max"
     fi
 }
 
@@ -352,9 +341,10 @@ cmd_validate_dax() {
             # Skip DEFINE MEASURE targets
             if [[ -n "$defined_measures" ]] && echo "$defined_measures" | grep -qxF "$ref_col"; then
                 # Also check table match for the DEFINE target
-                local is_define_target=false
-                echo "$command_text" | grep -ioE "MEASURE[[:space:]]+'${ref_table}'\[${ref_col}\]" &>/dev/null && is_define_target=true
-                if $is_define_target; then continue; fi
+                local flat_text needle
+                flat_text="$(printf '%s' "$command_text" | tr '[:upper:]' '[:lower:]' | tr -s '[:space:]' ' ')"
+                needle="$(printf "measure '%s'[%s]" "$ref_table" "$ref_col" | tr '[:upper:]' '[:lower:]')"
+                if [[ "$flat_text" == *"$needle"* ]]; then continue; fi
             fi
 
             # Check table exists
@@ -366,12 +356,15 @@ cmd_validate_dax() {
                 continue
             fi
 
+            # A table-qualified measure reference is valid DAX
+            if echo "$all_measures_json" | grep -qxF "${ref_table}	${ref_col}" 2>/dev/null; then continue; fi
+
             # Check column exists in table
             if ! echo "$all_columns_json" | grep -qP "^\Q${ref_table}\E\t\Q${ref_col}\E$" 2>/dev/null; then
                 # Fallback for systems without -P
                 if ! echo "$all_columns_json" | grep -qxF "${ref_table}	${ref_col}" 2>/dev/null; then
                     local table_cols suggestions hint
-                    table_cols=$(echo "$all_columns_json" | grep "^${ref_table}	" | cut -f2)
+                    table_cols=$(echo "$all_columns_json" | awk -F'\t' -v t="$ref_table" '$1 == t { print $2 }')
                     suggestions="$(suggest_match "$ref_col" "$table_cols")"
                     hint="$(format_suggestions "$suggestions")"
                     errors="${errors}Column [${ref_col}] does not exist in table '${ref_table}'.${hint} "
@@ -453,7 +446,7 @@ cmd_validate_measure() {
     lower="$(echo "$command_text" | tr '[:upper:]' '[:lower:]')"
 
     # Check DisplayFolder
-    if ! echo "$command_text" | grep -qE '\.DisplayFolder[[:space:]]*=' 2>/dev/null; then
+    if ! echo "$command_text" | grep -qE '\bDisplayFolder[[:space:]]*=' 2>/dev/null; then
         missing="${missing}DisplayFolder, "
     fi
 
@@ -505,9 +498,10 @@ cmd_refresh_cache() {
 
     $is_connect || $is_modification || exit 0
 
-    # Resolve port
+    # Resolve port: an explicit -Port argument first, then a literal localhost:N in the script
     local port=""
-    if $is_connect; then
+    port=$(echo "$raw_command" | grep -oiE '(^|[[:space:]])-Port[[:space:]]+[0-9]+' | head -1 | grep -oE '[0-9]+$')
+    if [[ -z "$port" ]] && $is_connect; then
         port=$(echo "$command_text" | grep -oE 'localhost:[0-9]+' | head -1 | cut -d: -f2)
     fi
 
@@ -521,9 +515,7 @@ cmd_refresh_cache() {
     local metadata_out="$PROJECT_DIR/tmp/model-metadata.json"
 
     mkdir -p "$(dirname "$metadata_out")" 2>/dev/null || true
-    run_powershell_script "$snapshot_script" "-Port $port" "-OutFile \"$(convert_to_exec_path "$metadata_out")\""
-
-    rm -f "$COMPAT_MARKER_PATH" 2>/dev/null || true
+    run_powershell_script "$snapshot_script" -Port "$port" -OutFile "$(convert_to_exec_path "$metadata_out")"
 }
 
 # #endregion
@@ -560,7 +552,7 @@ cmd_check_ri() {
 
     local ri_script="$HOOK_DIR/check-referential-integrity.ps1"
     local output
-    output="$(run_powershell_script_capture "$ri_script" "-Port $port")"
+    output="$(run_powershell_script_capture "$ri_script" -Port "$port")"
 
     if echo "$output" | grep -qE 'UNMATCHED_MANY_SIDE|SILENT_EXCLUSION|ASSUME_RI_RISK'; then
         echo "Referential integrity issues detected:" >&2
@@ -591,7 +583,7 @@ cmd_check_ri() {
 # #region Subcommand: check-compat
 
 cmd_check_compat() {
-    config_is_enabled "compatibility_check" || config_is_explicitly_enabled "compatibility_auto_upgrade" || exit 0
+    config_is_enabled "compatibility_check" || config_is_true "compatibility_auto_upgrade" || exit 0
 
     local tool_name
     tool_name="$(extract_tool_name)"
@@ -677,16 +669,15 @@ cmd_check_compat() {
     echo "Model compatibility level is ${current_cl} (engine supports up to ${max_cl}). Features available by upgrading:" >&2
     printf '%b' "$missing_output" >&2
 
-    # Auto-upgrade only when explicitly opted in (irreversible model change):
-    # a missing config.yaml or missing key must NOT trigger it.
-    if config_is_explicitly_enabled "compatibility_auto_upgrade"; then
+    # Auto-upgrade if enabled
+    if config_is_true "compatibility_auto_upgrade"; then
         local upgrade_script="\$basePath = \"\$env:TEMP\\tom_nuget\\Microsoft.AnalysisServices.retail.amd64\\lib\\net45\"; Add-Type -Path \"\$basePath\\Microsoft.AnalysisServices.Core.dll\"; Add-Type -Path \"\$basePath\\Microsoft.AnalysisServices.Tabular.dll\"; \$server = New-Object Microsoft.AnalysisServices.Tabular.Server; \$server.Connect(\"Data Source=localhost:${port}\"); \$server.Databases[0].CompatibilityLevel = ${max_cl}; \$server.Databases[0].Model.SaveChanges(); Write-Output \"Upgraded to CL ${max_cl}\"; \$server.Disconnect()"
-        local upgrade_out
-        upgrade_out="$(run_powershell_inline "$upgrade_script")"
-        if [[ "$upgrade_out" == *"Upgraded to CL ${max_cl}"* ]]; then
+        local upgrade_output
+        upgrade_output="$(run_powershell_inline "$upgrade_script")"
+        if [[ "$upgrade_output" == *"Upgraded to CL ${max_cl}"* ]]; then
             echo "Compatibility level auto-upgraded from ${current_cl} to ${max_cl}." >&2
         else
-            echo "Auto-upgrade was attempted but could not be confirmed; compatibility level may still be ${current_cl}. Verify via TOM." >&2
+            echo "Compatibility level auto-upgrade to ${max_cl} did not complete; the model is still at ${current_cl}." >&2
         fi
     else
         echo "Check Microsoft documentation for these features to see if any would benefit this model. To upgrade, set \$db.CompatibilityLevel = ${max_cl} via TOM and call \$model.SaveChanges(). There are no known downsides to upgrading; only benefits. However, it is irreversible; ask the user before proceeding." >&2
@@ -735,6 +726,15 @@ run_powershell_inline() {
     fi
 }
 
+quote_cmd_args() {
+    # Quotes each argument for a cmd.exe command line, escaping embedded double quotes.
+    local out="" arg
+    for arg in "$@"; do
+        out="${out} \"${arg//\"/\\\"}\""
+    done
+    printf '%s' "$out"
+}
+
 run_powershell_script() {
     local script="$1"
     shift
@@ -744,12 +744,9 @@ run_powershell_script() {
     vm="$(find_parallels_vm)"
 
     if [[ -n "$vm" ]]; then
-        prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$exec_path\" $*" 2>/dev/null || true
+        prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$exec_path\"$(quote_cmd_args "$@")" 2>/dev/null || true
     elif command -v powershell.exe &>/dev/null; then
-        # Callers pass pre-quoted arg strings ("-Port 4000", "-OutFile \"...\"").
-        # -File would bind each string as ONE parameter name and fail, so flatten
-        # via -Command exactly like the Parallels branch above.
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& \"$exec_path\" $*" 2>/dev/null || true
+        powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$exec_path" "$@" 2>/dev/null || true
     fi
 }
 
@@ -762,10 +759,9 @@ run_powershell_script_capture() {
     vm="$(find_parallels_vm)"
 
     if [[ -n "$vm" ]]; then
-        prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"$exec_path\" $*" 2>/dev/null || true
+        prlctl exec "$vm" cmd.exe /c "powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File \"$exec_path\"$(quote_cmd_args "$@")" 2>/dev/null || true
     elif command -v powershell.exe &>/dev/null; then
-        # Same pre-quoted-args contract as run_powershell_script: flatten via -Command.
-        powershell.exe -NoProfile -ExecutionPolicy Bypass -Command "& \"$exec_path\" $*" 2>/dev/null || true
+        powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -File "$exec_path" "$@" 2>/dev/null || true
     fi
 }
 
@@ -812,7 +808,7 @@ case "$SUBCOMMAND" in
     validate-dax)             [[ "$GATE_CMD" == *tom_nuget* ]] || gate_is_model_ps1 || exit 0 ;;
     validate-measure)         [[ "$GATE_CMD" == *Measures.Add* ]] || gate_is_model_ps1 || exit 0 ;;
     refresh-cache|check-compat) gate_is_model_ps1 || exit 0 ;;
-    check-ri)                 [[ "$GATE_CMD" == *SaveChanges* ]] || exit 0 ;;
+    check-ri)                 [[ "$GATE_CMD" == *SaveChanges* ]] || { gate_is_model_ps1 && [[ "$(resolve_command_text "$GATE_CMD")" == *SaveChanges* ]]; } || exit 0 ;;
 esac
 
 case "$SUBCOMMAND" in

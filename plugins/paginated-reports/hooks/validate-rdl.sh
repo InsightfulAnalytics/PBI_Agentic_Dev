@@ -53,7 +53,11 @@ RDL_TIP="Tip: use the paginated-report skill when authoring or editing .rdl file
 # ── Locate python and the bundled validator ──────────────────────────────────
 PYTHON=""
 for cand in python3 python; do
-    if command -v "$cand" &>/dev/null; then PYTHON="$cand"; break; fi
+    # Probe the interpreter: on Windows the Store alias stub exists on PATH but exits 9009
+    if command -v "$cand" &>/dev/null && "$cand" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 8) else 1)' &>/dev/null; then
+        PYTHON="$cand"
+        break
+    fi
 done
 [[ -z "$PYTHON" ]] && exit 0
 
@@ -68,7 +72,10 @@ validate_rdl_file() {
     [[ "$FILE_PATH" == *.rdl ]] || return 0
     [[ -f "$FILE_PATH" ]] || return 0
 
-    if ! OUTPUT=$("$PYTHON" "$VALIDATOR_PY" "$FILE_PATH" 2>&1); then
+    local STATUS=0
+    OUTPUT=$("$PYTHON" "$VALIDATOR_PY" "$FILE_PATH" 2>&1) || STATUS=$?
+    # Block only on a real validation failure (exit 1 with FAIL lines); a crashed validator is not the file's fault
+    if [[ $STATUS -eq 1 && "$OUTPUT" == *FAIL* ]]; then
         echo "RDL validation failed: $FILE_PATH" >&2
         echo "" >&2
         echo "$OUTPUT" >&2

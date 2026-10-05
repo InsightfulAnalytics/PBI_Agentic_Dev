@@ -15,6 +15,8 @@ Requirements:
     pip install jsonschema
 """
 
+from __future__ import annotations
+
 #region Imports
 
 import json

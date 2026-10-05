@@ -60,14 +60,6 @@ else
         fi
     fi
 
-    # Keep the behind-count honest -- what `git fetch` would reveal -- without
-    # ever blocking the render. Same non-blocking pattern as the PR lookup: a TTL
-    # stamp + lock dir gate a DETACHED `git fetch`. ADO bare-fetch auth goes stale,
-    # so for dev.azure.com/visualstudio remotes we inject the PAT via the op
-    # service account (same path as the ado-git wrapper); falls back to a bare
-    # fetch when op/keychain aren't present. repo_root is usually already set by
-    # 02-host-cwd.sh.
-    # On-disk cache shared by this repo's background-refreshed values (fetch + LOC).
     FCACHE="${XDG_CACHE_HOME:-$HOME/.cache}/statusline"
     mkdir -p "$FCACHE" 2>/dev/null
     fkey=$(printf '%s' "$repo_root" | sha1sum 2>/dev/null | cut -d' ' -f1)
@@ -93,11 +85,21 @@ else
                   export GIT_TERMINAL_PROMPT=0
                   case "$fetch_remote_url" in
                       *dev.azure.com*|*visualstudio.com*)
-                          sa_tok=$(security find-generic-password -s 'op-te-service-account' -w 2>/dev/null)
-                          if [ -n "$sa_tok" ] && command -v op >/dev/null 2>&1; then
-                              export OP_SERVICE_ACCOUNT_TOKEN="$sa_tok"
-                              export ADO_PAT='op://Tabular Editor/ADO Innovation PAT/password'
-                              _timeout 20 op run -- bash -c \
+                          statusline_ado_pat=""
+                          if [ "$(uname -s)" = Darwin ]; then
+                              credential_dir="${XDG_CONFIG_HOME:-$HOME/.config}/agent-credentials"
+                              pat_file="$credential_dir/ado-code-read.pat"
+                              if [ -f "$pat_file" ] && [ ! -L "$pat_file" ] \
+                                 && [ "$(stat -f '%OLp' "$credential_dir" 2>/dev/null)" = 700 ] \
+                                 && [ "$(stat -f '%OLp' "$pat_file" 2>/dev/null)" = 600 ] \
+                                 && [ "$(stat -f '%u' "$credential_dir" 2>/dev/null)" = "$(id -u)" ] \
+                                 && [ "$(stat -f '%u' "$pat_file" 2>/dev/null)" = "$(id -u)" ]; then
+                                  statusline_ado_pat="$(<"$pat_file")"
+                              fi
+                          fi
+                          if [ -n "$statusline_ado_pat" ]; then
+                              export ADO_PAT="$statusline_ado_pat"
+                              _timeout 20 bash -c \
                                   'git -C "$1" -c http.extraheader="Authorization: Basic $(printf ":%s" "$ADO_PAT" | base64 | tr -d "\n")" fetch --quiet' \
                                   _ "$repo_root"
                               exit 0
@@ -193,7 +195,7 @@ else
                                     ado_project="${BASH_REMATCH[2]}"
                                     ado_repo="${BASH_REMATCH[3]}"
                                 fi
-                                # Project name may be URL-encoded ("Tabular%20Editor%20Learn")
+                                # Project name may be URL-encoded ("My%20Project")
                                 if [ -n "$ado_project" ] && command -v python3 >/dev/null 2>&1; then
                                     ado_project=$(python3 -c 'import sys,urllib.parse;print(urllib.parse.unquote(sys.argv[1]))' "$ado_project" 2>/dev/null || printf '%s' "$ado_project")
                                 fi
