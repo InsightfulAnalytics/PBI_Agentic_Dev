@@ -121,10 +121,10 @@ from GitHub, including a `github`-source Codespace.
 The 11 plugins you can personalize:
 `semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`,
 `fabric-admin`, `paginated-reports`, `etl`, and `fabric-data-app` (harvested 2026-10-05; it holds
-only the `/data-app-pane` mod, no skills).
+only the `/fabric-app-pane` mod, no skills).
 
 Upstream 26.40 added Claude Code mods: sidebar panes that follow a CLI (`/fabric-pane` in
-`fabric-cli`, `/report-pane` in `reports`, `/data-app-pane` in `fabric-data-app`). They live in each
+`fabric-cli`, `/report-pane` in `reports`, `/fabric-app-pane` in `fabric-data-app`). They live in each
 plugin's `hooks/` folder as TypeScript modules, need Claude Code 2.1.287 or newer and the fullscreen
 layout, and take their `glyphs`, `follow` and `fontHint` options from the plugin's `userConfig`. On
 Windows, set `glyphs` explicitly; auto detection covers only Linux and macOS.
