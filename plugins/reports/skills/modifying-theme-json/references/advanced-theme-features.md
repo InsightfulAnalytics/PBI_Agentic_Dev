@@ -33,10 +33,11 @@ Key mechanics:
 
 ```bash
 # Check for visual.json references to a named preset before deleting it
-grep -r "\"styleName\"" Report.Report/definition/pages/
+# (a visual stores its choice in visualContainerObjects.stylePreset[].properties.name)
+grep -rn -A6 "\"stylePreset\"" Report.Report/definition/pages/
 ```
 
-No `pbir` command authors theme presets; edit the visual-type file in the serialized `.Theme` folder and rebuild.
+Selecting a preset on visuals and authoring presets with `pbir` (`theme set-formatting`, `theme push-visual --preset`, and where the 0.9.x CLI writes the wrong shape): see `style-presets.md`. Where the CLI cannot write the preset cleanly, edit the visual-type file in the serialized `.Theme` folder and rebuild.
 
 ---
 

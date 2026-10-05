@@ -1,7 +1,7 @@
 ---
 name: modifying-theme-json
 version: 26.26
-description: Design, enforce, audit, and validate Power BI report themes. This skill MUST be invoked when a report uses the default or built-in theme, has a minimal custom theme (few or no visualStyles), or has accumulated many visual-level formatting overrides (objects/visualContainerObjects in visual.json); these are signs the theme needs attention. Also automatically invoke when the user asks to "create a theme", "design a theme", "enforce theme compliance", "audit theme adherence", "push formatting to theme", "clear visual overrides", "standardize report formatting", "update theme colors", "change theme typography", "set theme text classes", "validate a theme", "add visual-type overrides to the theme", "copy a theme", "download a theme", "apply a template", or mentions theme design, enforcement, compliance, or visual formatting inconsistency.
+description: Design, enforce, audit, and validate Power BI report themes. This skill MUST be invoked when a report uses the default or built-in theme, has a minimal custom theme (few or no visualStyles), or has accumulated many visual-level formatting overrides (objects/visualContainerObjects in visual.json); these are signs the theme needs attention. Also automatically invoke when the user asks to "create a theme", "design a theme", "enforce theme compliance", "audit theme adherence", "push formatting to theme", "clear visual overrides", "standardize report formatting", "update theme colors", "change theme typography", "set theme text classes", "validate a theme", "add visual-type overrides to the theme", "define style presets", "copy a theme", "download a theme", "apply a template", or mentions theme design, enforcement, compliance, or visual formatting inconsistency.
 ---
 
 # Power BI Report Themes
@@ -43,6 +43,10 @@ Level 4  Visual instance    visual.json objects +            overrides everythin
                             visualContainerObjects
 ```
 
+A visual that selects a named style preset adds a step between levels 3 and 4: the preset
+(`visualStyles["<type>"]["<preset>"]`) overrides the type's `"*"` style, and level 4 still wins over
+it. See **`references/style-presets.md`**.
+
 ### Core Principle
 
 Push as much formatting as possible into levels 2 and 3. A well-designed theme means:
@@ -58,7 +62,7 @@ Visual-level overrides (level 4) should exist only for true one-offs: content-sp
 When a visual renders unexpectedly, walk up the cascade:
 
 1. Check `visual.json` → `objects` and `visualContainerObjects` (level 4 always wins)
-2. Check theme `visualStyles["<type>"]["*"]` for that visual type (level 3)
+2. Check the named style preset the visual selects (`visualContainerObjects.stylePreset`), then theme `visualStyles["<type>"]["*"]` for that visual type (level 3)
 3. Check theme `visualStyles["*"]["*"]` wildcard (level 2)
 4. If absent everywhere, Power BI is applying a built-in default
 
@@ -310,6 +314,7 @@ For `visualStyles`: named style presets are a second key alongside `"*"` inside 
 ## References
 
 - **`references/theme-authoring.md`** — Color system design (data colors, semantic, structural, null gradient), text class inheritance, `$id` filter-card states, wildcard minimum set, schema version guidance
+- **`references/style-presets.md`**: named style presets per visual type, the default preset, selecting a preset on visuals and authoring presets with `pbir`
 - **`references/advanced-theme-features.md`** — Named style presets (Format-pane dropdown), base theme layering model, organizational theme distribution, mobile-only formatting overrides
 - **`references/serialize-build.md`** — Serialize/build workflow: splitting themes into editable files, editing, rebuilding, validation, temporary folder guidance
 - **`references/applying-themes.md`** — Applying templates, post-apply enforcement, clearing visual overrides, normalizing hardcoded colors

@@ -65,7 +65,7 @@ pbir set "Visual.Visual.lineStyles.showMarker" --value false
 pbir visuals labels "Visual.Visual" --no-show
 ```
 
-6. **Use series labels with leader lines instead of a legend** for 2-3 series. Alternatively, set the legend to top center. Series labels place the label at the end of each line, removing the need for the reader to cross-reference a legend
+6. **Use either end labels or a compact legend.** End labels reduce eye travel; a right-center legend is useful when the latest point also needs a large value label and the plot has enough width.
 
 ```bash
 # Option A: series labels with leader lines
@@ -75,24 +75,37 @@ pbir visuals legend "Visual.Visual" --no-show
 
 # Option B: legend at top center
 pbir visuals legend "Visual.Visual" --show --position TopCenter
+
+# Option C: compact legend on the right
+pbir visuals legend "Visual.Visual" --show --position RightCenter \
+  --no-showTitle --fontSize 9 --fontColor "#64748B"
 ```
 
-7. **Latest data point label (optional).** To label only the most recent data point, create an extension measure that returns the value only at the latest period and BLANK() otherwise. Bind it as a separate Y series, enable markers and data labels for that series only, and disable the legend and series labels
+7. **Latest data point label (optional).** To label only the most recent data point, create an extension measure that returns the value only at the latest selected period and BLANK() otherwise. Bind it as a separate Y series, enable markers and data labels for that series only, and give it a short display name such as `Latest` if the legend remains visible.
 
 ```bash
 # Create extension measure for latest point
 pbir dax measures add "Report.Report" -t _Fmt -n "Revenue Latest" \
-  -e "IF(MAX('Date'[Calendar Month #]) = CALCULATE(MAX('Date'[Calendar Month #]), ALLSELECTED('Date')), [Revenue], BLANK())"
+  -e "VAR _latest = CALCULATE(MAX('Date'[Calendar Year Month]), ALLSELECTED('Date')) RETURN IF(SELECTEDVALUE('Date'[Calendar Year Month]) = _latest, [Revenue])" \
+  -d Double
 
 # Bind as additional series
 pbir visuals bind "Visual.Visual" -a "Y:_Fmt.Revenue Latest" -t Measure
 
 # Enable marker and label only for latest-point series
 pbir set "Visual.Visual.lineStyles.field(_Fmt.Revenue Latest).showMarker" --value true
+pbir set "Visual.Visual.lineStyles.field(_Fmt.Revenue Latest).markerSize" --value 9
+pbir set "Visual.Visual.lineStyles.field(_Fmt.Revenue Latest).markerColor" --value "#FFFFFF"
+pbir set "Visual.Visual.lineStyles.field(_Fmt.Revenue Latest).strokeWidth" --value 3
 pbir set "Visual.Visual.labels.field(_Fmt.Revenue Latest).show" --value true
+pbir set "Visual.Visual.labels.field(_Fmt.Revenue Latest).fontSize" --value 12
+pbir set "Visual.Visual.labels.field(_Fmt.Revenue Latest).bold" --value true
+```
 
-# Disable legend (series labels or leader lines identify the lines)
-pbir visuals legend "Visual.Visual" --no-show
+Before publishing, execute the visual query and confirm that the sparse series is blank for every row except the last:
+
+```bash
+pbir visuals query "Visual.Visual" --execute
 ```
 
 8. **Pin axis bounds with measures (optional).** Bind `valueAxis.start` and `valueAxis.end` to extension measures to control the Y-axis range dynamically. Common patterns: pin `start` to zero so the axis doesn't float; set `end` to 120% of the max value so the latest-point label has room. Use `pbir visuals cf --measure` for measure-bound axis properties
