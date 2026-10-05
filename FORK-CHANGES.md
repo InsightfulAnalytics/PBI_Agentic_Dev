@@ -65,6 +65,10 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   a visual actually writes, in place of `"styleName"`. Upstream's new `fabric-cli` `task_flow.py`
   resolves `az` with `shutil.which`, as the fork's other token scripts already do, so it runs on
   Windows.
+- Harvested upstream 26.40.3 (2026-10-05): the pane openers in `fabric-cli`, `reports` and
+  `fabric-data-app` (shared `hooks/open.ts`, which passes Windows paths and URLs literally to
+  ShellExecute and reports launch failures), taken whole since the fork never edits pane code.
+  The data app pane command is now `/fabric-app-pane`. `databricks-cli` and `goblin-mode` stay out.
 
 ### Fork-owned files, for upstream harvest resolution
 
