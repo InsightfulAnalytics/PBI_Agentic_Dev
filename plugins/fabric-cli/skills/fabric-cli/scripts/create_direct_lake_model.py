@@ -19,10 +19,11 @@ from pathlib import Path
 
 
 def run_fab(args: list[str]) -> str:
-    """Run fab command and return output."""
+    """Run a fab command and return its output; exit on failure."""
     result = subprocess.run(["fab"] + args, capture_output=True, text=True)
     if result.returncode != 0:
-        print(f"fab error: {result.stderr}", file=sys.stderr)
+        print(f"fab {' '.join(args[:2])} failed: {result.stderr.strip() or result.stdout.strip()}", file=sys.stderr)
+        sys.exit(1)
     return result.stdout.strip()
 
 
@@ -50,9 +51,9 @@ def get_table_schema(workspace: str, lakehouse: str, schema: str, table: str) ->
             in_data = True
             continue
         if in_data and line:
-            parts = line.split()
-            if len(parts) >= 2:
-                columns.append({"name": parts[0], "type": parts[1]})
+            parts = line.rsplit(None, 1)
+            if len(parts) == 2:
+                columns.append({"name": parts[0].strip(), "type": parts[1]})
     return columns
 
 
@@ -95,7 +96,7 @@ def create_expressions_tmdl(connection_string: str, endpoint_id: str) -> str:
 def create_table_tmdl(table_name: str, schema_name: str, columns: list) -> str:
     """Create table.tmdl content."""
     lines = [
-        f"table '{table_name}'",
+        f"table '{table_name.replace(chr(39), chr(39) * 2)}'",
         f"\tlineageTag: {uuid.uuid4()}",
         f"\tsourceLineageTag: [{schema_name}].[{table_name}]",
         ""
@@ -106,7 +107,7 @@ def create_table_tmdl(table_name: str, schema_name: str, columns: list) -> str:
         col_name = col['name']
         data_type = tmdl_data_type(col['type'])
         lines.extend([
-            f"\tcolumn '{col_name}'",
+            f"\tcolumn '{col_name.replace(chr(39), chr(39) * 2)}'",
             f"\t\tdataType: {data_type}",
             f"\t\tlineageTag: {uuid.uuid4()}",
             f"\t\tsourceLineageTag: {col_name}",
@@ -166,6 +167,7 @@ def main():
     parser.add_argument("source", help="Source: Workspace.Workspace/Lakehouse.Lakehouse")
     parser.add_argument("dest", help="Destination: Workspace.Workspace/Model.SemanticModel")
     parser.add_argument("-t", "--table", required=True, help="Table: schema.table_name")
+    parser.add_argument("--force", action="store_true", help="Overwrite the destination model if it already exists")
     args = parser.parse_args()
 
     # Parse source
@@ -197,6 +199,9 @@ def main():
     print(f"\nGetting table schema for {schema_name}.{table_name}...")
     columns = get_table_schema(src_workspace, src_lakehouse, schema_name, table_name)
     print(f"  Found {len(columns)} columns")
+    if not columns:
+        print("No columns found for the table; refusing to create an empty model.", file=sys.stderr)
+        sys.exit(1)
 
     # Create temp directory with TMDL
     with tempfile.TemporaryDirectory() as tmpdir:
@@ -230,6 +235,10 @@ def main():
         # Import to Fabric
         print(f"\nImporting to {dest_workspace}...")
         dest_path = f"{dest_workspace}/{model_name}.SemanticModel"
+        exists = subprocess.run(["fab", "exists", dest_path], capture_output=True, text=True)
+        if "true" in exists.stdout.lower() and not args.force:
+            print(f"{dest_path} already exists; pass --force to overwrite it.", file=sys.stderr)
+            sys.exit(1)
         result = run_fab(["import", dest_path, "-i", str(model_dir), "-f"])
         print(result)
 

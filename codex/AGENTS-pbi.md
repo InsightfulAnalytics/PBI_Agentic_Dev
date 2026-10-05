@@ -49,6 +49,7 @@ SessionStart hook; Codex has no hooks, so read it yourself.
 | TE | `te-docs` | Tabular Editor docs search; TE3 config files (.tmuo, Preferences.json, Layouts.json) |
 | Fabric | `fabric-cli` | Fabric CLI (`fab`) for any remote Power BI Service / Fabric operation |
 | Fabric | `audit-tenant-settings` | Audit Fabric/Power BI tenant settings, delegated overrides, security groups |
+| Fabric | `fabric-capacity` | Capacity busy or throttled, current utilization, carry forward, per-item CU from the Capacity Metrics model; start or pause a capacity |
 | Fabric | `executing-spark` | Run Python/PySpark on Fabric Spark via Livy (no notebook artifact) |
 | Fabric | `using-duckdb` | Query lakehouse/warehouse Delta data with DuckDB |
 | RDL | `paginated-report` | Author, validate, publish, render paginated (RDL) reports |

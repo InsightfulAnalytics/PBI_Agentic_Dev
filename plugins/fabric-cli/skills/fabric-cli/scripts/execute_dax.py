@@ -158,7 +158,7 @@ def format_results_as_table(results: dict) -> str:
                 output_lines.append("(No rows returned)")
                 continue
 
-            columns = list(rows[0].keys())
+            columns = list(dict.fromkeys(key for row in rows for key in row))
 
             widths = {col: len(col) for col in columns}
             for row in rows:
@@ -199,9 +199,9 @@ def format_results_as_csv(results: dict) -> str:
             rows = table.get("rows", [])
 
             if rows:
-                columns = list(rows[0].keys())
+                columns = list(dict.fromkeys(key for row in rows for key in row))
 
-                writer = csv.DictWriter(output, fieldnames=columns)
+                writer = csv.DictWriter(output, fieldnames=columns, restval="")
                 writer.writeheader()
                 writer.writerows(rows)
 

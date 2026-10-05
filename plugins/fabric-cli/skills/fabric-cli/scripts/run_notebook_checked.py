@@ -41,6 +41,8 @@ Requirements:
     job has already been kicked off.
 """
 
+from __future__ import annotations
+
 import argparse
 import json
 import re
@@ -384,8 +386,6 @@ def _emit(fmt: str, status: str, run_id: str, exit_value, verdict: str, summary:
             print(f"spark ui    : {detail['spark_ui_url']}")
         if detail.get("driver_log_url"):
             print(f"driver log  : {detail['driver_log_url']}")
-    if verdict != "OK" and detail.get("driver_log_url"):
-        print(f"driver log  : {detail['driver_log_url']}")
 
 
 if __name__ == "__main__":

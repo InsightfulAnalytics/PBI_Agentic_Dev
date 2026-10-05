@@ -182,6 +182,28 @@ Options:
 
 The `?beta=true` notebook job-instance route is an officially documented but Beta Fabric API (the GA status route does not expose `exitValue`); Microsoft marks it not-for-production and it may change. Requires `fab` and `az login`.
 
+### task_flow.py
+
+Create, update, export and delete a workspace task flow (the canvas at the top of the workspace view). Task flows have no public API and no `fab` command; the script calls the internal Power BI metadata endpoints the Fabric UI uses (`taskflow202602` to list, `taskflow202512` to write, `If-Match` on the etag), so it can break without notice.
+
+```bash
+python3 task_flow.py list "Sales"
+python3 task_flow.py get "Sales" > flow.json            # current flow as a spec apply takes back
+python3 task_flow.py apply "Sales" -s flow.json          # create, or update the existing flow in place
+python3 task_flow.py apply "Sales" -s flow.json --dry-run
+python3 task_flow.py delete "Sales" --flow "Order to cash"
+python3 task_flow.py types                               # public item type -> internal artifactType
+```
+
+A spec names tasks (`get data`, `store data`, `prepare data`, `develop`, `visualize`, ...), their canvas position, their items as `<displayName>.<Type>`, and edges between task keys; see the script docstring. Fabric items are stored as `<artifactType>:<guid>` with internal type names (Notebook is `SynapseNotebook`, GraphModel is `GraphIndex`); Power BI items keep a classic form the UI requires: report `2:<guid>`, semantic model `3:<numeric model id>`. Dashboards, paginated reports and datamarts are refused because their form has not been observed.
+
+Options:
+
+- `--flow` - Flow name, id or resourceId; needed only when a workspace has several
+- `--raw` - `get` prints the backend JSON instead of a spec
+- `--dry-run` - `apply` prints the request body and sends nothing
+- `--format` - Output format before the subcommand: text (default), json
+
 ### download_workspace.py
 
 Download complete workspace with all items and lakehouse files.
