@@ -1,6 +1,6 @@
 ---
 name: pbi-plan
-version: 26.26
+version: 26.40.3
 description: Plan a multi-session Power BI report or model build as a numbered ticket map with an HTML plan board. Use when the user asks to plan a build, map out a report, or resume a build that spans more than one session. User-invoked only, via /pbi-plan.
 disable-model-invocation: true
 ---

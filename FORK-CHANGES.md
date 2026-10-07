@@ -81,7 +81,7 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
 
 New files, so they merge at file granularity even though upstream owns the containing directory:
 
-- `LEARNINGS.md`, `.devcontainer/**`
+- `LEARNINGS.md`, `CHANGELOG.md`, `.devcontainer/**`
 - `plugins/tabular-editor/.mcp.json`
 - `plugins/pbip/skills/tmdl/references/authoring-gotchas.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/desktop-lifecycle.md`

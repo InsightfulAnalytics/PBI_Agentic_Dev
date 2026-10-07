@@ -1,6 +1,6 @@
 ---
 name: svg-visuals
-version: 26.26
+version: 26.40.3
 description: SVG generation via DAX measures and extension measures with ImageUrl data category for inline visualizations in PBIR reports, including ready templates for matrix and table cells, new card images and per-button images on the new button slicer. Automatically invoke when the user mentions "SVG visual", "DAX sparkline", "SVG measure", "inline graphics with DAX", "ImageUrl data category", "extension measure", or asks to create any DAX-generated chart (progress bars, bullet charts, KPI indicators, data bars, gauges, donut charts, lollipop charts, dumbbell charts, status pills, overlapping bars, boxplots, IBCS bars, jitter plots, box-and-whisker charts).
 ---
 

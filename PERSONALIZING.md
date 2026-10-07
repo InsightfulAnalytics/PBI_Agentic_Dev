@@ -104,19 +104,28 @@ machine-local (in which case it does not belong in this public repo at all).
 The version bump is not what makes a change reach *you*; it is what makes it reach anyone installing
 from GitHub, including a `github`-source Codespace.
 
-1. **Bump the version** in `plugins/<plugin>/.claude-plugin/plugin.json`, or run
-   `python scripts/bump_release_version.py <old> <new>` to move the marketplace, every plugin
-   manifest and every `SKILL.md` `version:` line together.
-2. **Commit and push.**
-3. Consumers pick it up with:
+Claude Code caches an installed plugin by its version, so a change pushed without a bump never
+reaches anyone who already has the plugin. Releases are lockstep: the marketplace, every plugin and
+every skill carry one version, which tracks the upstream release last harvested.
+
+1. **Bump the version:** `python scripts/bump_release_version.py <old> <new>` moves the
+   marketplace, both manifest kinds and every `SKILL.md` `version:` line together. A new skill
+   needs a `version:` line in its frontmatter, or the bump skips it.
+2. **Write the release notes** as a new section at the top of [`CHANGELOG.md`](CHANGELOG.md):
+   what to watch for first (renames, removals, changed defaults), then new, changed and fixed.
+3. **Commit, push and merge** the bump and the notes together.
+4. **Tag and publish a GitHub Release** from the merge commit on `main`. The tag is
+   `fork-v<version>`, because upstream's `v<version>` tags arrive with `git fetch upstream`:
+   ```bash
+   gh release create fork-v<version> --target main --title "<version>" --notes-file <notes>
+   ```
+   The Release is what notifies anyone watching the repository for releases. A push alone
+   notifies no one.
+5. Consumers pick it up with:
    ```powershell
    claude plugin marketplace update power-bi-agentic-dev
    claude plugin update <plugin>@power-bi-agentic-dev
    ```
-
-> `scripts/bump_release_version.py` exits 1 if no `SKILL.md` matched the old version, so the three
-> manifests currently at `26.25.1` while the `SKILL.md` files are at `26.25` need reconciling before
-> the next release bump.
 
 The 11 plugins you can personalize:
 `semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`,

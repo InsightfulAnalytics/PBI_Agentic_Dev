@@ -1,5 +1,6 @@
 ---
 name: fabric-capacity
+version: 26.40.3
 description: Automatically invoke this skill whenever the user asks why a Fabric capacity is busy, throttled, at 90 or 100 percent, or what is consuming CUs; asks for current capacity utilization, carry forward or per-item CU usage; wants to query or repair the Microsoft Fabric Capacity Metrics app or its semantic model; or wants to start, pause or monitor a capacity from a script or status bar.
 ---
 

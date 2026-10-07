@@ -51,9 +51,12 @@ claude plugin install fabric-cli@power-bi-agentic-dev
 claude plugin install fabric-admin@power-bi-agentic-dev
 claude plugin install paginated-reports@power-bi-agentic-dev
 claude plugin install etl@power-bi-agentic-dev
+claude plugin install fabric-data-app@power-bi-agentic-dev
 ```
 
 Verify what's installed with `claude plugin list`, and inspect a plugin's contents and token cost with `claude plugin details <plugin>`.
+
+**Updates.** Every release is listed in [CHANGELOG.md](CHANGELOG.md) and published as a GitHub Release, so to hear about new ones, choose **Watch → Custom → Releases** on this repository. To update, run `claude plugin marketplace update power-bi-agentic-dev`, then `claude plugin update <plugin>@power-bi-agentic-dev` for each plugin you use, or turn on auto-update for the marketplace in `/plugin`.
 
 ### Copilot CLI
 
