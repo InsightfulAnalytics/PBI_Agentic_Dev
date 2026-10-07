@@ -15,12 +15,15 @@ disconnected table with `SELECTEDVALUE` / `MAX` / `VALUES`, then filter the fact
 
 This is the foundation for most of what follows. It is a feature, not a smell.
 
-- **Parameter / what-if tables** — `GENERATESERIES( min, max, step )` as a table, one column
-  surfaced in a slicer, the selection read with `SELECTEDVALUE( Param[Value], <default> )`.
+- **Parameter / what-if tables** — a series of values built in Power Query (the
+  `GENERATESERIES( min, max, step )` calculated table Desktop generates is the form to replace,
+  see [Tables come from Power Query](../SKILL.md#tables-come-from-power-query-not-dax)), one
+  column surfaced in a slicer, the selection read with `SELECTEDVALUE( Param[Value], <default> )`.
   Always give the default; a measure that breaks when nothing is selected is a bug, not an
   edge case.
-- **Selector tables** — a table of labels the user picks from, with a `SWITCH` in the measure
-  dispatching on the selection. Use when the *calculation* changes, not just the field.
+- **Selector tables** — a table of labels the user picks from, built in Power Query with
+  `#table`, with a `SWITCH` in the measure dispatching on the selection. Use when the
+  *calculation* changes, not just the field.
 - **NOT slicer (inverse selection)** — show everything *except* the selection: read the
   selected keys from the disconnected slicer table, then
   `FILTER( ALL( Fact ), NOT Fact[Key] IN __Selected )`.
@@ -35,7 +38,8 @@ This is the foundation for most of what follows. It is a feature, not a smell.
 ## Field parameters
 
 A field parameter is a generated table whose rows carry the *reference* to a column or measure,
-so the user swaps what a visual displays. Model side: create it as a calculated table with
+so the user swaps what a visual displays. Model side: create it as a calculated table (one of
+the few that has to be one, because only DAX can write the field references) with
 `NAMEOF()` references and the `ParameterMetadata` extended property — the `semantic-model` and
 `tmdl` skills cover the object; don't hand-write the metadata blob.
 

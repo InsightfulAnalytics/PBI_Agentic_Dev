@@ -42,6 +42,9 @@ Naming conventions (non-negotiable, they make measures greppable and diffable):
 - Prefix variables with `__` (double underscore) — avoids reserved words and mirrors the
   variable names the engine generates in its own queries.
 - Name the final variable `__Result` and `RETURN __Result`. No functions after `RETURN`.
+- Keep the VARs flat: one list of `VAR`s at the top of the expression, then `RETURN __Result`.
+  No `VAR … RETURN` block inside a function argument. See
+  [Keep the VARs flat](#keep-the-vars-flat).
 - Use `&&` / `||` / `<>` inside `FILTER`, not nested `AND()` / `OR()`.
 
 ## Step 3 is not always an X-aggregator
@@ -86,6 +89,150 @@ terminator; `KEEPFILTERS` is the repair, and it exists only inside `CALCULATE`. 
 replacement bites with no `ALL` in sight when a predicate constrains the column being aggregated, and
 there the repair is to build the row set and count it:
 [When CALCULATE is the wrong call](references/calculate-and-performance.md#when-calculate-is-the-wrong-call-filtering-the-column-you-are-aggregating).
+
+## Keep the VARs flat
+
+A measure is one flat list of steps, and the last one is the result:
+
+```DAX
+Measure =
+    VAR __Step1  = …
+    VAR __Step2  = …
+    VAR __Result = …
+    RETURN
+        __Result
+```
+
+Do not open a second `VAR … RETURN` block inside a function argument: not inside `CALCULATE ( … )`,
+not inside a user-defined function's `EXPR` argument, not inside an iterator's row expression. Only
+a top-level VAR can be [swapped into the RETURN](#the-killer-feature-debug-by-swapping-the-return),
+so a nested block hides its steps. A table VAR nested inside `CALCULATE` cannot be returned at all,
+because `CALCULATE` must return a single value. A nested block also reads as one measure inside
+another.
+
+Three nested shapes turn up. Each has a flat form that returns the same number.
+
+**1. A block passed to a wrapper that sets the filter context.** A UDF such as
+`ProductSet.Focus ( valueExpr : EXPR ) => CALCULATE ( valueExpr, <set filter> )` invites passing it
+a whole calculation:
+
+```DAX
+-- nested: none of the steps can be returned
+Margin per Litre =
+    VAR __Result =
+        ProductSet.Focus (
+            VAR __Rows   = FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
+            VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
+            VAR __Litres = SUMX ( __Rows, Sales[Litres] )
+            RETURN
+                DIVIDE ( __Margin, __Litres )
+        )
+    RETURN
+        __Result
+```
+
+Give the wrapper a table twin that applies the same filters with `CALCULATETABLE`. Build the table
+VAR through the twin, and the steps after it stand at the top level:
+
+```DAX
+-- functions.tmdl: the twin, next to the wrapper
+ProductSet.FocusTable = ( tableExpr : EXPR ) =>
+    CALCULATETABLE ( tableExpr, <same set filter> )
+
+-- flat
+Margin per Litre =
+    VAR __Rows =
+        ProductSet.FocusTable (
+            FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
+        )
+    VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
+    VAR __Litres = SUMX ( __Rows, Sales[Litres] )
+    VAR __Result = DIVIDE ( __Margin, __Litres )
+    RETURN
+        __Result
+```
+
+The number is the same because nothing after `__Rows` reads the filter context. An X-aggregator
+over a table VAR, with a row expression of columns only, depends on the rows alone. A step that does
+read the context (a measure reference, a plain `SUM`, `CALCULATE`, `ALLSELECTED`) would see the outer
+context once it leaves the wrapper. Give that step the scalar wrapper of its own, still at the top
+level: `VAR __Total = ProductSet.Focus ( [Total Sales] )`. A bare
+`CALCULATE ( <VAR block>, <filters> )` flattens the same way: build the table with
+`CALCULATETABLE ( …, <filters> )` and aggregate it outside.
+
+Call the twin only from measures. A function that calls a newly added function can fail to load
+(see the UDF note under [The UDF](#the-udf-write-the-formatting-convention-once)).
+
+**2. A block inside an iterator's row expression.**
+
+```DAX
+-- nested: __Text and __Cut cannot be inspected
+VAR __Chips =
+    ADDCOLUMNS (
+        __Picks,
+        "@Label",
+            VAR __Text = CONVERT ( Product[Name], STRING )
+            VAR __Cut  = IF ( LEN ( __Text ) > 20, LEFT ( __Text, 19 ) & "…", __Text )
+            RETURN
+                SUBSTITUTE ( __Cut, "&", "&amp;" )
+    )
+```
+
+Make each step a computed column in a table VAR of its own. Returning any of them shows that step
+for every row:
+
+```DAX
+VAR __Texts = ADDCOLUMNS ( __Picks, "@Text", CONVERT ( Product[Name], STRING ) )
+VAR __Cuts  = ADDCOLUMNS ( __Texts, "@Cut", IF ( LEN ( [@Text] ) > 20, LEFT ( [@Text], 19 ) & "…", [@Text] ) )
+VAR __Chips = ADDCOLUMNS ( __Cuts, "@Label", SUBSTITUTE ( [@Cut], "&", "&amp;" ) )
+```
+
+**3. A VAR that captures a row value only to put a filter back.**
+
+```DAX
+-- nested: removes every Customer filter, then puts the row's region back
+"@Region Sales",
+    VAR __Region = Customer[Region]
+    RETURN
+        CALCULATE ( [Sales], REMOVEFILTERS ( Customer ), Customer[Region] = __Region )
+```
+
+Context transition already filters the row's region. Remove only the filters you mean to drop, and
+the region stays:
+
+```DAX
+"@Region Sales",
+    CALCULATE ( [Sales], ALLEXCEPT ( Customer, Customer[Region] ) )
+```
+
+**The nested VAR that stays.** When the inner expression iterates a table that has the same column
+as the outer row, the inner row context hides the outer value. Capturing it first is the job
+`EARLIER` used to do, and a VAR does it more clearly. Keep the block to that one capture:
+
+```DAX
+"@Sales To Date",
+    VAR __Date = [Date]
+    RETURN
+        SUMX ( FILTER ( __Days, [Date] <= __Date ), [@Sales] )
+```
+
+**Prove a flattened measure.** When you flatten an existing measure, compare the old body with the
+new measure in DAX query view, over the cells the report shows. No rows back means no cell changed:
+
+```DAX
+DEFINE
+    MEASURE Sales[Old Margin per Litre] = <the old, nested body>
+EVALUATE
+    FILTER (
+        ADDCOLUMNS (
+            CROSSJOIN ( VALUES ( Store[Region] ), VALUES ( Product[Category] ) ),
+            "@New", [Margin per Litre],
+            "@Old", [Old Margin per Litre]
+        ),
+        ISBLANK ( [@New] ) <> ISBLANK ( [@Old] )
+            || ABS ( [@New] - [@Old] ) > 1E-9 * MAX ( 1, ABS ( [@Old] ) )
+    )
+```
 
 ## Standing exception: time intelligence uses CALCULATE + DATEADD
 
@@ -306,10 +453,80 @@ Because every step is a `VAR`, you inspect any intermediate by temporarily retur
     RETURN TOCSV( __Table )       -- dump the table's rows as text into a card/table visual
 ```
 
+In DAX query view the same swap shows a table VAR as a result grid. Paste the measure's body after
+`EVALUATE` and return the table VAR instead of `__Result`:
+
+```DAX
+EVALUATE
+    VAR __Rows   = FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
+    VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
+    RETURN
+        __Rows   -- was __Result
+```
+
+To see one cell of a visual, wrap it in `CALCULATETABLE` with that cell's filters:
+`EVALUATE CALCULATETABLE ( VAR … RETURN __Rows, Store[Region] = "West" )`. Both swaps reach only
+top-level VARs, which is why the VARs stay [flat](#keep-the-vars-flat).
+
 `EVALUATEANDLOG( __Table )` (DAX query view / SQL Profiler) does the same at scale. A
 CALCULATE expression cannot be peeled apart this way: splitting nested CALCULATEs changes
 the result, so there is no way to watch it work. That is the practical reason this style is
 the default.
+
+## Tables come from Power Query, not DAX
+
+This skill writes measures, not tables. Build every table in the source (a view, a lakehouse
+table) or in Power Query. A DAX calculated table is the last resort: write one only when no
+upstream layer can produce the table, and say why in a comment on its partition.
+
+Why:
+
+- **Refresh cost.** A calculated table is rebuilt every time a table it reads is refreshed, in
+  the calculate phase after the data load. Every refresh pays for it, it cannot be refreshed
+  incrementally, and nothing in it folds to the source.
+- **Dependencies.** A table that reads the model (`ALL ( 'Calendar' )`, `MIN ( Sales[Date] )`,
+  a UDF) joins the model's dependency graph, a common source of circular dependency errors once
+  it gets a relationship or a calculated column.
+- **Storage modes.** Direct Lake on SQL endpoints supports no calculated tables apart from the
+  ones Desktop generates for calculation groups, what-if parameters and field parameters, and
+  Direct Lake on OneLake supports them only in preview. A table built in the source works in
+  every storage mode.
+- **One home for table logic.** Shaping lives upstream, where other models and tools can read
+  it, and the model keeps DAX for what only DAX can do: measures, UDFs and calculation groups.
+
+The three calculated tables that turn up, and their Power Query form:
+
+| DAX calculated table | Power Query partition |
+| --- | --- |
+| A static list: `DATATABLE ( "Metric", STRING, "Metric Sort", INTEGER, { { "Frequency", 1 }, … } )` | `#table(type table [Metric = text, #"Metric Sort" = Int64.Type], {{"Frequency", 1}, …})` |
+| A what-if series: `GENERATESERIES ( 2, 10, 1 )`, scaled | `Table.FromColumns({List.Transform({2..10}, each _ * 0.005)}, type table [Value = number])` |
+| A slicer table derived from another table: `DISTINCT ( SELECTCOLUMNS ( FILTER ( ALL ( 'Calendar' ), … ), … ) )` | Reference the other table's query by name, then `Table.SelectRows`, `Table.SelectColumns`, `Table.Distinct` |
+
+A disconnected parameter or selector table works the same from Power Query: the slicer filters
+it, and the measure reads the pick with `SELECTEDVALUE ( Param[Value], <default> )`. Integer
+steps scaled by a constant, as in the series row, give the same doubles in M as in DAX, so a
+slicer's saved literal (`0.02D`) still matches.
+
+When you convert one in TMDL, change `partition … = calculated` to `= m` with a `let … in`
+source, drop the brackets from each `sourceColumn` (`[Value]` becomes `Value`), add
+`annotation PBI_ResultType = Table`, and add the table to the model's `PBI_QueryOrder`. Keep the
+table and column names, which the report binds to, and the lineage tags.
+
+Then close Power BI Desktop and delete the project's `.pbi/cache.abf` before you open it again.
+With a cache, Desktop loads the cached model and applies the TMDL over it, and the engine will not
+change a partition between calculated and M in place: *Changing the partition type from or to
+PartitionType.Calculated is not allowed*. Applying the edit from Desktop's external-changes banner
+fails the same way. Without the cache, Desktop opens the whole definition with no data; refresh
+to load it.
+
+**When a calculated table is the right call:**
+
+- **Field parameters.** Their rows hold `NAMEOF ( … )` references to model fields, which only
+  DAX can write.
+- **A table that needs the model's own DAX logic** (a measure, a UDF or a calculation item
+  evaluated over the model) and cannot be rebuilt from the source.
+
+Calculation groups are not calculated tables, and this rule does not touch them.
 
 ## When to use this skill vs. the performance skill
 

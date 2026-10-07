@@ -59,6 +59,12 @@ Conventions: prefix names with `__`; end with `VAR __Result = …` then `RETURN 
 put no functions after `RETURN`. The `__` convention mirrors how the engine names the
 variables in the queries Power BI generates internally (visible via Performance Analyzer).
 
+Keep them flat: every `VAR` at the top level of the measure, never a `VAR … RETURN` block
+inside a function argument (`CALCULATE`, a UDF's `EXPR` argument, an iterator's row
+expression). The RETURN swap in §6 reaches only top-level VARs. SKILL.md
+[Keep the VARs flat](../SKILL.md#keep-the-vars-flat) flattens each nested shape without
+changing the number.
+
 ## 5. The pattern
 
 ```DAX
@@ -100,6 +106,10 @@ temporarily change what you `RETURN`:
 can *see* it in a visual — drop it in a Table visual set to Consolas, which is monospaced
 and left-aligns. `EVALUATEANDLOG(...)` logs intermediate tables/values for viewing in DAX
 query view or SQL Server Profiler.
+
+In DAX query view, paste the measure's body after `EVALUATE` and `RETURN __Table`: the rows
+come back as a result grid, with no visual needed. Wrap it in `CALCULATETABLE` with a cell's
+filters to see the rows for that cell.
 
 This is impossible with CALCULATE: you cannot split nested `CALCULATE` calls into separate
 steps without changing the result, so there is no native way to watch what it does.

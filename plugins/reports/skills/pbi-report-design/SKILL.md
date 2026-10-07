@@ -254,6 +254,7 @@ For complete guidance on table vs matrix selection, formatting philosophy, condi
 - Position consistently (top or left)
 - Use filter pane for additional filters
 - Consider sync slicers across pages
+- Slicers always filter each other, so a list never offers a value with no data under the other picks (see `create-pbi-report` `references/interactivity.md`, *Slicers filter each other*)
 
 ### Filter Pane
 
