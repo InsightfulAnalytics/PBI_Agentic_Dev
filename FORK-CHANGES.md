@@ -69,6 +69,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `fabric-data-app` (shared `hooks/open.ts`, which passes Windows paths and URLs literally to
   ShellExecute and reports launch failures), taken whole since the fork never edits pane code.
   The data app pane command is now `/fabric-app-pane`. `databricks-cli` and `goblin-mode` stay out.
+- Promoted three rules from a production model and report build (2026-10-07): `dax-standard` keeps
+  a measure's VARs flat (no `VAR … RETURN` block inside a function argument, with the flat form of
+  each nested shape and a DAX query that proves a flattened measure unchanged), and builds tables
+  in Power Query rather than as DAX calculated tables (with the TMDL conversion and the `cache.abf`
+  step it needs); `create-pbi-report` `references/interactivity.md` makes slicers always filter
+  each other, with a pointer from `pbi-report-design`. Corrected *Sync groups* in the same file:
+  in PBIR, sync is `visual.syncGroup` on each copy of the slicer, not a `report.json` group.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -113,6 +120,10 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   `power-query/references/best-practices.md`, `fabric-cli/references/dataflows.md`,
   `fabric-cli/references/warehouses.md` and `fabric-cli/references/reports.md` (the ExportTo 403
   note). Small conflicts; keep both sides.
+- `create-pbi-report/references/interactivity.md`: the *Sync groups* rewrite, the new *Slicers
+  filter each other* section, and the slicer notes in the query-reduction pitfalls and wiring
+  step 1. Plus the matching *Slicers* bullet in `pbi-report-design/SKILL.md`. Keep the fork's
+  version of *Sync groups* unless upstream fixes the `report.json` claim itself.
 - `useful-stuff/themes/*.json` (every font line) and the font note in
   `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
   `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.

@@ -16,13 +16,14 @@ Pitfalls:
 - A hard-coded `Highlight` pair in `visualInteractions[]` survives the preset; audit per page after applying
 - Apply buttons are per-slicer/per-pane; five slicers need five configurations unless you also add page-level Apply-all/Clear-all button visuals
 - Disabling cross-highlight is a visible design tradeoff (selecting a bar no longer dims others); flag this on Import-mode reports where query cost is already cheap
+- Never write a `NoFilter` pair between two slicers: slicers always filter each other (see [Slicers filter each other](#slicers-filter-each-other))
 
 
 ## Wiring Interactions and Navigation
 
 After placing and formatting visuals, set interaction overrides and build navigation before final validation. A page of correctly bound visuals still ships poorly if every selection cross-filters everything or if a multi-page report has no way to move between pages.
 
-1. Decide the cross-filter graph per page before changing it. Default is everything cross-filters everything, so author only the exceptions: KPI cards that should stay stable when a detail chart is clicked; charts that should not filter a slicer back.
+1. Decide the cross-filter graph per page before changing it. Default is everything cross-filters everything, so author only the exceptions: KPI cards that should stay stable when a detail chart is clicked; charts that should not filter a slicer back. Slicer-to-slicer pairs are never an exception.
 2. Write overrides with `pbir pages interactions`, using the visual `name`, not the title. Use `Highlight`/`Filter` only when overriding a default (charts default to Highlight, line/scatter/map to Filter).
 3. For multi-page reports, prefer a native `pageNavigator` visual over hand-built buttons. One navigator auto-syncs to the page list; N buttons are N blobs to re-point on every page add or rename.
 4. Validate, then reload+screenshot to confirm a slicer click filters the intended visuals and leaves the cards alone.
@@ -66,14 +67,37 @@ Default to `strictSingleSelect` for metric-swap slicers (field parameter pickers
 
 ### Sync groups
 
-Sync is not a slicer property; it lives in `report.json` as a sync group keyed by name. A slicer joins a group by sharing the name. Two independent toggles:
-- sync filter state: selection follows the reader page to page
-- sync visibility: whether the slicer is drawn on each page
+Sync is a group keyed by name: each copy of the slicer carries it in its own `visual.json` as
+`visual.syncGroup` (`groupName`, `filterChanges`, `fieldChanges`), one copy per page it reaches. A
+slicer joins a group by sharing the name. Two independent toggles:
+- sync filter state (`filterChanges`): selection follows the reader page to page
+- sync visibility: whether the slicer is drawn on each page; a copy that syncs but is not drawn is
+  a hidden visual (`isHidden: true`)
 
 The common pattern is sync-state everywhere, show-on-one-page. Manage sync groups only through a
 supported `pbir` command. If the installed version does not expose one, report the capability gap
-instead of editing `report.json`. Sync supports one field per slicer only; a two-field slicer opts
+instead of hand-editing the `syncGroup` blocks. Sync supports one field per slicer only; a two-field slicer opts
 out.
+
+### Slicers filter each other
+
+Every slicer narrows every other slicer, on every page that has slicers, so a reader can only pick
+values that have data under the picks already made. A list that offers values with no data lets
+the reader build a selection that returns blank visuals, and nothing on the page says which pick
+caused it.
+
+- **No `NoFilter` between slicers.** Leave slicer-to-slicer interactions at the default, and keep
+  them when the query-reduction preset adds `NoFilter` pairs to heavy visuals.
+- **Filter each slicer through the fact.** Slicers on the same table narrow each other on their
+  own. A slicer on another dimension table lists every value unless its query touches the fact, so
+  give it a visual-level measure filter: the fact's row or unit measure `> 0` (or is not blank).
+  A slicer on a disconnected table (no relationship to the fact) needs a measure that reaches the
+  fact through its own selection, for example with `TREATAS`, as that filter. The filter only
+  shortens the list; an empty selection still includes everything.
+- **Sync to every page with slicers.** A slicer that is drawn on one page and synced elsewhere
+  must also sync, hidden where it is not drawn, to every page holding slicers it should narrow,
+  including a dedicated filters page. Otherwise its picks stop at that page and the lists there
+  offer values with no data.
 
 ### Reset and persist filters
 

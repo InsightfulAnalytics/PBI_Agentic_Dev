@@ -122,7 +122,8 @@ Year To Date =
 ## Time and duration
 
 - **Time is the fractional part** of the date number: a day is `1.0`, so an hour is `1/24`.
-  Build time tables with `GENERATESERIES`; add and subtract durations as fractions of a day.
+  Build time tables in Power Query (`List.Times`), not with a `GENERATESERIES` calculated table;
+  add and subtract durations as fractions of a day.
 - **Decimal to components:** `* 24`, `* 1440`, `* 86400` for hours/minutes/seconds, then
   `INT` and `MOD` to break a duration into an `H:MM:SS` breakdown.
 - **Net working duration** (the DAX answer to `NETWORKDAYS`): filter DimDate on
