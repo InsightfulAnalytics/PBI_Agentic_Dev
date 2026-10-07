@@ -1,6 +1,6 @@
 ---
 name: deneb-pbir
-version: 26.26
+version: 26.40.3
 description: Round-trip TOOLING for Deneb specs in PBIR. Extract/embed the Vega/Vega-Lite spec in visual.json and offline-render it (Vega→PNG/SVG) to verify without Power BI. Use whenever a task touches a Deneb visual's spec ("edit the Deneb visual", "change the Vega spec", "fix the Deneb chart", patching jsonSpec in visual.json), or when a Deneb spec needs rendering/verification without Power BI. Also audits a visual's Deneb build stamp, 2.0-only properties and container signal names, and migrates pbiContainer* / denebContainer references in place. Replaces the ad-hoc inline python patch scripts and per-session npm installs used previously. Spec authoring rules, theme colors, and interactivity live in the custom-visuals:deneb-visuals skill.
 ---
 

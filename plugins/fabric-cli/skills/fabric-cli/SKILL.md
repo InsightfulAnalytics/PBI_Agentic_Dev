@@ -1,6 +1,6 @@
 ---
 name: fabric-cli
-version: 26.26
+version: 26.40.3
 description: "Expert guidance for the Fabric CLI (`fab`) and the Fabric and Power BI REST APIs: workspaces, items, lakehouses, notebooks, pipelines, semantic models, reports, capacities, OneLake, deployment and admin. Also estimates the capacity units (CU) an operation will consume and its impact on the capacity before running it. Automatically invoke whenever the user mentions Fabric, Power BI Service, a Fabric or Power BI workspace, a capacity or F SKU, OneLake, `fab`, or asks to create, run, refresh, schedule, deploy or delete anything in Fabric, including preview items such as Plan, Ontology, Graph or Copilot."
 ---
 

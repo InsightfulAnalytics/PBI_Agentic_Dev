@@ -1,6 +1,6 @@
 ---
 name: te-docs
-version: 26.26
+version: 26.40.3
 description: Tabular Editor documentation search and configuration file guidance (.tmuo, Preferences.json, UiPreferences.json, Layouts.json). Automatically invoke when the user asks about "TE docs", "Tabular Editor features", "TE3 preferences", ".tmuo files", "workspace database settings", "DAX editor settings", "per-model TE3 configuration", "TE3 shows an error on valid DAX", "red underline on a UDF", or needs to search Tabular Editor documentation for how-to guidance.
 ---
 
