@@ -122,7 +122,7 @@ For detailed report design guidance (layout, spacing, visual hierarchy, color, a
 | A slicer, button, navigator, bookmark or shape renders wrong though `pbir validate` passes | **`references/silent-render-traps.md`** -- slicer object sets, button states, navigator page ids, data bookmarks, theme wildcard reach, textbox heights, project-file blank opens |
 | Write PBIR or TMDL from a script | **`references/validation.md`** -- no UTF-8 BOM, and what a clean validate does not prove |
 | Sync slicers across pages | **`references/visual-json.md`** -- syncGroup (groupName, fieldChanges, filterChanges) |
-| Edit visual interactions | **`references/visual-json.md`** + **`references/page.md`** -- visualInteractions in page.json (NoFilter, Filter, Highlight) |
+| Edit visual interactions | **`references/visual-json.md`** + **`references/page.md`** -- visualInteractions in page.json (DataFilter, HighlightFilter, NoFilter) |
 | Change table/matrix column widths | **`references/visual-json.md`** -- columnWidth with metadata selector |
 | Group visuals | **`references/visual-json.md`** -- visualGroup, parentGroupName, groupMode |
 | Hide visuals or fields | **`references/visual-json.md`** -- isHidden at root level, query projection control |

@@ -152,7 +152,7 @@ Visuals may pass schema validation but render with no data if `queryRef` strings
 
 ### Visual interactions lost during conversion
 
-Legacy reports store visual interactions as `relationships` in the page config. These must be converted to `visualInteractions` in `page.json`. Only `NoFilter` interactions need to be stored (Filter is the default).
+Legacy reports store visual interactions as `relationships` in the page config. These must be converted to `visualInteractions` in `page.json`. Convert all three types, not only `NoFilter` (see [convert-legacy-to-pbir.md](convert-legacy-to-pbir.md)).
 
 ### Combo chart roles
 
