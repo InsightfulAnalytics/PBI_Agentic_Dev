@@ -101,6 +101,34 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
 
   Retest: `pbir visuals title "<Visual>" --text "It's"`, then read the `title` entry in that
   visual.json.
+- **`pbir visuals deneb` has the same undoubled-apostrophe bug, and it breaks the whole visual.**
+  It writes `jsonSpec` without doubling the `'` characters, and a Vega spec is full of them (every
+  string literal inside an expression). Power BI Desktop then draws nothing where the visual sits:
+  no error, no placeholder, not even the spec's static marks. `pbir validate` passes. Embed with
+  `deneb_spec.py embed` from the `custom-visuals:deneb-pbir` skill instead, which doubles them.
+  (pbir 0.9.32. Verified 2026-10-09.)
+
+  Retest: embed a spec containing `"expr": "'a'"` with `pbir visuals deneb`, then count the `'`
+  inside the `jsonSpec` literal: correct output has twice as many as the spec file.
+- **Container formatting on a custom visual is out of reach of `pbir set` and `pbir visuals`.**
+  `title`, `padding`, `background`, `border` and `dropShadow` all fail with `Unknown component`,
+  with `--rawdog` and with `--skip schema` too; `pbir visuals general --altText` is the one that
+  works. Put the defaults in the report theme under the visual's type,
+  `visualStyles["<visualType>"]["*"]` (for example `deneb7E15AEF80B9E4D4F8E12924291ECE89A`), apply it
+  with `pbir theme create-template` + `apply-template`, and clear visual-level leftovers with
+  `pbir visuals clear-formatting "<Visual>" --only-containers -f`. That also clears `altText`, so
+  set it again afterwards. (pbir 0.9.32. Verified 2026-10-09.)
+- **A slicer's default selection cannot be set.** `pbir set "<Slicer>.general.filter" --json ...`
+  fails with `Component 'general' has no property 'filter'. Did you mean: filter, selfFilter?`, with
+  or without `--rawdog`. Select the value in Desktop and save, or give the measures a sensible
+  fallback for the no-selection state. (pbir 0.9.32. Verified 2026-10-09.)
+
+  Retest: the same `pbir set` with a one-value `In` filter, then read `objects.general` in the
+  slicer's visual.json.
+- **`pbir visuals rename --to`, `pbir mv` and `pbir cp` rename the folder, not the visual.** The
+  visual's `name` keeps its old value (`cp` mints a new hex one), so folder and `name` differ. pbir
+  treats that as valid; the `pbip:pbir-format` skill expects them equal. To line them up, rename the
+  folder to the `name` the JSON already carries.
 
 ## Publishing
 

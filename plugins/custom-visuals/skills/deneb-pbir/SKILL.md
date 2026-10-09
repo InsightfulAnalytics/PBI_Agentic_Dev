@@ -22,6 +22,7 @@ python "$S" audit "<...>/visuals/myDeneb/visual.json"
 Then apply the rule in [deneb-2-migration.md, Authoring rules during the transition](../deneb-visuals/references/deneb-2-migration.md#authoring-rules-during-the-transition): a visual stamped `2.0.0.0` or later uses `denebContainer.*`; a `1.x` stamp, an unstamped file, or a target environment not confirmed on 2.0 keeps the legacy names (2.0 rewrites them at parse time; 1.9 cannot parse `denebContainer`, which is inferred from Vega's parser rather than observed in a 1.9.1 Desktop: see the `--deneb 1.9` bullet under the renderer). Flip either way with `migrate --signals` (below).
 
 - Retest: `gh release list -R deneb-viz/deneb --limit 3` for the current stable tag, and the Deneb blog for the AppSource date.
+- Observed: a Power BI Desktop with AppSource visuals loaded Deneb 2.0.0.0, opened a visual stamped `1.9.1.0` and re-stamped it `2.0.0.0` (with `denebMetaVersion`, `supportFieldConfiguration` and `consolidateFieldParameters`) on the first save (Verified 2026-10-09). Re-run the audit after any Desktop save before choosing signal names.
 
 ## Edit loop
 
@@ -39,6 +40,8 @@ python "$S" embed "<...>/visuals/myDeneb/visual.json" --spec spec.json
 ```
 
 `provider` in the same properties block says which grammar (`vega` / `vegaLite`); don't mix schema URLs.
+
+Embed with `embed`, not `pbir visuals deneb`: pbir 0.9.32 writes the literal without doubling the spec's `'` characters, and Desktop then draws nothing at all for the visual while `pbir validate` passes (`reports:pbir-cli` `references/cli-traps.md`). `embed` leaves `visual.json.bak` inside the visual's folder; move it out of the `.Report` tree once the visual renders.
 
 `$schema` never goes inside `jsonSpec`: Deneb 2.0 flags a root `$schema` in the Specification editor with a warning and a Quick Fix (the certified visual cannot fetch it and it disables autocomplete), and it does nothing for rendering. `extract` adds `https://vega.github.io/schema/vega/v6.json` or `.../vega-lite/v6.json` (matching `provider`) to the standalone file so editors and the renderer can use it; `embed` strips a root `$schema` again unless you pass `--keep-schema`.
 
@@ -72,6 +75,7 @@ node "${CLAUDE_PLUGIN_ROOT}/skills/deneb-pbir/renderer/render.mjs" spec.json out
 - Retest: paste `{"signal": "denebContainer.width"}` as `width` into a Vega visual in a Desktop running Deneb 1.9.1.0 and read the log pane.
 - The JSON result line carries `compiled`, `vega`, `vegaLite`, `container`, `deneb`, `strict`, `injectedSignals`, `responsiveSizing`, `legacySignalReferences` and `denebContainerReferences` (counts as found in the file, before any `--deneb 2.0` rewrite) and `notes`, so an agent can read the verdict without parsing stderr.
 - `--scale` alone controls PNG size (spec pixels × scale). `.svg` output extension skips sharp entirely.
+- Text is not measured offline. There is no node canvas here, so Vega falls back to an estimate of 0.8 em per character, wider than Segoe UI's real advance (about 0.54 em for a digit). Anything placed from a text mark's bounds by reactive geometry (a badge after a value, a second run of text) sits too far right in the render and correctly in Deneb, where the browser canvas measures. To check such a layout offline, set `vega.textMetrics.width = (item, text) => ...` from a per-character width table before the spec parses (Vega honours a user-defined width function); the widths can come from the installed font with Pillow, `ImageFont.truetype("segoeui.ttf", 1000).getlength(ch) / 1000`. Run it as a wrapper module that imports `node_modules/vega/build/vega.module.js` by file URL, patches it, then imports `render.mjs`: both resolve to the same module instance.
 - If writing any OTHER inline node script against vega: the packages are ESM-only, so use dynamic `import()`, never `require()`.
 
 ## Audit and migrate
