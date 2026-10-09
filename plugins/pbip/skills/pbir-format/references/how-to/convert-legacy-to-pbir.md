@@ -59,7 +59,7 @@ Key characteristics:
 - `visualContainerObjects` replaces `vcObjects`
 - Display options are strings (`"FitToPage"`, `"FitToWidth"`, `"ActualSize"`)
 - `howCreated` on filters is a string (`"User"`, `"Auto"`, `"Unknown"`)
-- Visual interactions stored as `visualInteractions` in `page.json` (only `NoFilter` entries; Filter is default)
+- Visual interactions stored as `visualInteractions` in `page.json` (`DataFilter`, `HighlightFilter` and `NoFilter` entries, one per pair that differs from the default)
 - `themeCollection` entries require `reportVersionAtImport`
 
 ## Conversion Steps
@@ -155,10 +155,10 @@ The `pageOrder` entries are the section `name` values. The `activePageName` is d
 | `section.displayOption` (int) | `displayOption` (string) |
 | `section.height`, `section.width` | `height`, `width` |
 | `section_config.objects` | `objects` |
-| `section_config.relationships` | `visualInteractions` (convert type 3 -> `"NoFilter"`, omit type 1) |
+| `section_config.relationships` | `visualInteractions` (convert type 1 -> `"DataFilter"`, 2 -> `"HighlightFilter"`, 3 -> `"NoFilter"`) |
 | `section_filters` | `filterConfig.filters` |
 
-**Visual interactions**: Only store `NoFilter` entries. `Filter` is the default behavior and must be omitted from PBIR (causes schema validation errors if included).
+**Visual interactions**: write each legacy relationship with its PBIR type. The schema has no `"Filter"` or `"Highlight"` value, so writing either fails validation.
 
 **Page folder naming**: Use the section `name` (e.g. `ReportSection`, `ReportSectionff9bc40a...`) as the folder name, not the `displayName`.
 
@@ -251,7 +251,7 @@ pbir validate "Report.Report" --allow-download-schemas
 
 Address any schema errors. The 4 common issues:
 - Missing `reportVersionAtImport` on theme entries
-- `"Filter"` type in visualInteractions (remove; only keep `"NoFilter"`)
+- `"Filter"` or `"Highlight"` as a visualInteractions type (use `"DataFilter"` or `"HighlightFilter"`)
 - Missing filter `name` properties
 - Combo chart role name mismatches (false positive from validator)
 

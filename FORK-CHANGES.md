@@ -124,6 +124,12 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   filter each other* section, and the slicer notes in the query-reduction pitfalls and wiring
   step 1. Plus the matching *Slicers* bullet in `pbi-report-design/SKILL.md`. Keep the fork's
   version of *Sync groups* unless upstream fixes the `report.json` claim itself.
+- The `visualInteractions` type names (`DataFilter`, `HighlightFilter`, `NoFilter`, `Default`;
+  upstream says `Filter` and `Highlight`, which break Desktop) in `pbir-format/SKILL.md`, its
+  `references/{page,visual-json}.md`, `references/how-to/{convert-legacy-to-pbir,fix-broken-field-references}.md`
+  and `scripts/convert_legacy_to_pbir.py`, which now converts legacy types 1 and 2 as well as 3.
+  Keep the fork's lines until upstream uses the schema's names. Upstream's CLI-only rewrite
+  (`42fd294`) deletes the script and the how-to text; taking it drops those hunks.
 - `useful-stuff/themes/*.json` (every font line) and the font note in
   `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
   `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.

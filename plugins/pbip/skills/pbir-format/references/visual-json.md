@@ -351,9 +351,13 @@ Visual interactions control cross-filtering between visuals on a page. Configure
 ]
 ```
 
-Types: `"NoFilter"` (disable cross-filter), `"Filter"` (cross-filter), `"Highlight"` (cross-highlight).
+`type` is `"DataFilter"`, `"HighlightFilter"`, `"NoFilter"` or `"Default"`. Any other value is a
+schema error, and a report with `"Highlight"` entries fails to open in Power BI Desktop. See
+[page.md, visualInteractions](page.md#visualinteractions) for what each does.
 
-Only interactions that deviate from the default need to be listed. By default, all visuals cross-filter each other.
+List only the pairs that should differ from the default. By default a click cross-highlights
+visuals such as column and bar charts, and cross-filters line charts, scatter charts and maps.
+`defaultFilterActionIsDataFilter: true` in report.json makes clicks filter instead of highlight.
 
 ## Drill-Down Propagation
 
@@ -370,7 +374,7 @@ Only interactions that deviate from the default need to be listed. By default, a
 Two behaviors that are easy to conflate:
 
 - `drillFilterOtherVisuals: true` -- drilling a hierarchy level re-filters the rest of the page, behaving like a data-point click; `false` isolates the drill to that visual. Desktop writes this flag explicitly per visual, so read the value on the visual you are editing rather than assuming a global default
-- `visualInteractions` (page.json) -- controls on-click cross-filter mode (NoFilter/Filter/Highlight). Both settings must align; a `true` drill flag still respects any `NoFilter` interaction pairs for that visual
+- `visualInteractions` (page.json) -- controls on-click cross-filter mode (DataFilter/HighlightFilter/NoFilter). Both settings must align; a `true` drill flag still respects any `NoFilter` interaction pairs for that visual
 
 Do not confuse `drillFilterOtherVisuals` (same-page hierarchy walk) with drillthrough (navigates to a separate page via `visualLink.type: "Drillthrough"`).
 

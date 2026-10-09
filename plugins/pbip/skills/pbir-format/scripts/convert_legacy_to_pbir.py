@@ -695,18 +695,19 @@ def convert_page(section, page_index):
         page_json["background"] = section["background"]
 
     # Visual interactions (legacy "relationships" -> PBIR "visualInteractions")
-    # Legacy type mapping: 1=Filter, 2=Highlight, 3=NoFilter
-    # PBIR only stores NoFilter (Filter is the default, so omitted)
+    # Legacy type mapping: 1=DataFilter, 2=HighlightFilter, 3=NoFilter
+    # (PBIR has no "Filter" or "Highlight" value)
+    interaction_types = {1: "DataFilter", 2: "HighlightFilter", 3: "NoFilter"}
     relationships = section_config.get("relationships", [])
     if relationships:
         interactions = []
         for r in relationships:
-            legacy_type = r.get("type", 1)
-            if legacy_type == 3:  # NoFilter
+            pbir_type = interaction_types.get(r.get("type"))
+            if pbir_type:
                 interactions.append({
                     "source": r["source"],
                     "target": r["target"],
-                    "type": "NoFilter"
+                    "type": pbir_type
                 })
         if interactions:
             page_json["visualInteractions"] = interactions

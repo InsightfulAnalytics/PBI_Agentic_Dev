@@ -33,7 +33,22 @@ Override default cross-filtering between visuals on this page:
 ]
 ```
 
-Types: `"NoFilter"` (disable cross-filter), `"Filter"`, `"Highlight"`.
+`type` takes one of the four values of the page schema's `VisualInteractionFilterType`:
+
+| `type` | Edit interactions icon | The target visual |
+| --- | --- | --- |
+| `"DataFilter"` | Filter | shows only the data that matches the selection |
+| `"HighlightFilter"` | Highlight | keeps all its data and highlights the part that matches |
+| `"NoFilter"` | None | ignores the selection |
+| `"Default"` | (not set) | highlights or filters, as its visual type decides |
+
+`"Filter"` and `"Highlight"` are the icon names, not values. Any other value is a schema error,
+and a report with `"Highlight"` entries fails to open in Power BI Desktop with "Something went
+wrong. Failed to load the report." Desktop-saved files hold `DataFilter`, `HighlightFilter` and
+`NoFilter` entries, and no `Default` ones. Line charts, scatter charts and maps can only be
+filtered, so don't give them `"HighlightFilter"`. [Page schema 1.0.0 to 2.1.0. Verified 2026-10-09.]
+
+Retest: `curl -s https://developer.microsoft.com/json-schemas/fabric/item/report/definition/page/2.1.0/schema.json | python3 -c "import json,sys; print([a['const'] for a in json.load(sys.stdin)['definitions']['VisualInteractionFilterType']['anyOf']])"`
 
 ### Tooltip Pages
 
