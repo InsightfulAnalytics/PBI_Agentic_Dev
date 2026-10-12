@@ -37,7 +37,7 @@ FUNCTION <Name> = ( <param> [: [type] [subtype] [mode]] [= <default>], ... ) => 
 Two layers, both expected:
 
 1. `///` lines above the function in TMDL or DAX query view become the function's description (what it returns, one line per parameter)
-2. `//` comments inside the parameter list explain each parameter: what it expects, valid values, an example argument. Inside the body, comment only logic a reader would not expect
+2. `//` comments inside the parameter list explain each parameter: what it expects, valid values, an example argument. Inside the body, put a `//` line before each step, as the `dax-standard` house style does for measures
 
 ### Example: Microsoft Learn (DAX query view)
 
