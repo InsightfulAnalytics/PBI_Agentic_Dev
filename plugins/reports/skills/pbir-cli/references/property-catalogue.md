@@ -1,7 +1,8 @@
 # Property Catalogue
 
-Formatting properties for all 49 visual types. Universal objects are detailed below;
-for type-specific objects use `pbir schema describe type object` to get full property details.
+Offline snapshot of formatting properties. Universal objects are detailed below.
+The live schema is authoritative and covers more visual types than this snapshot:
+use `pbir schema types` and `pbir schema describe type object` for current details.
 
 ## Discovery Commands
 
@@ -283,7 +284,6 @@ Use `pbir schema describe entity object` for details.
 
 ## Summary
 
-- 49 visual types
 - 15 universal objects (detailed above)
-- 12627 total property slots across all types
+- `pbir schema types` lists the visual types the installed CLI knows
 - Use `pbir schema describe type object` for type-specific property details

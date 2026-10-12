@@ -24,11 +24,15 @@ export const LINUX_OPEN = [
 
 const WIN_OPEN = "$ErrorActionPreference = 'Stop'; [Diagnostics.Process]::Start([Diagnostics.ProcessStartInfo]@{ FileName = $env:PANE_OPEN_TARGET; UseShellExecute = $true }) | Out-Null"
 
+const WEB_SCHEMES = ['https:', 'http:']
+
 export function openCommand(os: 'linux' | 'darwin' | 'win32', target: string) {
   const argv = os === 'linux'
     ? ['sh', '-c', LINUX_LAUNCH, 'sh', 'sh', '-c', LINUX_OPEN, 'sh', target]
     : os === 'darwin'
-      ? ['open', '--', target]
+      ? WEB_SCHEMES.some(s => target.toLowerCase().startsWith(s))
+        ? ['sh', '-c', 'open -a "Google Chrome" -- "$1" 2>/dev/null || open -- "$1"', 'sh', target]
+        : ['open', '--', target]
       : ['powershell', '-NoProfile', '-NonInteractive', '-Command', WIN_OPEN]
   return {
     argv,

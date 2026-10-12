@@ -2,6 +2,16 @@
 
 Complete guide to formatting visuals using the pbir CLI. The core principle: **always check and prefer theme-level formatting before applying bespoke visual formatting**.
 
+## Table of Contents
+- [Formatting Hierarchy: Theme First](#formatting-hierarchy-theme-first)
+- [Discovering Properties](#discovering-properties)
+- [Setting Properties](#setting-properties)
+- [Bulk Formatting with Glob Patterns](#bulk-formatting-with-glob-patterns)
+- [Object Formatting Subcommands](#object-formatting-subcommands)
+- [Conditional Formatting](#conditional-formatting)
+- [Clearing Visual-Level Overrides (Reset to Theme)](#clearing-visual-level-overrides-reset-to-theme)
+- [Recommended Workflow](#recommended-workflow)
+
 ## Formatting Hierarchy: Theme First
 
 Power BI applies formatting in a cascade: **base theme -> custom theme -> visual-type defaults -> individual visual overrides**. Formatting set in the theme applies to all visuals of that type automatically and is far more maintainable than bespoke per-visual formatting.

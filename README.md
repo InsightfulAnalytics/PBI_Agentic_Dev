@@ -237,7 +237,7 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 | Skill | [`dax-standard`](plugins/semantic-models/skills/dax-standard/) | The house style for authoring measures: table-first DAX, formatting via dynamic format strings, worked recipes |
 | Skill | [`dax-optimisation`](plugins/semantic-models/skills/dax-optimisation/) | Debug and optimize DAX performance (server timings, anti-patterns, tuning) |
 | Skill | [`power-query`](plugins/semantic-models/skills/power-query/) | Write M expressions, debug query folding, execute M locally or via Fabric API |
-| Skill | [`standardize-naming-conventions`](plugins/semantic-models/skills/standardize-naming-conventions/) | Audit and standardize naming conventions in semantic models |
+| Skill | [`organize-semantic-model`](plugins/semantic-models/skills/organize-semantic-model/) | Organize a model end to end: names, folders, hierarchies, descriptions, formats, UDFs, perspectives, translations, roles |
 | Skill | [`refresh-semantic-model`](plugins/semantic-models/skills/refresh-semantic-model/) | Trigger or troubleshoot refreshes |
 | Skill | [`lineage-analysis`](plugins/semantic-models/skills/lineage-analysis/) | Trace downstream reports from a semantic model across workspaces |
 | Agent | [`semantic-model-auditor`](plugins/semantic-models/agents/semantic-model-auditor.agent.md) | Audit semantic models for quality, memory, DAX, and design issues |

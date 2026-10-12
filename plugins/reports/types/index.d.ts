@@ -9,6 +9,7 @@ export type TreeNode = {
   hidden: boolean
   sig: string
   note: string
+  file?: string
 }
 
 export type Explorer = {

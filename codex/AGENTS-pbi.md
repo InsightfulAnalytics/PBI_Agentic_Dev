@@ -24,7 +24,7 @@ SessionStart hook; Codex has no hooks, so read it yourself.
 | Model | `power-query` | M expressions, partition queries, query folding, testing/previewing partitions |
 | Model | `refresh-semantic-model` | Refresh a model/dataset; schedules, refresh troubleshooting |
 | Model | `lineage-analysis` | Downstream reports, impact analysis, cross-workspace lineage |
-| Model | `standardize-naming-conventions` | Rename/standardize model object names |
+| Model | `organize-semantic-model` | Organize/tidy a whole model: folders, names, hierarchies, descriptions, formats, UDFs |
 | PBIP | `pbip` | PBIP project structure, PBIX→PBIP conversion, cascade renames, forking |
 | PBIP | `tmdl` | Direct TMDL file authoring/editing, TMDL syntax, BIM→TMDL |
 | PBIP | `pbir-format` | PBIR JSON reference: visual.json, report.json, themes, filters, extension measures, bookmarks |

@@ -13,14 +13,17 @@ export type Source = {
   name: string
   note: string
   item?: string
+  workspace?: string
   children?: string[]
 }
 
 export type AppInfo = {
   dir: string
   name: string
+  key: string
   title: string
   cli: string
+  tenant: string
   workspace: string
   item: string
   portal: string

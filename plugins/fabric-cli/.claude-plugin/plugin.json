@@ -33,6 +33,16 @@
         "off"
       ]
     },
+    "reportLinks": {
+      "type": "string",
+      "title": "Report links",
+      "description": "embed: opening a report uses its reportEmbed link (app.powerbi.com/reportEmbed with autoAuth and the tenant). portal: the report page in the Fabric portal.",
+      "default": "embed",
+      "options": [
+        "embed",
+        "portal"
+      ]
+    },
     "fontHint": {
       "type": "string",
       "title": "Font hint",

@@ -6,10 +6,11 @@ type Deployment = {
   fabricWorkspaceId: string
   hostingUrl: string
   fabricDeepLink: string
+  fabricTenantId: string
   deployedAt: string
 }
 
-const DEPLOYMENT_FIELDS = ['fabricItemId', 'fabricWorkspaceId', 'hostingUrl', 'fabricDeepLink', 'deployedAt'] as const
+const DEPLOYMENT_FIELDS = ['fabricItemId', 'fabricWorkspaceId', 'hostingUrl', 'fabricDeepLink', 'fabricTenantId', 'deployedAt'] as const
 
 export function yamlName(yaml: string): string {
   return yamlScalar(yaml.match(/^name:(.*)$/m)?.[1] ?? '')
@@ -34,7 +35,7 @@ function deploymentsOf(text: string): { all: Deployment[]; error: string } {
       continue
     }
     const d = raw as Record<string, unknown>
-    const out = { fabricItemId: '', fabricWorkspaceId: '', hostingUrl: '', fabricDeepLink: '', deployedAt: '' }
+    const out = { fabricItemId: '', fabricWorkspaceId: '', hostingUrl: '', fabricDeepLink: '', fabricTenantId: '', deployedAt: '' }
     for (const f of DEPLOYMENT_FIELDS) {
       const v = d[f]
       if (typeof v === 'string') out[f] = v
@@ -55,8 +56,10 @@ export function fromRayfin(dir: string, yaml: string, deployments: string): AppI
   return {
     dir,
     name,
+    key: yamlScalar(yaml.match(/^id:(.*)$/m)?.[1] ?? ''),
     title: name,
     cli: 'rayfin',
+    tenant: best?.fabricTenantId ?? '',
     workspace,
     item,
     portal: deep.startsWith('https://') ? deep : portalUrl(workspace, item),

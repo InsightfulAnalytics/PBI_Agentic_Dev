@@ -52,7 +52,7 @@ Produce a markdown report: a count-by-severity summary, detailed findings with o
 
 ### Documentation and AI (`ai-copilot-readiness.md`, `metadata-and-organization.md`)
 - Tables/columns/measures missing descriptions (Copilot truncates after 200 characters; front-load keywords)
-- Missing display folders; missing synonyms; inconsistent naming (use `standardize-naming-conventions`)
+- Missing display folders; missing synonyms; inconsistent naming (use `organize-semantic-model`)
 
 ### Design (`dimensional-modeling.md`, `relationships.md`, `time-intelligence.md`)
 - Star-schema violations (fact-to-fact joins, snowflakes); many-to-many without a bridge

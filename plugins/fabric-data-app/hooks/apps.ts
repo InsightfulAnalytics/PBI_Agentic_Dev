@@ -28,11 +28,31 @@ export function portalUrl(workspace: string, item: string): string {
   return GUID.test(workspace) && GUID.test(item) ? `${PORTAL}/groups/${workspace}/appbackends/${item}` : ''
 }
 
+const ITEM_ROUTE: Record<string, string> = {
+  SemanticModel: 'datasets',
+  Lakehouse: 'lakehouses',
+  Warehouse: 'datawarehouses',
+  SQLEndpoint: 'lakewarehouses',
+  SQLDatabase: 'sqldatabases',
+  KQLDatabase: 'databases',
+  UserDataFunction: 'userdatafunctions',
+  AppBackend: 'appbackends',
+}
+
+export function itemUrl(workspace: string, type: string, item: string, tenant = ''): string {
+  const route = ITEM_ROUTE[type]
+  if (!route || !GUID.test(workspace) || !GUID.test(item)) return ''
+  const tail = type === 'SemanticModel' ? '/details' : ''
+  return `${PORTAL}/groups/${workspace}/${route}/${item}${tail}${GUID.test(tenant) ? `?ctid=${tenant}` : ''}`
+}
+
 export function merge(a: AppInfo, b: AppInfo): AppInfo {
   return {
     ...a,
+    key: a.key || b.key,
     title: b.title !== b.name ? b.title : a.title,
     cli: a.cli === b.cli ? a.cli : `${a.cli}+${b.cli}`,
+    tenant: a.tenant || b.tenant,
     workspace: a.workspace || b.workspace,
     item: a.item || b.item,
     portal: a.portal || b.portal,
@@ -79,8 +99,10 @@ function fabricYamlModels(yaml: string): Source[] {
       continue
     }
     const item = l.match(/^\s*itemId:\s*["']?([0-9a-fA-F-]{36})/)?.[1]
+    const ws = l.match(/^\s*workspaceId:\s*["']?([0-9a-fA-F-]{36})/)?.[1]
     const last = out[out.length - 1]
     if (item && last && !last.item) last.item = item
+    if (ws && last && !last.workspace) last.workspace = ws
   }
   return out
 }
@@ -89,7 +111,7 @@ function rayfinConnectors(yaml: string): Source[] {
   const lines = yaml.split('\n')
   const start = lines.findIndex(l => /^connectors:\s*(#.*)?$/.test(l))
   if (start < 0) return []
-  const items: { keys: Record<string, string>; itemId: string }[] = []
+  const items: { keys: Record<string, string>; itemId: string; workspaceId: string }[] = []
   let dash = -1
   let keyIndent = -1
   const take = (text: string, indent: number) => {
@@ -99,6 +121,7 @@ function rayfinConnectors(yaml: string): Source[] {
     const value = yamlScalar(kv[2] ?? '')
     if (indent === keyIndent && !(kv[1] in item.keys)) item.keys[kv[1]] = value
     if (kv[1] === 'itemId' && !item.itemId && /^[0-9a-fA-F-]{36}$/.test(value)) item.itemId = value
+    if (kv[1] === 'workspaceId' && !item.workspaceId && /^[0-9a-fA-F-]{36}$/.test(value)) item.workspaceId = value
   }
   for (const line of lines.slice(start + 1)) {
     if (line.trim() === '' || line.trim().startsWith('#')) continue
@@ -107,7 +130,7 @@ function rayfinConnectors(yaml: string): Source[] {
     if (entry && (dash < 0 || (entry[1] ?? '').length === dash)) {
       dash = (entry[1] ?? '').length
       keyIndent = dash + 1 + (entry[2] ?? '').length
-      items.push({ keys: {}, itemId: '' })
+      items.push({ keys: {}, itemId: '', workspaceId: '' })
       take(entry[3] ?? '', keyIndent)
       continue
     }
@@ -118,7 +141,7 @@ function rayfinConnectors(yaml: string): Source[] {
     .map(i => {
       const type = i.keys.type ?? ''
       const kind = CONNECTOR_KIND[type] ?? 'table'
-      return { kind, name: i.keys.name ?? '', note: KIND_LABEL[kind] ?? type, item: i.itemId || undefined }
+      return { kind, name: i.keys.name ?? '', note: KIND_LABEL[kind] ?? type, ...(i.itemId ? { item: i.itemId } : {}), ...(i.workspaceId ? { workspace: i.workspaceId } : {}) }
     })
 }
 

@@ -211,7 +211,7 @@ Perform the following checks, categorized by severity:
 
 - **[`dax-optimisation`](../skills/dax-optimisation/)** — DAX performance optimization
 - **[`semantic-model`](../skills/semantic-model/)** — Full model design, build, and quality review
-- **[`standardize-naming-conventions`](../skills/standardize-naming-conventions/)** — Naming remediation
+- **[`organize-semantic-model`](../skills/organize-semantic-model/)** — Organization and naming remediation
 
 ## Model Design Issues
 

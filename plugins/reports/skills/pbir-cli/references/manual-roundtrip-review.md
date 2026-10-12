@@ -5,7 +5,7 @@ CLI or skill can learn from it.
 
 ## Safe pull-down workflow
 
-1. Download into a new temporary directory. Do not overwrite the agent's prior
+1. Download with `pbir download` into a new temporary directory. Do not overwrite the agent's prior
    working copy before the comparison is complete.
 2. Validate the downloaded report and record its page, visual, field, warning,
    and declared-schema counts.
@@ -15,10 +15,11 @@ CLI or skill can learn from it.
    and local layers and identifies the source of each value; raw JSON diffs are
    too noisy for this job.
 5. Classify every difference as renderer-relevant, semantic, service metadata,
-   or serialization noise before changing the CLI.
+   or serialization noise before changing anything.
 6. Reproduce each renderer-relevant difference with `pbir set ... --dry-run` or
-   a dedicated command. A valid Desktop value that discovery or validation
-   rejects is a capability-catalog defect and needs a focused regression test.
+   a dedicated command. If `pbir` rejects a value that Desktop wrote and
+   renders, report it as a CLI defect with the property path and value; do not
+   work around it by editing JSON.
 7. Only after the review, make the downloaded copy the working baseline or
    replace the earlier copy through a recoverable backup workflow.
 
@@ -71,5 +72,6 @@ Service/Desktop round trips may remove unreferenced registered resources. After
 clearing a page or theme background image, audit `RegisteredResources` for
 orphaned assets. Do not delete an asset merely because its filename is absent
 from obvious page properties; bookmarks and less-common configuration paths
-must also be checked. Prefer an explicit future `images prune --dry-run` workflow
-over implicit destructive cleanup.
+must also be checked. Remove a confirmed orphan explicitly with
+`pbir rm "Report.Report" --image <item_name> -f`, never as a side effect of
+another change.

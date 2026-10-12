@@ -9,6 +9,22 @@ Two surfaces share one model:
 
 The old `pbir visuals cf --info`/`--list`/`--has`/`--set-color`/`--remove`/`--remove-all` flags no longer exist. See the [Removed Flags](#removed-flags) section for the rewrite table.
 
+## Table of Contents
+- [CF Types](#cf-types)
+- [Finding out what accepts CF](#finding-out-what-accepts-cf)
+- [Reading CF with `pbir get`](#reading-cf-with-pbir-get)
+- [Editing CF with `pbir set`](#editing-cf-with-pbir-set)
+- [Removing CF](#removing-cf)
+- [Creating CF with `pbir visuals cf`](#creating-cf-with-pbir-visuals-cf)
+- [Copying CF Between Visuals](#copying-cf-between-visuals)
+- [Converting to Theme Tokens](#converting-to-theme-tokens)
+- [Converting to Measure-Driven](#converting-to-measure-driven)
+- [Changing CF Type](#changing-cf-type)
+- [Common Containers and Properties](#common-containers-and-properties)
+- [Removed Flags](#removed-flags)
+- [Best Practices](#best-practices)
+- [Copy Formatting Between Visuals](#copy-formatting-between-visuals)
+
 ## CF Types
 
 | Type | Description | Expression |
@@ -440,5 +456,5 @@ Retained flags (create, copy, convert): `--gradient`, `--rules`, `--icons`, `--d
 Copy all formatting overrides from one visual to another without affecting field bindings:
 
 ```bash
-pbir cp "Report/Page.Page/Source.Visual" "Report/Page.Page/Target.Visual" --format-only
+pbir cp "Report.Report/Page.Page/Source.Visual" "Report.Report/Page.Page/Target.Visual" --format-only
 ```
