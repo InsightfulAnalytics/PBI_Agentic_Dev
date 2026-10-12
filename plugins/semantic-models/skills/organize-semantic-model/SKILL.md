@@ -89,14 +89,24 @@ Each DAX calculated table and calculated column must justify itself in its `cont
 
 ## Pass 12: DAX code
 
-- Format every measure, calculated column, calculated table, calculation item and function expression. In a TE script, `obj.FormatDax()` formats at the end of the script
-- Prefix every variable with `__` (`VAR __StartDate`), the `dax-standard` house style, and every temporary column created by `ADDCOLUMNS`, `ROW`, `SELECTCOLUMNS` or `SUMMARIZECOLUMNS` with `@` (`"@BusinessDate"`, referenced as `[@BusinessDate]`), so neither can be mistaken for a model table or column
-- Apply TE3's code actions by hand. The editor shows them (DR001 to DR014, RW001 to RW003 on docs.tabulareditor.com/en/features/code-actions.html), but the MCP exposes neither the actions nor their lint markers, so an agent has to check for them: scalar predicates instead of `FILTER` on one column, aggregators instead of single-column iterators, `VALUES` instead of single-column `SUMMARIZE`, the two prefixes above, constant aggregations moved into variables, `DISTINCTCOUNT`, `COALESCE`, `ISBLANK`, `IN` instead of chained `||` equalities, no unused variables
-- Comment atypical logic inside the expression with one short `//` line: a deliberate `ALL` that removes a filter users might expect to apply, a workaround for an engine quirk, a magic number's meaning. Do not comment the obvious
+Every DAX expression in the model follows the `dax-standard` skill, the house style. Load it before this pass. Where TE3's formatter or its code actions disagree with `dax-standard`, `dax-standard` wins.
+
+- Lay out every measure, calculated column, calculated table, calculation item and function expression in the house layout: the body starts on the second line (in TMDL, a blank line right after `=`), one `VAR`, function or argument per line, one flat list of `VAR`s, and the last step is `VAR __Result` with `RETURN __Result`. Do not run `obj.FormatDax()`: it applies DAX Formatter's layout, not the house layout
+- Prefix every variable with `__` (`VAR __StartDate`) and every temporary column created by `ADDCOLUMNS`, `ROW`, `SELECTCOLUMNS` or `SUMMARIZECOLUMNS` with `@` (`"@BusinessDate"`, referenced as `[@BusinessDate]`), so neither can be mistaken for a model table or column
+- Put a `//` line before each step that says what it does, inside the expression, as `dax-standard` does. Keep the `///` description separate
+- Apply TE3's code actions by hand, but only where they keep the table-first shape. The editor shows them (DR001 to DR014, RW001 to RW003 on docs.tabulareditor.com/en/features/code-actions.html), but the MCP exposes neither the actions nor their lint markers, so an agent has to check for them. Apply: `VALUES` instead of single-column `SUMMARIZE`, `DISTINCTCOUNT`, `COALESCE`, `ISBLANK`, `IN` instead of chained `||` equalities, constant aggregations moved into variables, no unused variables, and a plain aggregator for a single-column iterator over a model table (`SUMX ( Sales, Sales[Amount] )` becomes `SUM ( Sales[Amount] )`). Do not apply: a scalar predicate in place of a `FILTER` that builds a table `VAR`, or anything that folds a table `VAR` away. The table `VAR` is the step that can be returned and inspected
+- Layout, prefixes and comments change no result. Restructuring a measure into the table-first shape, or flattening nested `VAR` blocks, can. Propose those per measure, and prove each with the comparison query under "Keep the VARs flat" in `dax-standard`. Time intelligence keeps `CALCULATE` with `DATEADD` (the standing exception in `dax-standard`)
 
 ## Pass 13: user-defined functions
 
 Look for logic repeated across measures that one UDF could carry, propose it with the measures it replaces, and on approval create it with a compound name, type hints, and `///` plus parameter comments. Syntax, naming, documentation layers and worked examples are in `references/udfs.md`.
+
+The `dax-standard` house style holds here too:
+
+- A function body is laid out like a measure: `__` variables, one flat list of `VAR`s, a `//` line per step, and `RETURN __Result`
+- Formatting logic goes in one `Fmt.*` function per convention (scaled, currency, percent, duration), called from each measure's `formatStringDefinition`, as `dax-standard` describes under "Number formatting"
+- A measure moved onto a UDF keeps its `VAR`s flat. Never pass a `VAR … RETURN` block as an `EXPR` argument; give the wrapper a table twin instead, as "Keep the VARs flat" in `dax-standard` shows
+- Before one function calls another, read the UDF load traps in `pbip:tmdl` `references/authoring-gotchas.md`. After any function change, run `EVALUATE INFO.USERDEFINEDFUNCTIONS()` and read `ErrorMessage`; `te validate` passing is not enough
 
 ## Pass 14: duplicates
 

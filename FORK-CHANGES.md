@@ -80,9 +80,11 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   updates (taken whole, with upstream's removal of the pane unit tests), the new
   `organize-semantic-model` skill in place of `standardize-naming-conventions`, the `pbir-cli`
   doc fixes, the `fabric-cli` T-SQL route without the `fabric-sql` MCP, and the TE3 UI font-size
-  script. `organize-semantic-model` prefixes DAX variables with `__`, the `dax-standard` house
-  style, in place of upstream's `_`, and names `dax-optimisation` where upstream names a `dax`
-  skill the fork does not have.
+  script. `organize-semantic-model` names `dax-optimisation` where upstream names a `dax` skill
+  the fork does not have, and its DAX passes (12 and 13) follow the `dax-standard` house style:
+  `__` variables in place of upstream's `_`, the house layout instead of `FormatDax()`, a comment
+  on every step, only the TE3 code actions that keep the table-first shape, and UDF bodies laid
+  out like measures.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -138,7 +140,8 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   Keep the fork's lines until upstream uses the schema's names. Upstream's CLI-only rewrite
   (`42fd294`) deletes the script and the how-to text; taking it drops those hunks.
 - `organize-semantic-model/SKILL.md`: the `version:` line, `dax-optimisation` in the
-  description, and the `__` variable prefix in pass 12. Keep the fork's lines.
+  description, and passes 12 and 13, rewritten to defer to `dax-standard`; plus the body-comment
+  line in its `references/udfs.md`. Keep the fork's versions.
 - `useful-stuff/themes/*.json` (every font line) and the font note in
   `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
   `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.
