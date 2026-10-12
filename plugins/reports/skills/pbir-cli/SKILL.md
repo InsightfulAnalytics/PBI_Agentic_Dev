@@ -391,7 +391,7 @@ pbir schema describe "tableEx" --json   # Full JSON for agent consumption
 
 Schema descriptions include practical usage notes (e.g., error bars as target lines, title.text supporting measure-driven dynamic values). Use `--json` output for full descriptions.
 
-For a complete offline reference of every property for every visual type, consult **`references/property-catalogue.md`** (49 types, 15 universal containers, 12,600+ property slots).
+For a complete offline reference of every property for every visual type, consult **`references/property-catalogue.md`**. It is a snapshot; `pbir schema types` and `pbir schema describe` are authoritative.
 
 ### Bulk Modification (Glob Patterns)
 
@@ -461,8 +461,8 @@ For gradient/rules/icons/data bars/image options, copy/remove/convert, and best 
 pbir visuals action "Visual" --type PageNavigation --target "Details"  # Set action
 pbir add bookmark "Report.Report" "Q1 View"                           # Create bookmark
 pbir bookmarks page "Report.Report" "Q1 View" "Details"               # Set bookmark target page
-pbir pages drillthrough "Report/Details.Page" --table T --field F     # Add drillthrough
-pbir pages set-tooltip "Report/Tooltip.Page"                          # Configure tooltip
+pbir pages drillthrough "Report.Report/Details.Page" --table T --field F # Add drillthrough
+pbir pages set-tooltip "Report.Report/Tooltip.Page"                   # Configure tooltip
 ```
 
 For bookmark management, consult **`references/bookmarks.md`**.
@@ -598,8 +598,9 @@ references/cli-traps.md: commands that exit 0 and did something else; screenshot
 references/manual-roundtrip-review.md: safe pull-down and semantic comparison of user edits; New Card and table-width lessons
 references/rendered-dashboard-loop.md: short validate/query/render batches; publish cadence and renderer-sensitive patterns
 references/create-new-report.md: building a report from scratch
+references/layout.md: choosing a visual type for the question, then sizing and placing it on the canvas
 references/add-new-visual.md: adding visuals, layout patterns, bulk creation
-references/add-image.md: image visuals from file, URL, or a measure; the ImageUrl measure contract
+references/add-image.md: registering image resources, page and visual backgrounds; image visuals from file, URL, or a measure; the ImageUrl measure contract
 references/visual-groups.md: visual groups (create, add/remove members, ungroup)
 references/visual-presets.md: style presets (minimal, bold, clean, emphasis, presentation)
 references/fields-and-bindings.md: field binding, Column vs Measure types, swapping fields, rebinding
@@ -619,7 +620,7 @@ references/interactions.md: the report shell; tooltip filter-context trap, Deneb
 references/audit-report.md: report quality audit checklist
 references/bpa.md: Best Practice Analyzer; running rules, applying safe fixes, managing the rule set
 references/vague-prompts.md: handling underspecified prompts; targeted questions, sensible defaults
-references/property-catalogue.md: offline property index (49 types, 15 containers, 12,600+ slots)
+references/property-catalogue.md: offline property snapshot; universal containers and discovery commands
 scripts/close-plan.py: report-surface sweep; one row per (page, visual) for tooltip, navigation reachability, title, labels, alt text; --enforce to exit non-zero
 references/visualTypes/*.md: per-visual-type design rules, CLI commands, and best practices
 examples/visuals/default/*.json: read-only examples of minimal visual structures with theme defaults

@@ -55,7 +55,7 @@ Audit against the categories below and produce prioritized findings with file lo
 - **DAX correctness**: filtering tables not columns in CALCULATE, unguarded division, context-blind calc columns, variable time-shift bugs (`references/dax-authoring.md`; for query tuning use the `dax-optimisation` skill)
 - **Calculation groups**: row measures that carry their own scenario filter (the swap silently returns the same number in every column), format strings on a lower-precedence group that never fire, explicit `ordinal:` lines a save will strip (`references/calculation-groups.md`)
 - **Measure hygiene**: implicit measures, report-scoped measures that belong in the model, ambiguous duplicates
-- **Documentation & AI**: missing descriptions (Copilot truncates after 200 characters), missing display folders, missing synonyms, inconsistent naming (use `standardize-naming-conventions`)
+- **Documentation & AI**: missing descriptions (Copilot truncates after 200 characters), missing display folders, missing synonyms, inconsistent naming (use `organize-semantic-model`)
 - **Design**: star-schema violations, mis-marked date table, many-to-many without a bridge, dead inactive relationships
 - **Direct Lake**: non-unique one-side keys (queries fail at runtime), DirectQuery fallback, calc columns on Direct Lake, Delta guardrail breaches
 
@@ -67,7 +67,7 @@ Audit against the categories below and produce prioritized findings with file lo
 - `te-cli`: the `te` command reference
 - `c-sharp-scripting`: TOM C# scripts and macros (`te script`) for properties `te` cannot reach
 - `date-table`: drop a ready-made DimDate (calendar / ISO week / fiscal, plus a `Dates Selected` title measure) into a PBIP model
-- `standardize-naming-conventions`: naming audit and remediation
+- `organize-semantic-model`: organization and naming remediation
 - `refresh-semantic-model`: refresh monitoring and troubleshooting
 - `lineage-analysis`: artifact lineage (downstream reports and models that consume this model, across workspaces); distinct from intra-model object dependencies
 - `bpa-rules` (tabular-editor): authoring BPA rules; `fabric-cli`: service / workspace operations

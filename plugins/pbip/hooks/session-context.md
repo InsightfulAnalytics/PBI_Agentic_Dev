@@ -10,7 +10,8 @@ phase of Power BI work, say which skills you will load, so the user can add one 
 
 - Change a semantic model in a local PBIP (measure, column, relationship, RLS, calc group, rename):
   `semantic-models:model-change`, which sequences the rest. Model design, build, refresh or review:
-  `semantic-models:semantic-model`. Direct TMDL edits: `pbip:tmdl`
+  `semantic-models:semantic-model`. Direct TMDL edits: `pbip:tmdl`. Organize or tidy a whole model
+  (folders, names, descriptions, formats): `semantic-models:organize-semantic-model`
 - Write, rewrite or format a DAX measure: `semantic-models:dax-standard` (house style). Only a
   measurably slow one: `semantic-models:dax-optimisation`. A slow matrix or P&L grid:
   `custom-visuals:performant-matrix`

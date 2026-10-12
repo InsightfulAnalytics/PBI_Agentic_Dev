@@ -8,6 +8,7 @@ const GLYPHS: Record<string, Glyph> = {
   Lakehouse: { fabric: 991258, nerd: '\u{f0b9d}', plain: '◇', rgb: [29, 83, 164] },
   Warehouse: { fabric: 991243, nerd: '\u{f0a0b}', plain: '▤', rgb: [29, 83, 164] },
   SQLDatabase: { fabric: 991280, nerd: '\u{f1063}', plain: '▦', rgb: [0, 142, 230] },
+  SQLEndpoint: { fabric: 991243, nerd: '\u{f0a0b}', plain: '▥', rgb: [29, 83, 164] },
   KQLDatabase: { fabric: 991255, nerd: '\u{f1063}', plain: '▦', rgb: [0, 142, 230] },
   UserDataFunction: { fabric: 991284, nerd: '\u{f0295}', plain: 'ƒ', rgb: [63, 125, 53] },
   function: { fabric: 0, nerd: '\u{f0295}', plain: 'ƒ', rgb: [63, 125, 53] },
@@ -63,6 +64,7 @@ export const KIND_LABEL: Record<string, string> = {
   Lakehouse: 'lakehouse',
   Warehouse: 'warehouse',
   SQLDatabase: 'SQL database',
+  SQLEndpoint: 'SQL endpoint',
   KQLDatabase: 'KQL database',
   UserDataFunction: 'user data functions',
 }

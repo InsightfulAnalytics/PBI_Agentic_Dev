@@ -4,10 +4,12 @@ import { LINUX_LAUNCH as LAUNCH, openCommand } from './open'
 import type { Explorer, Target, TreeNode } from '../types'
 import { glyph, type Tier, visualLabel } from './icons'
 import type { RowSpec, RowsProps, Seg } from './rows'
-import { ancestors, diff, empty, visible } from './tree'
+import { FABRIC_SVG } from './svg-data'
+import type { ZoneProps } from './zone'
+import { ancestors, diff, empty, type Row, visible } from './tree'
 import { idOf, reportUrl, workspaceUrl } from './fabric'
 import { binOf, type Invocation, invocations, join, pbirReport, posix, targetLabel, tokenize, useDrives, useHome } from './parse'
-import { loadReport, reportDetail } from './report'
+import { loadReport, modelRef, reportDetail } from './report'
 import { pbirTouched } from './touch'
 
 const STATE = { plugin: 'reports', key: 'explorer' } as const
@@ -29,10 +31,14 @@ const TONES: Record<string, { bright: string[]; dim: string[] }> = {
   pink: { bright: ['#ec4899', '#f472b6', '#f9a8d4', '#fce7f3'], dim: ['#831843', '#9d174d', '#b8406f', '#cf6f93'] },
   purple: { bright: ['#a855f7', '#c084fc', '#d8b4fe', '#f3e8ff'], dim: ['#581c87', '#6b21a8', '#8b47c4', '#a874d6'] },
 }
-const PLAIN_SPINNER = ['|', '/', '-', '\\']
+const MUTED = '#6e6e7a'
+const PROPS = 'props:toggle'
+const ROW_PX = 24
+const SVG_NS = 'http://www.w3.org/2000/svg'
+const SVG_KIND: Record<string, string> = { report: 'Report', 'semantic model': 'SemanticModel' }
 const FONT_SCRIPT =
-  'if command -v fc-list >/dev/null 2>&1; then f=$(fc-list ":charset=$1" file | head -n1 | cut -d: -f1); ' +
-  'else f=$(ls "$HOME"/Library/Fonts/*"$2"* /Library/Fonts/*"$2"* 2>/dev/null | head -n1); fi; ' +
+  'f=; command -v fc-list >/dev/null 2>&1 && f=$(fc-list ":charset=$1" file 2>/dev/null | head -n1 | cut -d: -f1); ' +
+  '[ -n "$f" ] || f=$(ls "$HOME"/Library/Fonts/*"$2"* /Library/Fonts/*"$2"* "$HOME"/.local/share/fonts/*"$2"* 2>/dev/null | head -n1); ' +
   '[ -n "$f" ] || { echo missing; exit 0; }; m=$(stat -c %Z "$f" 2>/dev/null || stat -f %c "$f"); p=$PPID; ' +
   'while [ -n "$p" ] && [ "$p" -gt 1 ]; do c=$(ps -o comm= -p "$p" 2>/dev/null); c=$(basename "$c" 2>/dev/null | tr -d " "); case "$c" in ' +
   'ghostty|kitty|alacritty|Alacritty|foot|footclient|wezterm-gui|konsole|gnome-terminal-|xterm|urxvt|st|Terminal|iTerm2) ' +
@@ -55,6 +61,11 @@ let noDock = false
 let inflight: Promise<void> | null = null
 let queued: Promise<void> | null = null
 let platform: Promise<'linux' | 'darwin' | 'win32'> | null = null
+let reportLinks = 'embed'
+let tenantId = ''
+let propsOpen = false
+let nativeScroll = false
+const modelLinks = new Map<string, { url: string; lines: string[] }>()
 
 function osName($: EngineInterface): Promise<'linux' | 'darwin' | 'win32'> {
   platform ??= (async () => {
@@ -316,11 +327,6 @@ async function point($: EngineInterface, target: Target | null, opened: 'asked' 
   return moved
 }
 
-async function navigate($: EngineInterface, target: Target | null, n: TreeNode): Promise<void> {
-  const nodes = await nodesOf($, target)
-  await patch($, cur => (sameTarget(cur.target, target) ? { root: n.id, cursor: n.id, scroll: {}, expanded: [...new Set([...cur.expanded, n.id, ...ancestors(nodes, n.id)])] } : {}))
-}
-
 async function goUp($: EngineInterface): Promise<void> {
   const nodes = await nodesOf($, (await get($)).target)
   await patch($, cur => {
@@ -334,18 +340,94 @@ async function goHome($: EngineInterface): Promise<void> {
 }
 
 async function press($: EngineInterface, ex: Explorer, n: TreeNode): Promise<void> {
-  const now = await $.clock.now()
+  const now = Date.now()
   const isDouble = lastPress.key === n.id && now - lastPress.at < DOUBLE_MS
   lastPress = { key: isDouble ? '' : n.id, at: now }
-  if (isDouble && (await nodesOf($, ex.target)).some(c => c.parent === n.id)) await navigate($, ex.target, n)
-  else if (isDouble) await openLocal($, await get($), n)
+  if (isDouble) await openNode($, await get($), n)
   else await select($, ex.target, n)
 }
 
+async function openNode($: EngineInterface, ex: Explorer, n: TreeNode): Promise<void> {
+  if (n.kind === 'semantic model') return openWeb($, ex, n)
+  if (n.file) return openUrl($, n.file)
+  $.ui.toast('no file for this object')
+}
+
 async function openWeb($: EngineInterface, ex: Explorer, n: TreeNode): Promise<void> {
+  if (n.kind === 'semantic model') {
+    const model = await withBusy($, 'Finding the deployed model…', () => resolveModel($, ex.target))
+    if (model.url) await openUrl($, model.url)
+    else $.ui.toast(model.why)
+    return
+  }
   const url = webUrl(ex, n)
   if (url) await openUrl($, url)
-  else $.ui.toast('no Fabric link for this object')
+  else $.ui.toast('no Fabric link for this report; it opens in Fabric when its folder sits under <workspace>.Workspace')
+}
+
+let pending = ''
+
+async function withBusy<T>($: EngineInterface, text: string, fn: () => Promise<T>): Promise<T> {
+  pending = text
+  $.ui.invalidate('ui.render')
+  try {
+    return await fn()
+  } finally {
+    pending = ''
+    $.ui.invalidate('ui.render')
+  }
+}
+
+async function loadTenant($: EngineInterface): Promise<void> {
+  if (tenantId) return
+  const saved = (await $.store.get('tenant').catch(() => undefined)) as { id?: string } | undefined
+  if (saved?.id) {
+    tenantId = saved.id
+    return
+  }
+  try {
+    const run = await $.process.run(['fab', 'auth', 'status'], { timeoutMs: 30_000 })
+    const id = `${run.stdout}\n${run.stderr}`.match(/Tenant ID:\s*([0-9a-f-]{36})/i)?.[1]?.toLowerCase() ?? ''
+    if (!id) return
+    tenantId = id
+    await $.store.set('tenant', { id }).catch(() => undefined)
+  } catch {
+    return
+  }
+}
+
+function pageOf(n: TreeNode): string {
+  return n.id.match(/^R\/pages\/([^/]+)/)?.[1] ?? ''
+}
+
+function reportLink(portal: string, page: string): string {
+  const id = portal.match(/\/reports\/([0-9a-f-]{36})/i)?.[1] ?? ''
+  if (!id) return portal
+  if (reportLinks !== 'embed') return page ? `${portal}/${encodeURIComponent(page)}` : portal
+  return `https://app.powerbi.com/reportEmbed?reportId=${encodeURIComponent(id)}&autoAuth=true${tenantId ? `&ctid=${encodeURIComponent(tenantId)}` : ''}${page ? `&pageName=${encodeURIComponent(page)}` : ''}`
+}
+
+async function resolveModel($: EngineInterface, target: Target | null): Promise<{ url: string; lines: string[]; why: string }> {
+  if (target?.kind !== 'local') return { url: '', lines: [], why: 'no report is open' }
+  const hit = modelLinks.get(target.path)
+  if (hit) return { ...hit, why: '' }
+  let pbir: Record<string, unknown> | null = null
+  try {
+    pbir = JSON.parse(String(await $.fs.read(`${target.path}/definition.pbir`))) as Record<string, unknown>
+  } catch {
+    pbir = null
+  }
+  const ref = modelRef(pbir)
+  const home = target.path.match(/([^/]+)\.Workspace\/[^/]+\.Report$/)?.[1] ?? ''
+  const ws = ref.workspace || (ref.local ? home : '')
+  if (!ws) return { url: '', lines: [], why: ref.local ? `${ref.name || 'this model'} is a local model with no deployed copy to open` : 'the report connection names no workspace' }
+  const wsGuid = await fabId($, `${ws}.Workspace`)
+  if (!wsGuid) return { url: '', lines: [], why: `fab could not find workspace ${ws}` }
+  const id = /^[0-9a-f-]{36}$/i.test(ref.id) ? ref.id.toLowerCase() : ref.name ? await fabId($, `${ws}.Workspace/${ref.name}.SemanticModel`) : ''
+  if (!id) return { url: '', lines: [`Workspace: ${ws}`], why: `fab could not find ${ref.name || 'the model'} in ${ws}` }
+  const out = { url: `${workspaceUrl(wsGuid)}/datasets/${id}/details`, lines: [`Workspace: ${ws}`, `Model ID: ${id}`] }
+  modelLinks.set(target.path, out)
+  return { ...out, why: '' }
 }
 
 async function fabId($: EngineInterface, path: string): Promise<string> {
@@ -365,7 +447,8 @@ async function targetUrl($: EngineInterface, ws: string, report: string): Promis
 }
 
 function webUrl(ex: Explorer, n: TreeNode): string {
-  return n.path ? ex.targetUrl : ''
+  if (n.kind === 'semantic model') return ex.target?.kind === 'local' ? (modelLinks.get(ex.target.path)?.url ?? '') : ''
+  return ex.targetUrl ? reportLink(ex.targetUrl, pageOf(n)) : ''
 }
 
 type Since = { ms: number; mark: string; os: 'linux' | 'darwin' | 'win32' }
@@ -417,7 +500,7 @@ async function directEdit($: EngineInterface, files: string[], run = ''): Promis
 function toggled(ex: Explorer, nodes: TreeNode[], n: TreeNode): Partial<Explorer> {
   const open = new Set(ex.expanded)
   if (nodes.some(c => c.parent === n.id)) open.has(n.id) ? open.delete(n.id) : open.add(n.id)
-  return { expanded: [...open], cursor: n.id, selected: n.path ? n.id : ex.selected }
+  return { expanded: [...open], cursor: n.id, selected: n.id }
 }
 
 const tasks = new Map<string, ((ok: boolean) => Promise<void>)[]>()
@@ -466,13 +549,13 @@ async function doRefresh($: EngineInterface): Promise<void> {
     await patch($, cur => {
       if (!sameTarget(cur.target, target)) return {}
       const sel = cur.selected ? nodes.find(n => n.id === cur.selected) : undefined
-      const picked = !cur.selected ? {} : sel ? { detail: reportDetail(sel) } : { selected: '', detail: [] }
+      const picked = !cur.selected ? {} : sel ? { detail: [...reportDetail(sel, target.path), ...(sel.kind === 'semantic model' ? cur.detail.filter(l => /^(Workspace|Model ID|Fabric): /.test(l)) : [])] } : { selected: '', detail: [] }
       const expanded = before.length ? cur.expanded : nodes.filter(n => !n.parent).map(n => n.id)
       return { changed: diff(before, nodes), expanded, status: '', ...picked, ...(follow ? {} : { scroll: anchored(cur, before, nodes, expanded) }) }
     })
     const m = target.path.match(/([^/]+)\.Workspace\/([^/]+)\.Report$/)
     if (m?.[1] && m[2] && !(await get($)).targetUrl) {
-      const url = await targetUrl($, m[1], m[2])
+      const [url] = await Promise.all([targetUrl($, m[1], m[2]), loadTenant($)])
       await patch($, c => (sameTarget(c.target, target) ? { targetUrl: url } : {}))
     }
   } catch (err) {
@@ -503,19 +586,23 @@ async function followPbir($: EngineInterface, calls: Invocation[], run: string):
   )
 }
 
-async function openLocal($: EngineInterface, ex: Explorer, n: TreeNode): Promise<void> {
+async function openShell($: EngineInterface, ex: Explorer): Promise<void> {
   const t = ex.target
-  if (t?.kind === 'local') {
-    const parent = t.path.replace(/\/[^/]+$/, '') || '/'
-    await terminal($, ['bash', '-lc', 'cd "$1" && "$2" -i; exec bash', '_', parent, pbirBin], [pbirBin, '-i'], parent)
-  } else if (webUrl(ex, n)) await openUrl($, webUrl(ex, n))
+  if (t?.kind !== 'local') return
+  const parent = t.path.replace(/\/[^/]+$/, '') || '/'
+  await terminal($, ['bash', '-lc', 'cd "$1" && "$2" -i; exec bash', '_', parent, pbirBin], [pbirBin, '-i'], parent)
 }
 
 async function select($: EngineInterface, target: Target | null, n: TreeNode): Promise<void> {
   const nodes = await nodesOf($, target)
   const node = nodes.find(x => x.id === n.id)
-  if (!node) return
-  await patch($, cur => (sameTarget(cur.target, target) ? { ...toggled(cur, nodes, node), ...(node.path ? { detail: reportDetail(node) } : {}) } : {}))
+  if (!node || target?.kind !== 'local') return
+  const detail = reportDetail(node, target.path)
+  await patch($, cur => (sameTarget(cur.target, target) ? { ...toggled(cur, nodes, node), detail } : {}))
+  if (node.kind !== 'semantic model') return
+  const model = await resolveModel($, target).catch(() => null)
+  const more = model ? (model.lines.length ? model.lines : [`Fabric: ${model.why}`]) : []
+  if (more.length) await patch($, cur => (sameTarget(cur.target, target) && cur.cursor === node.id ? { detail: [...detail, ...more] } : {}))
 }
 
 function contextFor(ex: Explorer, n: TreeNode): string {
@@ -524,9 +611,13 @@ function contextFor(ex: Explorer, n: TreeNode): string {
     'The user has this report object selected in the Report pane; "this", "it" or "the selected" in the prompt likely refers to it.',
     `${n.kind}: ${n.name}`,
     `pbir report folder: ${t?.kind === 'local' ? t.path : ''}`,
-    `pbir path: ${n.path}`,
     ...ex.detail.slice(1),
   ].join('\n')
+}
+
+function guides(depth: number): string {
+  const lines = Array.from({ length: depth }, (_, i) => `<rect x="${i * 16 + 7.5}" y="0" width="1" height="${ROW_PX}" fill="#34343c"/>`).join('')
+  return `<svg xmlns="${SVG_NS}" width="${depth * 16}" height="${ROW_PX}" viewBox="0 0 ${depth * 16} ${ROW_PX}">${lines}</svg>`
 }
 
 function wholeArg(args: string | undefined): string {
@@ -538,6 +629,7 @@ export const register: Register = (on, options) => {
   glyphSetting = typeof options?.glyphs === 'string' ? options.glyphs : 'auto'
   follow = options?.follow !== 'off'
   fontHint = options?.fontHint !== 'off'
+  reportLinks = options?.reportLinks === 'portal' ? 'portal' : 'embed'
 
   on('session.start', async ($, e, next) => {
     const windows = (await $.env.get('OS')) === 'Windows_NT'
@@ -560,6 +652,7 @@ export const register: Register = (on, options) => {
     if (terminalOnly && e.presentation && !e.presentation.isFullscreen) return { text: 'The Report pane shows in the sidebar, which needs the fullscreen layout. Run /tui fullscreen, then /report-pane.' }
     if (terminalOnly && e.presentation && e.presentation.columns < 110) return { text: 'The Report pane shows in the sidebar, which needs a terminal at least 110 columns wide. Widen it, then run /report-pane.' }
     noDock = false
+    fellBack = false
     await detectGlyphs($)
     const cwd = await cwdOf($)
     let target = (await get($)).target
@@ -659,6 +752,21 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.message', async ($, e, next) => {
+    if (e.requestId === PANE && e.element.startsWith('z:') && e.data && typeof e.data === 'object') {
+      const data = e.data as { zone?: unknown; ctrl?: unknown; shift?: unknown }
+      const id = typeof data.zone === 'string' ? data.zone : ''
+      if (id === PROPS) {
+        propsOpen = !propsOpen
+        $.ui.invalidate('ui.render')
+        return {}
+      }
+      const ex = await get($)
+      const n = (await nodesOf($, ex.target)).find(x => x.id === id)
+      if (n && data.ctrl) quiet(openWeb($, ex, n))
+      else if (n && data.shift) quiet(openShell($, ex))
+      else if (n) quiet(press($, ex, n))
+      return {}
+    }
     if (e.requestId !== PANE || e.element !== 'rows' || !e.data || typeof e.data !== 'object') return next(e)
     const data = e.data as { press?: unknown; key?: unknown; ctrl?: unknown; shift?: unknown; scrollTo?: unknown; copy?: unknown }
     const ex = await get($)
@@ -678,7 +786,7 @@ export const register: Register = (on, options) => {
       if (!n) return {}
       if (ex.scroll[e.surface] === undefined) await patch($, cur => ({ scroll: { ...cur.scroll, [e.surface]: views[e.surface]?.from ?? 0 } }))
       if (data.ctrl) await openWeb($, ex, n)
-      else if (data.shift) await openLocal($, ex, n)
+      else if (data.shift) await openShell($, ex)
       else await press($, ex, n)
       return {}
     }
@@ -701,11 +809,12 @@ export const register: Register = (on, options) => {
     else if (cur && (data.key === 'left' || data.key === 'h')) {
       if (!cur.leaf && cur.open) await patch($, x => ({ expanded: x.expanded.filter(id => id !== cur.node.id) }))
       else if (cur.node.parent) await patch($, () => ({ cursor: cur.node.parent }))
-    } else if (cur && (data.key === ' ' || data.key === 'return')) await (data.key === 'return' && cur.leaf ? openLocal($, ex, cur.node) : select($, ex.target, cur.node))
+    } else if (cur && (data.key === ' ' || data.key === 'return')) await (data.key === 'return' && cur.leaf ? openNode($, ex, cur.node) : select($, ex.target, cur.node))
     return {}
   })
 
-  on('ui.scroll', { component: 'Pane', requestId: PANE }, async ($, e) => {
+  on('ui.scroll', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
+    if (nativeScroll) return next(e)
     const ex = await get($)
     const known = Object.keys(views)
     const sized = known.filter(s => views[s]?.rows === e.bodyRows)
@@ -727,6 +836,7 @@ export const register: Register = (on, options) => {
     return context.length === (e.context ?? []).length ? next(e) : next({ ...e, context })
   })
 
+
   on('ui.render', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
     if (e.surface !== 'terminal' && e.surface !== 'desktop') return next(e)
     if (e.surface === 'terminal' && e.props.placement === 'inline') {
@@ -737,7 +847,11 @@ export const register: Register = (on, options) => {
     }
     const tier = tierFor(e.surface)
     if (e.surface === 'terminal' && tier === 'plain' && glyphSetting === 'auto') fellBack = true
-    const { Box, Text, Button, Input, Client } = $.ui.resolve(e)
+    const table = $.ui.resolve(e)
+    const { Box, Text, Button, Input, Client } = table
+    const Svg = 'Svg' in table ? table.Svg : undefined
+    const native = e.surface === 'desktop' && Boolean(Svg)
+    nativeScroll = native
     const ex = await get($)
     const nodes = await nodesOf($, ex.target)
     const now = await $.clock.now()
@@ -749,8 +863,8 @@ export const register: Register = (on, options) => {
     const rootId = rootOf(ex, nodes)
     const rows = visible(ex, nodes, rootId)
     const changed = new Set(ex.changed)
-    const detailRows = ex.detail.length ? Math.min(ex.detail.length, DETAIL_ROWS) + 2 : 0
-    const room = Math.max(5, Math.min(WINDOW, (e.props.scroll?.bodyRows ?? 40) - 4 - detailRows))
+    const detailRows = ex.detail.length ? Math.min(ex.detail.length, DETAIL_ROWS) + 4 : 0
+    const room = Math.max(5, Math.min(WINDOW, (e.props.scroll?.bodyRows ?? 40) - 4 - detailRows - (pending ? 1 : 0) - (nodes.length === 0 ? 1 : 0)))
     const focusId = follow && work && ex.flash.length ? (ex.flash[ex.flash.length - 1] ?? ex.cursor) : ex.cursor
     const at = Math.max(0, rows.findIndex(r => r.node.id === focusId))
     const isLit = (id: string) => brightSet.has(id) || dimSet.has(id)
@@ -775,16 +889,15 @@ export const register: Register = (on, options) => {
       from = Math.max(0, Math.min(held, max))
       pinned = []
     }
-    views[e.surface] = { from, max, rows: e.props.scroll?.bodyRows ?? 40, room }
+    if (!native) views[e.surface] = { from, max, rows: e.props.scroll?.bodyRows ?? 40, room }
     const shown = rows.slice(from, from + room - pinned.length)
-    const sel = nodes.find(n => n.id === ex.selected)
     const clip = (s: string, max = width) => (s.length > max ? s.slice(0, max - 1) + '…' : s)
-    const spin = (tone: string): Seg => ({ t: ' ', spin: true, b: true, c: TONES[tone]?.bright[1] ?? SHIMMER[1] })
-    const rowSpec = (r: (typeof rows)[number]): RowSpec => {
+    const noteOf = (n: TreeNode) => (n.note ? (n.kind === 'visual' ? visualLabel(n.note) : n.note) : '')
+    const rowSpec = (r: Row): RowSpec => {
       const n = r.node
       const g = glyph(n, tier)
       const arrow = r.leaf ? '  ' : tier === 'plain' ? (r.open ? '▾ ' : '▸ ') : r.open ? '\u{f47c} ' : '\u{f460} '
-      const note = n.note ? ` ${n.kind === 'visual' ? visualLabel(n.note) : n.note}` : ''
+      const note = noteOf(n) ? ` ${noteOf(n)}` : ''
       const cols = Math.max(4, width - r.depth * 2 - 6 - note.length)
       const isBright = brightSet.has(n.id)
       const isDim = !isBright && dimSet.has(n.id)
@@ -794,12 +907,12 @@ export const register: Register = (on, options) => {
         { t: changed.has(n.id) ? '*' : ' ', c: '#e5c07b' },
         { t: '  '.repeat(r.depth) },
         { t: arrow, c: '#7a7a86' },
-        isBright || isDim ? { t: g.char + ' ', sh: tone, dim: isDim, one: true } : { t: g.char + ' ', c: faded ? '#6e6e7a' : g.color },
-        isBright || isDim ? { t: name, sh: tone, dim: isDim, b: isBright } : { t: name, c: faded ? '#6e6e7a' : g.label, b: n.id === ex.selected },
+        isBright || isDim ? { t: g.char + ' ', sh: tone, dim: isDim, one: true } : { t: g.char + ' ', c: faded ? MUTED : g.color },
+        isBright || isDim ? { t: name, sh: tone, dim: isDim, b: isBright } : { t: name, c: faded ? MUTED : g.label, b: n.id === ex.selected },
       ]
-      return { id: n.id, left: clean(left), right: note ? [{ t: note, c: '#6e6e7a' }] : [] }
+      return { id: n.id, left: clean(left), right: note ? [{ t: note, c: MUTED }] : [] }
     }
-    const note = (text: string): RowSpec => ({ id: '', left: [{ t: text, c: '#6e6e7a' }], right: [] })
+    const note = (text: string): RowSpec => ({ id: '', left: [{ t: text, c: MUTED }], right: [] })
     const specs: RowSpec[] = [...pinned.map(rowSpec), ...(pinned.length > 0 ? [note('  ⋮')] : []), ...shown.map(rowSpec)]
     const barSize = Math.max(1, Math.round((specs.length * shown.length) / Math.max(1, rows.length)))
     const bar =
@@ -808,74 +921,215 @@ export const register: Register = (on, options) => {
         : undefined
     const icon = (nerd: string, fallback: string) => (tier === 'plain' ? fallback : nerd)
     const rootNode = nodes.find(n => n.id === rootId)
+    const headName = rootNode ? rootNode.name : ex.target ? targetLabel(ex.target) : TITLE
+    const loadingNow = ex.status === 'loading'
+    const statusSegs: Seg[] = loadingNow ? [{ t: '  ' }, { t: '', spin: true }, { t: ' loading', c: MUTED }] : ex.status ? [{ t: `  ${ex.status}`, c: MUTED }] : []
     const head: RowSpec = {
       id: '',
       left: clean([
         { t: `${titleGlyph(tier)} `, c: TITLE_COLOR },
-        { t: rootNode ? rootNode.name : ex.target ? targetLabel(ex.target) : TITLE, b: true, ...(work ? { sh: tone } : {}) },
-        ...(ex.status ? [{ t: `  ${ex.status}`, c: '#6e6e7a' }] : []),
+        { t: headName, b: true },
+        ...statusSegs,
         ...(ex.changed.length ? [{ t: `  ${ex.changed.length} changed`, c: '#e5c07b' }] : []),
-        ...(work?.running ? [spin(tone)] : []),
       ]),
       right: [],
     }
-    const spinner = tier === 'plain' ? PLAIN_SPINNER : []
+    const busyRow = (key: string, text: string) => (
+      <Client key={key} module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: '', spin: true }, { t: ` ${text}`, c: MUTED }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
+    )
+    const icon16 = (source: string | undefined, alt: string, fallback: Seg, key: string) =>
+      native && Svg && source ? <Svg key={key} source={source} alt={alt} width={16} height={16} /> : <Text key={key} color={fallback.c}>{fallback.t}</Text>
+    const rule = (key: string) => <Text key={key} color="#2e2e34" wrap="truncate-end">{'─'.repeat(width)}</Text>
+    const shownNode = nodes.find(n => n.id === ex.selected)
+    const details = ex.detail.slice(1, DETAIL_ROWS).map(l => {
+      const cut = l.indexOf(': ')
+      const key = cut > 0 ? l.slice(0, cut) : ''
+      return { key: key === 'pbir path' ? 'Path' : key, value: (cut > 0 ? l.slice(cut + 2) : l).replace(/\s+/g, ' ') }
+    })
+    type Action = { key: string; svg: string; nerd: string; plain: string; label: string; run: (surface: string) => void }
+    const actions: Action[] = shownNode
+      ? [
+          ...(shownNode.file && shownNode.kind !== 'semantic model' ? [{ key: 'file', svg: 'ui:open', nerd: '\u{f0214}', plain: '↗', label: 'Open file', run: () => quiet(openUrl($, shownNode.file ?? '')) }] : []),
+          ...(shownNode.kind === 'semantic model' || webUrl(ex, shownNode) ? [{ key: 'web', svg: 'ui:open', nerd: '\u{f0379}', plain: '↗', label: 'Open in Fabric', run: () => quiet(openWeb($, ex, shownNode)) }] : []),
+          ...(shownNode.kind === 'report' ? [{ key: 'pbir', svg: 'ui:open', nerd: '\u{f018d}', plain: '›', label: 'pbir shell', run: () => quiet(openShell($, ex)) }] : []),
+          ...(shownNode.path ? [{ key: 'copy', svg: 'ui:copy', nerd: '\u{f018f}', plain: '⧉', label: 'Copy path', run: (surface: string) => quiet(copyOf($, shownNode.path, surface)) }] : []),
+        ]
+      : []
+    const actionRow = (
+      <Box flexDirection="row" alignItems="center" gap={2}>
+        {actions.map(a => (
+          <Box key={`a:${a.key}`} flexDirection="row" alignItems="center" gap={1}>
+            {native ? icon16(FABRIC_SVG[a.svg], a.label, { t: '', c: MUTED }, `ai:${a.key}`) : null}
+            <Button key={a.key} plain label={native ? a.label : `${icon(a.nerd, a.plain)} ${a.label}`} onPress={p => a.run(p.surface)} />
+          </Box>
+        ))}
+      </Box>
+    )
+    const toggles = (
+      <Box flexDirection="row" alignItems="center" gap={native ? 1 : 2}>
+        {rootNode && <Button key="up" plain dimColor label={icon('\u{f005d}', '↑')} onPress={() => quiet(goUp($))} />}
+        {rootNode && <Button key="home" plain dimColor label={icon('\u{f02dc}', '⌂')} onPress={() => quiet(goHome($))} />}
+        <Button key="refresh" plain dimColor label={icon('\u{f0450}', '↻')} onPress={() => quiet(refresh($))} />
+        <Button key="collapse" plain dimColor label={icon('\u{eac5}', '⊟')} onPress={() => quiet(patch($, () => ({ expanded: [] })))} />
+        <Text> </Text>
+      </Box>
+    )
+    const search = (focus: boolean) => (
+      <Input
+        key="q"
+        placeholder="Filter, or Enter to jump"
+        {...(focus ? { autoFocus: true as const } : {})}
+        value={ex.query}
+        onInput={(v: string) => quiet(patch($, () => ({ query: v })))}
+        onSubmit={(v: string) => quiet(patch($, cur => jumpTo(cur, nodes, v)))}
+      />
+    )
+    const empty = !ex.target ? HINT : nodes.length === 0 && !loadingNow ? 'nothing loaded yet' : ''
+    if (native) {
+      const body = Math.max(10, e.props.scroll?.bodyRows ?? 30)
+      const lead = (d: number, key: string) => (Svg && d > 0 ? <Svg key={key} source={guides(d)} alt={`level ${d}`} width={d * 16} height={ROW_PX} /> : <Box key={key} width={d * 2} />)
+      const nativeRow = (r: Row) => {
+        const n = r.node
+        const g = glyph(n, 'plain')
+        const noteText = noteOf(n)
+        const label = clip(n.name, Math.max(4, width - r.depth * 2 - 8 - noteText.length))
+        const lit = brightSet.has(n.id) || dimSet.has(n.id)
+        return (
+          <Box key={`n:${n.id}`} position="relative" height={1} overflow="hidden" flexDirection="row" alignItems="center" backgroundColor={n.id === ex.cursor ? '#2a2d34' : undefined} hover={{ backgroundColor: '#232529' }}>
+            {lead(r.depth, `g:${n.id}`)}
+            <Box width={2} flexShrink={0} flexDirection="row" alignItems="center">
+              {r.leaf ? null : icon16(FABRIC_SVG[r.open ? 'ui:chevron-down' : 'ui:chevron-right'], r.open ? 'collapse' : 'expand', { t: r.open ? '⌄' : '›', c: MUTED }, `c:${n.id}`)}
+            </Box>
+            <Box flexDirection="row" alignItems="center" gap={1} flexShrink={1}>
+              {icon16(FABRIC_SVG[SVG_KIND[n.kind] ?? ''], n.kind, { t: g.char, c: g.color }, `i:${n.id}`)}
+              <Text color={n.hidden ? MUTED : lit ? TONES[tone]?.bright[1] : undefined} bold={n.id === ex.selected} wrap="truncate-end">{label}</Text>
+              {changed.has(n.id) ? <Text color="#e5c07b">*</Text> : null}
+            </Box>
+            <Box flexGrow={1} />
+            {noteText ? <Text color={MUTED}>{noteText}</Text> : null}
+            <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+              <Client key={`z:${n.id}`} module="./zone.tsx" props={{ id: n.id } satisfies ZoneProps} width="100%" height="100%" />
+            </Box>
+          </Box>
+        )
+      }
+      const at = shownNode ? rows.findIndex(r => r.node.id === shownNode.id) : -1
+      const depth = at >= 0 ? (rows[at]?.depth ?? 0) + 1 : 1
+      const propRow = (key: string, d: number, child: unknown) => (
+        <Box key={key} height={1} overflow="hidden" flexDirection="row" alignItems="center" gap={1}>
+          {lead(d, `${key}:g`)}
+          {child as never}
+        </Box>
+      )
+      const propLines =
+        shownNode && ex.detail.length > 0
+          ? [
+              <Box key="pr:head" position="relative" height={1} overflow="hidden" flexDirection="row" alignItems="center" gap={1} hover={{ backgroundColor: '#232529' }}>
+                {lead(depth, 'pr:head:g')}
+                {icon16(FABRIC_SVG[propsOpen ? 'ui:chevron-down' : 'ui:chevron-right'], propsOpen ? 'collapse' : 'expand', { t: propsOpen ? '⌄' : '›', c: MUTED }, 'pr:chev')}
+                {icon16(FABRIC_SVG['tenant settings'], 'Properties', { t: '⚙', c: MUTED }, 'pr:icon')}
+                <Text color={MUTED}>Properties</Text>
+                <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+                  <Client key={`z:${PROPS}`} module="./zone.tsx" props={{ id: PROPS } satisfies ZoneProps} width="100%" height="100%" />
+                </Box>
+              </Box>,
+              ...(propsOpen
+                ? [
+                    ...details.map((d, i) =>
+                      propRow(
+                        `pr:p:${i}`,
+                        depth + 1,
+                        <Box flexDirection="row" gap={1} flexGrow={1} flexShrink={1}>
+                          <Box width={12} flexShrink={0}>
+                            <Text color={MUTED}>{d.key}</Text>
+                          </Box>
+                          <Box flexShrink={1}>
+                            <Text wrap="truncate-end">{d.value}</Text>
+                          </Box>
+                        </Box>,
+                      ),
+                    ),
+                    ...(actions.length ? [propRow('pr:actions', depth + 1, actionRow)] : []),
+                  ]
+                : []),
+            ]
+          : []
+      const headRows = 4 + (pending ? 1 : 0) + (empty ? 1 : 0)
+      const lines = at >= 0 ? rows.flatMap((r, i) => (i === at ? [nativeRow(r), ...propLines] : [nativeRow(r)])) : rows.map(nativeRow)
+      const offset = e.props.scroll?.offset ?? 0
+      const first = Math.max(0, offset - headRows - body)
+      const last = Math.min(lines.length, offset - headRows + body * 2)
+      return (
+        <Box flexDirection="column">
+          <Box key="desk-head" height={1} flexDirection="row" alignItems="center">
+            <Box flexGrow={1} flexShrink={1} flexDirection="row" alignItems="center" gap={1}>
+              {icon16(FABRIC_SVG.Report, 'Power BI report', { t: titleGlyph(tier), c: TITLE_COLOR }, 'logo')}
+              <Text bold wrap="truncate-end">{headName}</Text>
+              {loadingNow ? <Box height={1}>{busyRow('loading', 'loading')}</Box> : ex.status ? <Text color={MUTED} wrap="truncate-end">{ex.status}</Text> : null}
+              {ex.changed.length ? <Text color="#e5c07b">{`${ex.changed.length} changed`}</Text> : null}
+            </Box>
+            {toggles}
+          </Box>
+          <Box height={3} flexDirection="row" alignItems="center" gap={1} overflow="hidden">
+            <Box flexGrow={1} flexShrink={1} width="100%">
+              {search(false)}
+            </Box>
+            {ex.query ? <Button key="clearq" plain dimColor label="×" onPress={() => quiet(patch($, () => ({ query: '' })))} /> : null}
+          </Box>
+          {pending ? <Box height={1}>{busyRow('pending', pending)}</Box> : null}
+          {empty ? (
+            <Box height={1}>
+              <Text color={MUTED}>{empty}</Text>
+            </Box>
+          ) : null}
+          <Box key="tree" flexDirection="column">
+            {first > 0 ? <Box key="above" height={first} /> : null}
+            {lines.slice(first, Math.max(first, last))}
+            {last < lines.length ? <Box key="below" height={lines.length - Math.max(first, last)} /> : null}
+          </Box>
+        </Box>
+      )
+    }
     return (
       <Box flexDirection="column" minHeight={Math.max(1, e.props.scroll?.bodyRows ?? 1)}>
-        <Box flexDirection="row">
-          <Box flexGrow={1} flexShrink={1}>
-            <Client key="head" module="./rows.tsx" props={{ rows: [head], active: '', activeBg: '', hoverBg: '', tones: TONES, spinner } satisfies RowsProps} />
-          </Box>
-          <Box flexDirection="row" gap={2}>
-            {rootNode && <Button key="up" plain dimColor label={icon('\u{f005d}', '↑')} onPress={() => quiet(goUp($))} />}
-            {rootNode && <Button key="home" plain dimColor label={icon('\u{f02dc}', '⌂')} onPress={() => quiet(goHome($))} />}
-            <Button key="refresh" plain dimColor label={icon('\u{f0450}', '↻')} onPress={() => quiet(refresh($))} />
-            <Button key="collapse" plain dimColor label={icon('\u{eac5}', '⊟')} onPress={() => quiet(patch($, () => ({ expanded: [] })))} />
-            {sel && <Button key="clear" plain label={icon('\u{f0156}', '✕')} onPress={() => quiet(patch($, () => ({ selected: '', detail: [] })))} />}
-            <Text> </Text>
-          </Box>
-        </Box>
-        <Box flexDirection="row">
-          <Box flexGrow={1}>
+        <Client key="head" module="./rows.tsx" props={{ rows: [head], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
+        <Box flexDirection="row" alignItems="center" marginTop={1} marginBottom={1} gap={1}>
+          <Box flexGrow={1} flexShrink={1} width="100%">
             {work && !ex.query ? (
-              <Client key="working" module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: 'Claude is working in Power BI...', sh: tone }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES, spinner } satisfies RowsProps} />
+              <Client key="working" module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: '', spin: true }, { t: ' ' }, { t: tier === 'plain' ? '*' : '\u{ec82}', claude: true }, { t: ' Claude is working in Power BI...', sh: 'orange' }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
             ) : (
-              <Input
-                key="q"
-                label="/ "
-                placeholder="search"
-                submitLabel="jump"
-                autoFocus
-                value={ex.query}
-                onInput={(v: string) => quiet(patch($, () => ({ query: v })))}
-                onSubmit={(v: string) => quiet(patch($, cur => jumpTo(cur, nodes, v)))}
-              />
+              search(true)
             )}
           </Box>
-          {ex.query ? <Button key="clearq" plain dimColor label={tier === 'plain' ? '×' : '\u{f0156}'} onPress={() => quiet(patch($, () => ({ query: '' })))} /> : null}
+          {ex.query ? <Button key="clearq" plain dimColor label={icon('\u{f0156}', '×')} onPress={() => quiet(patch($, () => ({ query: '' })))} /> : null}
+          {toggles}
         </Box>
-        {nodes.length === 0 && <Text dimColor>{ex.target ? 'nothing loaded yet' : HINT}</Text>}
-        <Client key="rows" module="./rows.tsx" props={{ rows: specs, active: ex.cursor, activeBg: '#3e4451', hoverBg: '#2d2f33', tones: TONES, spinner, ...(bar ? { bar } : {}) } satisfies RowsProps} />
-        {ex.detail.length > 0 && (
-          <Box flexDirection="column" marginTop={1}>
-            {ex.detail.slice(0, DETAIL_ROWS).map((l, i) => (
-              <Text key={String(i)} dimColor={i > 0} bold={i === 0} wrap="truncate-end">
-                {l.replace(/\s+/g, ' ')}
-              </Text>
-            ))}
-            {sel && (
-              <Box flexDirection="row" gap={2}>
-                <Button key="open" plain label={`${icon('\u{f0379}', '↗')} open`} onPress={() => quiet(openLocal($, ex, sel))} />
-                {webUrl(ex, sel) && <Button key="web" plain label={`${icon('\u{f059f}', '◎')} open in Fabric`} onPress={() => quiet(openWeb($, ex, sel))} />}
-              </Box>
-            )}
-          </Box>
-        )}
+        {pending ? busyRow('pending', pending) : null}
+        {empty ? <Text color={MUTED}>{empty}</Text> : null}
+        <Client key="rows" module="./rows.tsx" props={{ rows: specs, active: ex.cursor, activeBg: '#3e4451', hoverBg: '#2d2f33', tones: TONES, ...(bar ? { bar } : {}) } satisfies RowsProps} />
         <Box flexGrow={1} />
-        {sel && (
-          <Text dimColor wrap="truncate-start">
-            selected: {sel.path || sel.name}
-          </Text>
+        {shownNode && ex.detail.length > 0 && (
+          <Box key="details" flexDirection="column">
+            {rule('rule-top')}
+            <Box flexDirection="row" alignItems="center" gap={1} marginBottom={1}>
+              <Text color={glyph(shownNode, tier).color}>{glyph(shownNode, tier).char}</Text>
+              <Text bold wrap="truncate-end">{shownNode.name}</Text>
+              <Box flexGrow={1} />
+              <Button key="clear" plain dimColor label={icon('\u{f0156}', '✕')} onPress={() => quiet(patch($, () => ({ selected: '', detail: [] })))} />
+            </Box>
+            {details.map((d, i) => (
+              <Box key={`p:${i}`} flexDirection="row" gap={1}>
+                <Box width={12} flexShrink={0}>
+                  <Text color={MUTED}>{d.key}</Text>
+                </Box>
+                <Box flexShrink={1}>
+                  <Text wrap="truncate-end">{d.value}</Text>
+                </Box>
+              </Box>
+            ))}
+            {actions.length > 0 && rule('rule-actions')}
+            {actions.length > 0 && actionRow}
+          </Box>
         )}
       </Box>
     )

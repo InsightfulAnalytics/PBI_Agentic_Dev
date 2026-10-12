@@ -170,7 +170,7 @@ You must read and understand the common list of operations with simple examples
    - Table schema: `fab table schema "ws.Workspace/LH.Lakehouse/Tables/gold/orders"`
 7. Query data (always prefer the wrapper scripts over raw `fab api` / `duckdb` / `sqlcmd`; they resolve IDs, hosts, and auth for you):
    - Semantic model (DAX): `python3 scripts/execute_dax.py "ws.Workspace/Model.SemanticModel" -q "EVALUATE TOPN(10, 'Orders')"`
-   - Lakehouse SQL endpoint, warehouse, or SQL database (T-SQL): prefer the `fabric-sql` MCP `execute_query(workspaceId, itemId, query)` when it is loaded; fall back to `python3 scripts/query_sql_endpoint.py "ws.Workspace/LH.Lakehouse" -q "SELECT TOP 10 * FROM dbo.orders"`. See [querying-data.md](./references/querying-data.md#querying-the-sql-endpoint-route-priority)
+   - Lakehouse SQL endpoint, warehouse, or SQL database (T-SQL): `python3 scripts/query_sql_endpoint.py "ws.Workspace/LH.Lakehouse" -q "SELECT TOP 10 * FROM dbo.orders"`; a `fabric-sql` MCP is only present if the user registered one. See [querying-data.md](./references/querying-data.md#querying-the-sql-endpoint-route-priority)
    - Lakehouse or warehouse Delta over OneLake (DuckDB): `python3 scripts/query_lakehouse_duckdb.py "ws.Workspace/LH.Lakehouse" -q "SELECT * FROM tbl LIMIT 10" -t gold.orders`
 8. Set properties for an item or workspace: `fab set "ws.Workspace/Item.Notebook" -q displayName -i "New Name"` or `fab set "ws.Workspace" -q description -i "Production environment"`
 9. Review or manage permissions:
@@ -394,8 +394,8 @@ Fabric exposes three query paths depending on the source; always prefer the wrap
   - Multi-table joins or raw files in `Files/`: pass `--sql` with your own `delta_scan()` / `read_csv` / `read_json_auto` calls
   - Optionally scaffold a Direct Lake model instead: [`scripts/create_direct_lake_model.py`](./scripts/create_direct_lake_model.py)
 - Lakehouse SQL endpoint, Warehouse, or SQL Database (T-SQL):
-  - Prefer the `fabric-sql` MCP `execute_query(workspaceId, itemId, query)` when loaded; server-side, no local tooling
-  - Fall back to [`scripts/query_sql_endpoint.py`](./scripts/query_sql_endpoint.py) (`sqlcmd`; auto-detects host per item type, reuses `az login` via `ActiveDirectoryAzCli`) when the MCP is unavailable
+  - Use [`scripts/query_sql_endpoint.py`](./scripts/query_sql_endpoint.py) (`sqlcmd`; auto-detects host per item type, reuses `az login` via `ActiveDirectoryAzCli`)
+  - The plugin ships no `fabric-sql` MCP; use one only if the user registered it themselves
   - Prefer either over DuckDB when you need `INFORMATION_SCHEMA`, `sys.*` metadata, CTEs, or window functions
   - Full route priority: [querying-data.md](./references/querying-data.md#querying-the-sql-endpoint-route-priority)
 

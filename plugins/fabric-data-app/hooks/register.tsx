@@ -2,10 +2,12 @@ import { type EngineInterface, type Register, type Timer, update } from 'claude-
 import { openCommand } from './open'
 
 import type { AppInfo, FileNode, FileTree, Source, Theme } from '../types'
-import { merge, parseSources } from './apps'
+import { itemUrl, merge, parseSources } from './apps'
 import { CLIS } from './clis'
-import { glyphFor, type Tier } from './glyphs'
+import { glyphFor, KIND_LABEL, type Tier } from './glyphs'
 import type { RowSpec, RowsProps, Seg } from './rows'
+import { FABRIC_SVG } from './svg-data'
+import type { ZoneProps } from './zone'
 import { CHEVRON_CLOSED, CHEVRON_OPEN, fileIcon, GIT_COLOR, plainIcon, stronger } from './icons'
 import { type CliCall, cliCalls, deploys, mutates, tokenize } from './parse'
 import {
@@ -52,12 +54,26 @@ const LIST_LIMIT = 16
 const TONES: Record<string, { bright: string[]; dim: string[] }> = {
   orange: { bright: ['#f97316', '#fb923c', '#fdba74', '#ffedd5'], dim: ['#8a4316', '#a3562a', '#bd7444', '#d29267'] },
   teal: { bright: ['#14b8a6', '#2dd4bf', '#5eead4', '#ccfbf1'], dim: ['#0f5e57', '#16786f', '#2a9488', '#4fb3a8'] },
+  purple: { bright: ['#a855f7', '#c084fc', '#d8b4fe', '#f3e8ff'], dim: ['#581c87', '#6b21a8', '#8b47c4', '#a874d6'] },
+}
+const MUTED = '#6e6e7a'
+const PROPS = 'props:toggle'
+const DETAIL_ROWS = 12
+const ROW_PX = 24
+const SVG_NS = 'http://www.w3.org/2000/svg'
+const GUID_RE = /[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi
+const FAB_WRITES = /\bfab\s+(set|rm|del|import|create|mkdir|cp|mv|assign|unassign|start|stop|run|job)\b|\s-X\s*(post|put|patch|delete)\b/i
+const OWN_KINDS = ['SQLDatabase', 'SQLEndpoint', 'UserDataFunction'] as const
+const OWN_NAME: Record<string, [string, string]> = {
+  SQLDatabase: ['SQL database', 'deployed'],
+  SQLEndpoint: ['SQL endpoint', 'SQL analytics endpoint'],
+  UserDataFunction: ['User data functions', 'deployed'],
 }
 const THEME_FILE = '.local/state/omarchy/current/theme/colors.toml'
 const APP_COLOR = '#5a91e2'
 const FONT_SCRIPT =
-  'if command -v fc-list >/dev/null 2>&1; then f=$(fc-list ":charset=$1" file | head -n1 | cut -d: -f1); ' +
-  'else f=$(ls "$HOME"/Library/Fonts/*"$2"* /Library/Fonts/*"$2"* 2>/dev/null | head -n1); fi; ' +
+  'f=; command -v fc-list >/dev/null 2>&1 && f=$(fc-list ":charset=$1" file 2>/dev/null | head -n1 | cut -d: -f1); ' +
+  '[ -n "$f" ] || f=$(ls "$HOME"/Library/Fonts/*"$2"* /Library/Fonts/*"$2"* "$HOME"/.local/share/fonts/*"$2"* 2>/dev/null | head -n1); ' +
   '[ -n "$f" ] || { echo missing; exit 0; }; m=$(stat -c %Z "$f" 2>/dev/null || stat -f %c "$f"); p=$PPID; ' +
   'while [ -n "$p" ] && [ "$p" -gt 1 ]; do c=$(ps -o comm= -p "$p" 2>/dev/null); c=$(basename "$c" 2>/dev/null | tr -d " "); case "$c" in ' +
   'ghostty|kitty|alacritty|Alacritty|foot|footclient|wezterm-gui|konsole|gnome-terminal-|xterm|urxvt|st|Terminal|iTerm2) ' +
@@ -86,6 +102,123 @@ let fontHint = true
 let hinted = false
 let fellBack = false
 let remote = false
+let propsOpen = false
+let nativeScroll = false
+let pending = ''
+
+type Deployed = { type: string; name: string; id: string }
+const deployedOf = new Map<string, Deployed[]>()
+const deployAsked = new Set<string>()
+
+function jsonOf<T>(text: string): T | null {
+  try {
+    return JSON.parse(text.slice(Math.max(0, text.indexOf('{')))) as T
+  } catch {
+    return null
+  }
+}
+
+async function loadDeployed($: EngineInterface, workspace: string, force = false): Promise<Deployed[]> {
+  if (!/^[0-9a-f-]{36}$/i.test(workspace)) return []
+  const hit = deployedOf.get(workspace.toLowerCase())
+  if (hit && !force) return hit
+  const out: Deployed[] = []
+  let token = ''
+  for (let page = 0; page < 20; page++) {
+    const path = `workspaces/${workspace}/items${token ? `?continuationToken=${encodeURIComponent(token)}` : ''}`
+    const run = await $.process.run(['fab', 'api', path, '-q', 'text'], { timeoutMs: 60_000 }).catch(() => null)
+    const body = run && run.exitCode === 0 ? jsonOf<{ value?: { id?: string; displayName?: string; type?: string }[]; continuationToken?: string }>(run.stdout) : null
+    if (!body || !Array.isArray(body.value)) return out
+    for (const i of body.value) if (i.id && i.displayName && i.type) out.push({ type: i.type, name: i.displayName, id: i.id })
+    token = body.continuationToken ?? ''
+    if (!token) break
+  }
+  deployedOf.set(workspace.toLowerCase(), out)
+  $.ui.invalidate('ui.render')
+  return out
+}
+
+function viewApp(app: AppInfo): AppInfo {
+  const items = deployedOf.get(app.workspace.toLowerCase())
+  if (!items) return app
+  const names = [app.key, app.name].filter(Boolean).map(n => n.toLowerCase())
+  const own = (type: string) => items.find(i => i.type === type && names.includes(i.name.toLowerCase()))
+  const sources = app.sources.map(src => {
+    if (src.item) return src.workspace || !items.some(i => i.id.toLowerCase() === src.item?.toLowerCase()) ? src : { ...src, workspace: app.workspace }
+    const hit = (OWN_KINDS as readonly string[]).includes(src.kind) ? own(src.kind) : items.find(i => i.type === src.kind && i.name.toLowerCase() === src.name.toLowerCase())
+    return hit ? { ...src, item: hit.id, workspace: app.workspace } : src
+  })
+  const extra: Source[] = []
+  for (const kind of OWN_KINDS) {
+    const hit = sources.some(src => src.kind === kind) ? undefined : own(kind)
+    const [name, note] = OWN_NAME[kind] ?? [kind, '']
+    if (hit) extra.push({ kind, name, note, item: hit.id, workspace: app.workspace })
+  }
+  return extra.length || sources.some((src, i) => src !== app.sources[i]) ? { ...app, sources: [...sources, ...extra] } : app
+}
+
+function sourceUrl(app: AppInfo, src: Source): string {
+  return src.item && src.workspace ? itemUrl(src.workspace, src.kind, src.item, app.tenant) : ''
+}
+
+function sourceAt(apps: AppInfo[], id: string): { app: AppInfo; src: Source; child: string } | null {
+  const m = id.match(/^(.*)#s(\d+)(?::(.*))?$/)
+  const app = m ? apps.find(a => a.dir === m[1]) : undefined
+  const src = app?.sources[Number(m?.[2])]
+  return app && src ? { app, src, child: m?.[3] ?? '' } : null
+}
+
+function guidHits(command: string, apps: AppInfo[]): string[] {
+  const guids = new Set((command.match(GUID_RE) ?? []).map(g => g.toLowerCase()))
+  if (guids.size === 0) return []
+  const out: string[] = []
+  for (const app of apps) {
+    if (app.item && guids.has(app.item.toLowerCase())) out.push(app.dir)
+    app.sources.forEach((src, i) => {
+      if (src.item && guids.has(src.item.toLowerCase())) out.push(`${app.dir}#s${i}`)
+    })
+  }
+  return out
+}
+
+async function withBusy<T>($: EngineInterface, text: string, fn: () => Promise<T>): Promise<T> {
+  pending = text
+  $.ui.invalidate('ui.render')
+  try {
+    return await fn()
+  } finally {
+    pending = ''
+    $.ui.invalidate('ui.render')
+  }
+}
+
+const GIT_WORD: Record<string, string> = { M: 'modified', A: 'added', '?': 'untracked', D: 'deleted', R: 'renamed', C: 'copied', U: 'conflict', T: 'type changed' }
+
+function guides(depth: number): string {
+  const lines = Array.from({ length: depth }, (_, i) => `<rect x="${i * 16 + 7.5}" y="0" width="1" height="${ROW_PX}" fill="#34343c"/>`).join('')
+  return `<svg xmlns="${SVG_NS}" width="${depth * 16}" height="${ROW_PX}" viewBox="0 0 ${depth * 16} ${ROW_PX}">${lines}</svg>`
+}
+
+async function openSource($: EngineInterface, id: string): Promise<void> {
+  let hit = sourceAt((await getApps($)).map(viewApp), id)
+  if (!hit) return
+  let url = sourceUrl(hit.app, hit.src)
+  if (!url && hit.app.workspace && !deployedOf.has(hit.app.workspace.toLowerCase())) {
+    await withBusy($, 'Finding deployed items…', () => loadDeployed($, hit?.app.workspace ?? ''))
+    hit = sourceAt((await getApps($)).map(viewApp), id) ?? hit
+    url = sourceUrl(hit.app, hit.src)
+  }
+  if (url) await openTarget($, url)
+  else $.ui.toast(hit.app.workspace ? `No deployed ${KIND_LABEL[hit.src.kind] ?? hit.src.kind} found for ${hit.app.title}` : `${hit.app.title} is not deployed yet`)
+}
+
+async function pressSource($: EngineInterface, id: string): Promise<void> {
+  const now = Date.now()
+  const isDouble = lastPress.key === id && now - lastPress.at < DOUBLE_MS
+  lastPress = { key: isDouble ? '' : id, at: now }
+  if (isDouble) await openSource($, id)
+  else await patch($, () => ({ cursor: id, selected: id }))
+}
 
 function tierFor(surface: string): Tier {
   if (glyphSetting === 'fabric' || glyphSetting === 'nerd' || glyphSetting === 'plain') return glyphSetting
@@ -153,7 +286,10 @@ async function dropMarks($: EngineInterface, marks: string[]): Promise<void> {
 }
 
 async function copyOf($: EngineInterface, id: string, root: string, absolute: boolean, surface?: string): Promise<void> {
-  const text = !absolute && id.startsWith(root + '/') ? id.slice(root.length + 1) : id
+  await copyText($, !absolute && id.startsWith(root + '/') ? id.slice(root.length + 1) : id, surface)
+}
+
+async function copyText($: EngineInterface, text: string, surface?: string): Promise<void> {
   const done = await $.ui.copy({ text, ...(surface ? { surface: surface as 'terminal' } : {}) })
   $.ui.toast(done.isCopied ? `Copied ${text}` : `Could not copy: ${done.reason}`)
 }
@@ -249,13 +385,14 @@ function patch($: EngineInterface, fn: (t: FileTree) => Partial<FileTree>) {
 
 function appOf(apps: AppInfo[], path: string): AppInfo | undefined {
   return apps
-    .filter(a => path === a.dir || path.startsWith(a.dir + '/'))
+    .filter(a => path === a.dir || path.startsWith(a.dir + '/') || path.startsWith(a.dir + '#'))
     .sort((a, b) => b.dir.length - a.dir.length)[0]
 }
 
 function chainOf(apps: AppInfo[], id: string): string[] {
   const app = appOf(apps, id)
   if (!app || id === app.dir) return []
+  if (id.startsWith(app.dir + '#')) return [app.dir]
   const out: string[] = []
   let dir = dirname(id)
   while (dir.length >= app.dir.length) {
@@ -370,7 +507,7 @@ async function appAt($: EngineInterface, dir: string, names: string[]): Promise<
     return { ...info, sources: await sourcesOf($, dir) }
   } catch (err) {
     const name = dir.split('/').pop() || dir
-    return { dir, name, title: name, cli, workspace: '', item: '', portal: '', hosting: '', sources: [], error: `could not read this app: ${err instanceof Error ? err.message : String(err)}` }
+    return { dir, name, key: '', title: name, cli, tenant: '', workspace: '', item: '', portal: '', hosting: '', sources: [], error: `could not read this app: ${err instanceof Error ? err.message : String(err)}` }
   }
 }
 
@@ -762,7 +899,7 @@ async function toggle($: EngineInterface, n: FileNode): Promise<void> {
 }
 
 async function press($: EngineInterface, n: FileNode): Promise<void> {
-  const now = await $.clock.now()
+  const now = Date.now()
   const isDouble = lastPress.key === n.id && now - lastPress.at < DOUBLE_MS
   lastPress = { key: isDouble ? '' : n.id, at: now }
   if (!isDouble) await toggle($, n)
@@ -849,7 +986,10 @@ async function startup($: EngineInterface, detect: boolean): Promise<void> {
   const apps = await discover($, t.root || cwd)
   if (apps.length) {
     if (!t.root || t.nodes.length === 0) await reset($, t.root || cwd, false, apps)
-    else await openPane($, { id: PANE, title: titleOf(t.root || cwd) })
+    else {
+      await syncApps($, apps)
+      await openPane($, { id: PANE, title: titleOf(t.root || cwd) })
+    }
   }
 }
 
@@ -879,6 +1019,8 @@ export const register: Register = (on, options) => {
     if (terminal && e.presentation && !e.presentation.isFullscreen) return { text: `The Fabric app pane shows in the sidebar, which needs the fullscreen layout. Run /tui fullscreen, then /${PANE}.` }
     if (terminal && e.presentation && e.presentation.columns < 110) return { text: `The Fabric app pane shows in the sidebar, which needs a terminal at least 110 columns wide. Widen it, then run /${PANE}.` }
     noDock = false
+    fellBack = false
+    quiet(detectGlyphs($).then(() => $.ui.invalidate('ui.render')))
     const raw = (e.args ?? '').trim()
     const arg = /^["']/.test(raw) ? (tokenize(raw)[0] ?? '') : raw
     const cwd = await cwdOf($)
@@ -903,14 +1045,19 @@ export const register: Register = (on, options) => {
     const since = await sinceNow($, e.tool === 'Bash' && (calls.length > 0 || known.length > 0))
     const busy = calls.length && !closed && !noDock && (await get($)).root ? (calls.some(deploys) ? 'teal' : 'orange') : ''
     if (busy) await startWork($, busy, touchedBy(known, calls))
+    const hits = e.tool === 'Bash' && !closed && !noDock && (await get($)).root ? guidHits(e.command, (known.length ? known : await getApps($)).map(viewApp)) : []
+    const hitTone = e.tool === 'Bash' && FAB_WRITES.test(e.command) ? 'orange' : 'purple'
+    if (hits.length) await startWork($, hitTone, hits)
     let result: Awaited<ReturnType<typeof next>>
     try {
       result = await next(e)
     } catch (err) {
       quiet(dropMarks($, [since.mark]))
       if (busy) await endWork($)
+      if (hits.length) await endWork($)
       throw err
     }
+    if (hits.length) quiet(flash($, result.deny || result.isError ? [] : hits, hitTone, 1))
     const record = e.tool === 'Bash' && !result.deny && !result.isError && result.result && typeof result.result === 'object' ? (result.result as { backgroundTaskId?: unknown }) : undefined
     const task = typeof record?.backgroundTaskId === 'string' ? record.backgroundTaskId : ''
     if (result.deny || (result.isError && e.tool !== 'Bash')) {
@@ -959,6 +1106,22 @@ export const register: Register = (on, options) => {
   })
 
   on('ui.message', async ($, e, next) => {
+    if (e.requestId === PANE && e.element.startsWith('z:') && e.data && typeof e.data === 'object') {
+      const data = e.data as { zone?: unknown; ctrl?: unknown; shift?: unknown }
+      const id = typeof data.zone === 'string' ? data.zone : ''
+      if (id === PROPS) {
+        propsOpen = !propsOpen
+        $.ui.invalidate('ui.render')
+        return {}
+      }
+      if (id.includes('#')) quiet(data.ctrl ? openSource($, id) : pressSource($, id))
+      else {
+        const n = (await get($)).nodes.find(x => x.id === id)
+        if (n && (data.ctrl || data.shift)) quiet(openNode($, n, Boolean(data.ctrl)))
+        else if (n) quiet(press($, n))
+      }
+      return {}
+    }
     if (e.requestId !== PANE || e.element !== 'rows' || !e.data || typeof e.data !== 'object') return next(e)
     const data = e.data as { press?: unknown; key?: unknown; ctrl?: unknown; shift?: unknown; scrollTo?: unknown; copy?: unknown }
     const t = await get($)
@@ -968,22 +1131,29 @@ export const register: Register = (on, options) => {
       return {}
     }
     if (typeof data.copy === 'string') {
-      await copyOf($, data.copy, t.root, Boolean(data.shift), e.surface)
+      const hit = data.copy.includes('#') ? sourceAt((await getApps($)).map(viewApp), data.copy) : null
+      if (hit) await copyText($, hit.src.item || hit.child || hit.src.name, e.surface)
+      else await copyOf($, data.copy, t.root, Boolean(data.shift), e.surface)
       return {}
     }
     if (typeof data.press === 'string') {
+      if (t.scroll === null) await patch($, () => ({ scroll: view.from }))
+      if (data.press.includes('#')) {
+        await (data.ctrl ? openSource($, data.press) : pressSource($, data.press))
+        return {}
+      }
       const n = t.nodes.find(x => x.id === data.press)
       if (!n) return {}
-      if (t.scroll === null) await patch($, () => ({ scroll: view.from }))
       if (data.ctrl || data.shift) await openNode($, n, Boolean(data.ctrl))
       else await press($, n)
       return {}
     }
     if (typeof data.key !== 'string') return {}
     const top = topOf(t)
-    const rows = visibleRows(t, top)
+    const rows = itemsOf(t, (await getApps($)).map(viewApp)).filter(r => !r.source || (r.source.kind !== 'none' && r.source.kind !== 'error'))
     const at = rows.findIndex(r => r.node.id === t.cursor)
-    const cur = rows[at]?.node
+    const item = rows[at]
+    const cur = item?.node
     const move = (d: number) => {
       const target = rows[Math.max(0, Math.min(rows.length - 1, (at < 0 ? 0 : at) + d))]
       return target ? patch($, () => ({ cursor: target.node.id, scroll: null })) : Promise.resolve()
@@ -994,7 +1164,11 @@ export const register: Register = (on, options) => {
     else if (data.key === 'pagedown') await move(10)
     else if (data.key === 'home') await move(-rows.length)
     else if (data.key === 'end') await move(rows.length)
-    else if (cur && (data.key === 'y' || data.key === 'Y')) await copyOf($, cur.id, t.root, data.key === 'Y' || Boolean(data.shift), e.surface)
+    else if (item?.source && cur) {
+      if (data.key === 'return') await openSource($, cur.id)
+      else if (data.key === ' ') await patch($, () => ({ selected: cur.id }))
+      else if (data.key === 'left' || data.key === 'h') await patch($, () => ({ cursor: cur.parent }))
+    } else if (cur && (data.key === 'y' || data.key === 'Y')) await copyOf($, cur.id, t.root, data.key === 'Y' || Boolean(data.shift), e.surface)
     else if (cur && (data.key === 'right' || data.key === 'l') && cur.kind === 'dir' && !t.expanded.includes(cur.id)) await toggle($, cur)
     else if (cur && (data.key === 'left' || data.key === 'h')) {
       if (cur.kind === 'dir' && t.expanded.includes(cur.id)) await toggle($, cur)
@@ -1010,7 +1184,8 @@ export const register: Register = (on, options) => {
     return result
   })
 
-  on('ui.scroll', { component: 'Pane', requestId: PANE }, async ($, e) => {
+  on('ui.scroll', { component: 'Pane', requestId: PANE }, async ($, e, next) => {
+    if (nativeScroll) return next(e)
     const t = await get($)
     const to = Math.max(0, Math.min(view.max, (t.scroll ?? view.from) + Math.sign(e.by) * Math.max(3, Math.abs(e.by))))
     if (to !== t.scroll) await patch($, () => ({ scroll: to }))
@@ -1031,8 +1206,17 @@ export const register: Register = (on, options) => {
     }
     const t = await get($)
     const lines: string[] = []
-    const app = t.selected ? appOf(await getApps($), t.selected) : undefined
-    if (app) {
+    const viewed = (await getApps($)).map(viewApp)
+    const app = t.selected ? appOf(viewed, t.selected) : undefined
+    const picked = t.selected.includes('#') ? sourceAt(viewed, t.selected) : null
+    if (picked) {
+      lines.push(
+        'The user has this data source of a Fabric app selected in the Fabric app pane; "this" or "it" likely refers to it.',
+        `${KIND_LABEL[picked.src.kind] ?? picked.src.kind}: ${picked.child || picked.src.name}${picked.child ? ` in ${picked.src.name}` : ''}`,
+        `app: ${picked.app.title} (${picked.app.cli}) at ${picked.app.dir}`,
+      )
+      if (picked.src.item) lines.push(`deployed item: ${picked.src.workspace ? `workspace ${picked.src.workspace}, ` : ''}item ${picked.src.item}`)
+    } else if (app) {
       lines.push(
         t.selected === app.dir
           ? 'The user has this Fabric app selected in the Fabric app pane; "this" or "it" likely refers to it.'
@@ -1064,10 +1248,20 @@ export const register: Register = (on, options) => {
     }
     const tier = tierFor(e.surface)
     if (e.surface === 'terminal' && tier === 'plain' && glyphSetting === 'auto') fellBack = true
-    const { Box, Text, Button, Input, Client } = $.ui.resolve(e)
+    const table = $.ui.resolve(e)
+    const { Box, Text, Button, Input, Client } = table
+    const Svg = 'Svg' in table ? table.Svg : undefined
+    const native = e.surface === 'desktop' && Boolean(Svg)
+    nativeScroll = native
     const t = await get($)
-    const apps = await getApps($)
+    const apps = (await getApps($)).map(viewApp)
     shownApps = apps
+    for (const a of apps) {
+      const ws = a.workspace.toLowerCase()
+      if (!ws || !t.expanded.includes(a.dir) || deployAsked.has(ws)) continue
+      deployAsked.add(ws)
+      quiet(loadDeployed($, a.workspace))
+    }
     const appByDir = new Map(apps.map(a => [a.dir, a]))
     const theme: Theme = (await $.state.get(THEME)).value ?? DEFAULT_THEME
     const now = await $.clock.now()
@@ -1080,7 +1274,77 @@ export const register: Register = (on, options) => {
     const untracked = new Set(t.untrackedDirs)
     const width = Math.max(24, e.props.bodyColumns)
     const rows = itemsOf(t, apps)
-    const room = Math.max(5, (e.props.scroll?.bodyRows ?? 40) - 3 - (t.selected ? 1 : 0))
+    const icon = (nerd: string, fallback: string) => (tier === 'plain' ? fallback : nerd)
+    const rel = (path: string) => (path.startsWith(t.root + '/') ? path.slice(t.root.length + 1) : shortPath(path))
+    type Action = { key: string; svg: string; nerd: string; plain: string; label: string; run: (surface: string) => void }
+    const open = (key: string, label: string, target: string, nerd = '\u{f0379}'): Action => ({ key, svg: 'ui:open', nerd, plain: '↗', label, run: () => quiet(openTarget($, target)) })
+    const copy = (key: string, label: string, text: string): Action => ({ key, svg: 'ui:copy', nerd: '\u{f018f}', plain: '⧉', label, run: (surface: string) => quiet(copyText($, text, surface)) })
+    const selSource = t.selected.includes('#') ? sourceAt(apps, t.selected) : null
+    const selApp = selSource ? undefined : appByDir.get(t.selected)
+    const selNode = selSource || selApp ? undefined : t.nodes.find(n => n.id === t.selected)
+    let detail: string[] = []
+    let actions: Action[] = []
+    let heading: { char: string; color: string | undefined; svg: string } = { char: '', color: undefined, svg: '' }
+    if (selSource) {
+      const { app, src, child } = selSource
+      const label = KIND_LABEL[src.kind] ?? src.kind
+      const childKind = src.kind === 'UserDataFunction' ? 'function' : 'table'
+      const ws = src.workspace ?? ''
+      const g = glyphFor(child ? childKind : src.kind, tier)
+      heading = { char: g.char, color: g.color, svg: child ? '' : src.kind }
+      detail = [
+        `${child ? childKind : label} ${child || src.name}`,
+        `Type: ${child ? childKind : label}`,
+        ...(child ? [`In: ${src.name}`] : src.note ? [`Note: ${src.note}`] : []),
+        `App: ${app.title}`,
+        ...(ws ? [`Workspace: ${ws}`] : []),
+        ...(src.item ? [`Item ID: ${src.item}`] : []),
+        ...(!child && src.children?.length ? [`${src.kind === 'UserDataFunction' ? 'Functions' : 'Tables'}: ${src.children.length}`] : []),
+      ]
+      actions = [
+        ...(src.item || app.workspace ? [{ key: 'web', svg: 'ui:open', nerd: '\u{f0379}', plain: '↗', label: 'Open in Fabric', run: () => quiet(openSource($, t.selected)) }] : []),
+        ...(src.item ? [copy('copy', 'Copy ID', src.item)] : []),
+      ]
+    } else if (selApp) {
+      const g = glyphFor('app', tier)
+      heading = { char: g.char, color: APP_COLOR, svg: 'AppBackend' }
+      detail = [
+        `app ${selApp.title}`,
+        `CLI: ${selApp.cli}`,
+        `Folder: ${shortPath(selApp.dir)}`,
+        ...(selApp.workspace ? [`Workspace: ${selApp.workspace}`] : []),
+        selApp.item ? `Item ID: ${selApp.item}` : 'Deployed: no',
+        ...(selApp.hosting ? [`Hosting: ${selApp.hosting}`] : []),
+        `Sources: ${selApp.sources.length}`,
+        ...(selApp.error ? [`Error: ${selApp.error}`] : []),
+      ]
+      actions = [
+        ...(selApp.portal ? [open('web', 'Open in Fabric', selApp.portal)] : []),
+        ...(selApp.hosting ? [open('app', 'Open app', selApp.hosting, '\u{f059f}')] : []),
+        open('dir', 'Open folder', selApp.dir, '\u{f024b}'),
+        copy('copy', 'Copy path', selApp.dir),
+      ]
+    } else if (selNode) {
+      const status = t.git[selNode.id]
+      const loc = t.diff[selNode.id]
+      heading = { char: tier === 'plain' ? plainIcon(selNode, false) : fileIcon(selNode, false, false), color: selNode.kind === 'dir' ? theme.accent : theme.muted, svg: '' }
+      detail = [
+        `${selNode.kind === 'dir' ? 'folder' : 'file'} ${selNode.name}`,
+        `Path: ${rel(selNode.id)}`,
+        ...(selNode.kind !== 'dir' && selNode.mtime ? [`Modified: ${stamp(selNode.mtime)}`] : []),
+        ...(status ? [`Git: ${GIT_WORD[status] ?? status}`] : []),
+        ...(loc && (loc[0] || loc[1]) ? [`Changes: +${loc[0]} -${loc[1]}`] : []),
+      ]
+      actions = [selNode.kind === 'dir' ? open('dir', 'Open folder', selNode.id, '\u{f024b}') : open('file', 'Open file', selNode.id, '\u{f0214}'), copy('copy', 'Copy path', rel(selNode.id))]
+    }
+    const details = detail.slice(1, DETAIL_ROWS).map(l => {
+      const cut = l.indexOf(': ')
+      return { key: cut > 0 ? l.slice(0, cut) : '', value: (cut > 0 ? l.slice(cut + 2) : l).replace(/\s+/g, ' ') }
+    })
+    const headName = detail[0] ? detail[0].slice(detail[0].indexOf(' ') + 1) : ''
+    const empty = apps.length === 0 ? `no ${CLIS.map(c => c.name).join(' or ')} app here yet; ${CLIS.map(c => c.start).join(' or ')} adds one` : ''
+    const detailRows = detail.length ? Math.min(detail.length, DETAIL_ROWS) + 4 : 0
+    const room = Math.max(5, (e.props.scroll?.bodyRows ?? 40) - 4 - detailRows - (pending ? 1 : 0) - (empty ? 1 : 0))
     const isLit = (id: string) => bright.has(id) || dimmed.has(id)
     const focus = follow && shining.length ? (shining[shining.length - 1] ?? t.cursor) : t.cursor
     const at = Math.max(0, rows.findIndex(r => r.node.id === focus))
@@ -1118,10 +1382,17 @@ export const register: Register = (on, options) => {
       const g = glyphFor(r.child ? (src.kind === 'UserDataFunction' ? 'function' : 'table') : src.kind, tier)
       const note = r.child ? '' : src.note
       const cols = Math.max(4, width - r.depth * 2 - 6 - (note ? note.length + 1 : 0))
-      const name = r.node.name.length > cols ? r.node.name.slice(0, cols - 1) + '…' : r.node.name
+      const name = fit(r.node.name, cols)
+      const isBright = bright.has(r.node.id)
+      const isDim = !isBright && dimmed.has(r.node.id)
+      const picked = r.node.id === t.selected
       return {
-        id: '',
-        left: clean([{ t: '  '.repeat(r.depth + 1) }, { t: g.char + ' ', c: g.color }, { t: name, c: r.child ? theme.fg || undefined : g.color, b: !r.child }]),
+        id: r.node.id,
+        left: clean([
+          { t: '  '.repeat(r.depth + 1) },
+          isBright || isDim ? { t: g.char + ' ', sh: toneOf(r.node.id), dim: isDim, one: true } : { t: g.char + ' ', c: g.color },
+          isBright || isDim ? { t: name, sh: toneOf(r.node.id), dim: isDim, b: isBright } : { t: name, c: r.child ? theme.fg || undefined : g.color, b: !r.child || picked },
+        ]),
         right: note ? [{ t: ` ${note}`, c: theme.muted }] : [],
       }
     }
@@ -1156,7 +1427,7 @@ export const register: Register = (on, options) => {
       const countsText = dirCounts.map(x => x.t).join('')
       const badge = app || dirCounts.length ? '' : status ? ` ${status}` : isIgnored ? (tier === 'plain' ? ' ⊘' : ' \u{f05e}') : '  '
       const cols = Math.max(4, width - r.depth * 2 - 6 - (meta ? meta.length + 1 : 0) - locText.length - badge.length - countsText.length)
-      const name = n.name.length > cols ? n.name.slice(0, cols - 1) + '…' : n.name
+      const name = fit(n.name, cols)
       const caret = n.kind === 'dir' ? (tier === 'plain' ? (r.open ? '▾' : '▸') : r.open ? CHEVRON_OPEN : CHEVRON_CLOSED) + ' ' : '  '
       const left: Seg[] = [
         { t: '  '.repeat(r.depth) },
@@ -1181,87 +1452,237 @@ export const register: Register = (on, options) => {
       rows.length > shown.length + pinned.length
         ? { pos: max ? Math.round((from / max) * (specs.length - barSize)) : 0, size: barSize, thumb: theme.accent, track: theme.muted }
         : undefined
-    const icon = (nerd: string, fallback: string) => (tier === 'plain' ? fallback : nerd)
     const topNode = t.nodes.find(n => n.id === topOf(t))
+    const title = topNode ? topNode.name : t.root.split('/').pop() || t.root || TITLE
+    const count = `${apps.length} app${apps.length === 1 ? '' : 's'}`
+    const icon16 = (source: string | undefined, alt: string, fallback: Seg, key: string) =>
+      native && Svg && source ? <Svg key={key} source={source} alt={alt} width={16} height={16} /> : <Text key={key} color={fallback.c}>{fallback.t}</Text>
+    const rule = (key: string) => <Text key={key} color="#2e2e34" wrap="truncate-end">{'─'.repeat(width)}</Text>
+    const busyRow = (key: string, text: string) => (
+      <Client key={key} module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: '', spin: true }, { t: ` ${text}`, c: MUTED }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
+    )
+    const actionRow = (
+      <Box flexDirection="row" alignItems="center" gap={2}>
+        {actions.map(a => (
+          <Box key={`a:${a.key}`} flexDirection="row" alignItems="center" gap={1}>
+            {native ? icon16(FABRIC_SVG[a.svg], a.label, { t: '', c: MUTED }, `ai:${a.key}`) : null}
+            <Button key={a.key} plain label={native ? a.label : `${icon(a.nerd, a.plain)} ${a.label}`} onPress={p => a.run(p.surface)} />
+          </Box>
+        ))}
+      </Box>
+    )
+    const rescan = () =>
+      quiet(
+        (async () => {
+          deployedOf.clear()
+          deployAsked.clear()
+          await syncApps($)
+          const cur = await get($)
+          await loadDirs($, cur.nodes.filter(n => n.kind === 'dir' && n.loaded).map(n => n.id))
+          await refreshGit($)
+        })(),
+      )
+    const toggles = (
+      <Box flexDirection="row" alignItems="center" gap={native ? 1 : 2}>
+        {topNode && <Button key="up" plain dimColor label={icon('\u{f005d}', '↑')} onPress={() => quiet(goUp($))} />}
+        {topNode && <Button key="home" plain dimColor label={icon('\u{f02dc}', '⌂')} onPress={() => quiet(goHome($))} />}
+        <Button key="rescan" plain dimColor label={icon('\u{f0450}', '↻')} onPress={rescan} />
+        <Button
+          key="hidden"
+          plain
+          dimColor={!t.showHidden}
+          label={tier === 'plain' ? (t.showHidden ? '◉' : '○') : t.showHidden ? '\u{f0208}' : '\u{f0209}'}
+          onPress={() => quiet(patch($, cur => ({ showHidden: !cur.showHidden })))}
+        />
+        <Button key="collapse" plain dimColor label={icon('\u{eac5}', '⊟')} onPress={() => quiet(patch($, () => ({ expanded: [] })))} />
+        <Text> </Text>
+      </Box>
+    )
+    const search = (focus: boolean) => (
+      <Input
+        key="q"
+        placeholder="Filter, or Enter to jump"
+        {...(focus ? { autoFocus: true as const } : {})}
+        value={t.query}
+        onInput={(v: string) => quiet(patch($, () => ({ query: v })))}
+        onSubmit={(v: string) => quiet(patch($, cur => jumpTo(cur, v)))}
+      />
+    )
+    const clear = <Button key="clear" plain dimColor label={icon('\u{f0156}', '✕')} onPress={() => quiet(patch($, () => ({ selected: '' })))} />
 
-    return (
-      <Box flexDirection="column" minHeight={Math.max(1, e.props.scroll?.bodyRows ?? 1)}>
-        <Box flexDirection="row">
-          <Text bold color={theme.accent} wrap="truncate-start">
-            {topNode ? topNode.name : t.root.split('/').pop() || t.root}
-            {`  ${apps.length} app${apps.length === 1 ? '' : 's'}`}
-          </Text>
-          <Box flexGrow={1} />
-          <Box flexDirection="row" gap={2}>
-            {topNode && <Button key="up" plain dimColor label={icon('\u{f005d}', '↑')} onPress={() => quiet(goUp($))} />}
-            {topNode && <Button key="home" plain dimColor label={icon('\u{f02dc}', '⌂')} onPress={() => quiet(goHome($))} />}
-            <Button
-              key="rescan"
-              plain
-              dimColor
-              label={icon('\u{f0450}', '↻')}
-              onPress={() =>
-                quiet(
-                  (async () => {
-                    await syncApps($)
-                    const cur = await get($)
-                    await loadDirs($, cur.nodes.filter(n => n.kind === 'dir' && n.loaded).map(n => n.id))
-                    await refreshGit($)
-                  })(),
-                )
-              }
-            />
-            <Button
-              key="hidden"
-              plain
-              dimColor={!t.showHidden}
-              label={tier === 'plain' ? (t.showHidden ? '◉' : '○') : t.showHidden ? '\u{f0208}' : '\u{f0209}'}
-              onPress={() => quiet(patch($, cur => ({ showHidden: !cur.showHidden })))}
-            />
-            <Button key="collapse" plain dimColor label={icon('\u{eac5}', '⊟')} onPress={() => quiet(patch($, () => ({ expanded: [] })))} />
-            {t.selected && <Button key="unselect" plain label={icon('\u{f0156}', '✕')} onPress={() => quiet(patch($, () => ({ selected: '' })))} />}
-            <Text> </Text>
+    if (native) {
+      const body = Math.max(10, e.props.scroll?.bodyRows ?? 30)
+      const lead = (d: number, key: string) => (Svg && d > 0 ? <Svg key={key} source={guides(d)} alt={`level ${d}`} width={d * 16} height={ROW_PX} /> : <Box key={key} width={d * 2} />)
+      const nativeRow = (r: Item) => {
+        const n = r.node
+        const src = r.source
+        const app = appByDir.get(n.id)
+        const dead = Boolean(src && (src.kind === 'none' || src.kind === 'error'))
+        const kind = src ? (r.child ? (src.kind === 'UserDataFunction' ? 'function' : 'table') : src.kind) : app ? 'AppBackend' : ''
+        const g = src ? glyphFor(kind, 'plain') : app ? { char: glyphFor('app', 'plain').char, color: APP_COLOR } : { char: plainIcon(n, r.open), color: n.kind === 'dir' ? theme.accent : theme.muted }
+        const depth = src ? r.depth + 1 : r.depth
+        const noteText = src ? (r.child ? '' : src.note) : app ? `${app.cli}${app.item ? ' deployed' : ' local'}` : ''
+        const label = fit(n.name, Math.max(4, width - depth * 2 - 8 - noteText.length))
+        const lit = bright.has(n.id) || dimmed.has(n.id)
+        return (
+          <Box key={`n:${n.id}`} position="relative" height={1} overflow="hidden" flexDirection="row" alignItems="center" backgroundColor={n.id === t.cursor ? '#2a2d34' : undefined} hover={{ backgroundColor: '#232529' }}>
+            {lead(depth, `g:${n.id}`)}
+            <Box width={2} flexShrink={0} flexDirection="row" alignItems="center">
+              {n.kind === 'dir' && !src ? icon16(FABRIC_SVG[r.open ? 'ui:chevron-down' : 'ui:chevron-right'], r.open ? 'collapse' : 'expand', { t: r.open ? '⌄' : '›', c: MUTED }, `c:${n.id}`) : null}
+            </Box>
+            <Box flexDirection="row" alignItems="center" gap={1} flexShrink={1}>
+              {dead ? null : icon16(FABRIC_SVG[kind], KIND_LABEL[kind] ?? kind, { t: g.char, c: g.color }, `i:${n.id}`)}
+              <Text color={dead ? (src?.kind === 'error' ? theme.urgent : MUTED) : lit ? TONES[toneOf(n.id)]?.bright[1] : app ? APP_COLOR : undefined} bold={n.id === t.selected || Boolean(app)} italic={dead} wrap="truncate-end">
+                {label}
+              </Text>
+            </Box>
+            <Box flexGrow={1} />
+            {noteText ? <Text color={app?.item ? '#98c379' : MUTED}>{noteText}</Text> : null}
+            {dead ? null : (
+              <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+                <Client key={`z:${n.id}`} module="./zone.tsx" props={{ id: n.id } satisfies ZoneProps} width="100%" height="100%" />
+              </Box>
+            )}
+          </Box>
+        )
+      }
+      const atSel = detail.length ? rows.findIndex(r => r.node.id === t.selected) : -1
+      const selRow = rows[atSel]
+      const depth = selRow ? (selRow.source ? selRow.depth + 1 : selRow.depth) + 1 : 1
+      const propRow = (key: string, d: number, child: unknown) => (
+        <Box key={key} height={1} overflow="hidden" flexDirection="row" alignItems="center" gap={1}>
+          {lead(d, `${key}:g`)}
+          {child as never}
+        </Box>
+      )
+      const propLines =
+        atSel >= 0
+          ? [
+              <Box key="pr:head" position="relative" height={1} overflow="hidden" flexDirection="row" alignItems="center" gap={1} hover={{ backgroundColor: '#232529' }}>
+                {lead(depth, 'pr:head:g')}
+                {icon16(FABRIC_SVG[propsOpen ? 'ui:chevron-down' : 'ui:chevron-right'], propsOpen ? 'collapse' : 'expand', { t: propsOpen ? '⌄' : '›', c: MUTED }, 'pr:chev')}
+                {icon16(FABRIC_SVG['tenant settings'], 'Properties', { t: '⚙', c: MUTED }, 'pr:icon')}
+                <Text color={MUTED}>Properties</Text>
+                <Box position="absolute" top={0} left={0} right={0} bottom={0}>
+                  <Client key={`z:${PROPS}`} module="./zone.tsx" props={{ id: PROPS } satisfies ZoneProps} width="100%" height="100%" />
+                </Box>
+              </Box>,
+              ...(propsOpen
+                ? [
+                    ...details.map((d, i) =>
+                      propRow(
+                        `pr:p:${i}`,
+                        depth + 1,
+                        <Box flexDirection="row" gap={1} flexGrow={1} flexShrink={1}>
+                          <Box width={12} flexShrink={0}>
+                            <Text color={MUTED}>{d.key}</Text>
+                          </Box>
+                          <Box flexShrink={1}>
+                            <Text wrap="truncate-end">{d.value}</Text>
+                          </Box>
+                        </Box>,
+                      ),
+                    ),
+                    ...(actions.length ? [propRow('pr:actions', depth + 1, actionRow)] : []),
+                  ]
+                : []),
+            ]
+          : []
+      const headRows = 4 + (pending ? 1 : 0) + (empty ? 1 : 0) + (t.status ? 1 : 0)
+      const lines = atSel >= 0 ? rows.flatMap((r, i) => (i === atSel ? [nativeRow(r), ...propLines] : [nativeRow(r)])) : rows.map(nativeRow)
+      const offset = e.props.scroll?.offset ?? 0
+      const first = Math.max(0, offset - headRows - body)
+      const last = Math.min(lines.length, offset - headRows + body * 2)
+      return (
+        <Box flexDirection="column">
+          <Box key="desk-head" height={1} flexDirection="row" alignItems="center">
+            <Box flexGrow={1} flexShrink={1} flexDirection="row" alignItems="center" gap={1}>
+              {icon16(FABRIC_SVG.AppBackend, 'Fabric apps', { t: glyphFor('app', tier).char, c: APP_COLOR }, 'logo')}
+              <Text bold wrap="truncate-end">{title}</Text>
+              <Text color={MUTED}>{count}</Text>
+            </Box>
+            {toggles}
+          </Box>
+          <Box height={3} flexDirection="row" alignItems="center" gap={1} overflow="hidden">
+            <Box flexGrow={1} flexShrink={1} width="100%">
+              {search(false)}
+            </Box>
+            {t.query ? <Button key="clearq" plain dimColor label="×" onPress={() => quiet(patch($, () => ({ query: '' })))} /> : null}
+          </Box>
+          {t.status ? (
+            <Box height={1}>
+              <Text color={theme.urgent} wrap="truncate-end">{t.status}</Text>
+            </Box>
+          ) : null}
+          {pending ? <Box height={1}>{busyRow('pending', pending)}</Box> : null}
+          {empty ? (
+            <Box height={1}>
+              <Text color={MUTED}>{empty}</Text>
+            </Box>
+          ) : null}
+          <Box key="tree" flexDirection="column">
+            {first > 0 ? <Box key="above" height={first} /> : null}
+            {lines.slice(first, Math.max(first, last))}
+            {last < lines.length ? <Box key="below" height={lines.length - Math.max(first, last)} /> : null}
           </Box>
         </Box>
-        <Box flexDirection="row">
-          <Box flexGrow={1}>
+      )
+    }
+
+    const head: RowSpec = {
+      id: '',
+      left: clean([
+        { t: `${glyphFor('app', tier).char} `, c: APP_COLOR },
+        { t: title, b: true },
+        { t: `  ${count}`, c: MUTED },
+        ...(t.status ? [{ t: `  ${t.status}`, c: theme.urgent }] : []),
+      ]),
+      right: [],
+    }
+    return (
+      <Box flexDirection="column" minHeight={Math.max(1, e.props.scroll?.bodyRows ?? 1)}>
+        <Client key="head" module="./rows.tsx" props={{ rows: [head], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
+        <Box flexDirection="row" alignItems="center" marginTop={1} marginBottom={1} gap={1}>
+          <Box flexGrow={1} flexShrink={1} width="100%">
             {work && !t.query ? (
-              <Client key="working" module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: WORKING, sh: work.tone }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
+              <Client key="working" module="./rows.tsx" props={{ rows: [{ id: '', left: [{ t: '', spin: true }, { t: ' ' }, { t: tier === 'plain' ? '*' : '\u{ec82}', claude: true }, { t: ` ${WORKING}`, sh: 'orange' }], right: [] }], active: '', activeBg: '', hoverBg: '', tones: TONES } satisfies RowsProps} />
             ) : (
-              <Input
-                key="q"
-                label="/ "
-                placeholder="search"
-                submitLabel="jump"
-                autoFocus
-                value={t.query}
-                onInput={(v: string) => quiet(patch($, () => ({ query: v })))}
-                onSubmit={(v: string) => quiet(patch($, cur => jumpTo(cur, v)))}
-              />
+              search(true)
             )}
           </Box>
           {t.query ? <Button key="clearq" plain dimColor label={icon('\u{f0156}', '×')} onPress={() => quiet(patch($, () => ({ query: '' })))} /> : null}
+          {toggles}
         </Box>
-        {t.status ? (
-          <Text color={theme.urgent} wrap="truncate-end">
-            {t.status}
-          </Text>
-        ) : null}
-        {apps.length === 0 && (
-          <Text color={theme.muted}>
-            no {CLIS.map(c => c.name).join(' or ')} app here yet; {CLIS.map(c => c.start).join(' or ')} adds one
-          </Text>
-        )}
+        {pending ? busyRow('pending', pending) : null}
+        {empty ? <Text color={MUTED}>{empty}</Text> : null}
         <Client
           key="rows"
           module="./rows.tsx"
           props={{ rows: specs, active: t.cursor, activeBg: theme.selection, hoverBg: faint(theme.selection), tones: TONES, ...(bar ? { bar } : {}) } satisfies RowsProps}
         />
         <Box flexGrow={1} />
-        {t.selected && (
-          <Text dimColor wrap="truncate-start">
-            selected: {t.selected.startsWith(t.root + '/') ? t.selected.slice(t.root.length + 1) : shortPath(t.selected)}
-          </Text>
+        {detail.length > 0 && (
+          <Box key="details" flexDirection="column">
+            {rule('rule-top')}
+            <Box flexDirection="row" alignItems="center" gap={1} marginBottom={1}>
+              <Text color={heading.color}>{heading.char}</Text>
+              <Text bold wrap="truncate-end">{headName}</Text>
+              <Box flexGrow={1} />
+              {clear}
+            </Box>
+            {details.map((d, i) => (
+              <Box key={`p:${i}`} flexDirection="row" gap={1}>
+                <Box width={12} flexShrink={0}>
+                  <Text color={MUTED}>{d.key}</Text>
+                </Box>
+                <Box flexShrink={1}>
+                  <Text wrap="truncate-end">{d.value}</Text>
+                </Box>
+              </Box>
+            ))}
+            {actions.length > 0 && rule('rule-actions')}
+            {actions.length > 0 && actionRow}
+          </Box>
         )}
       </Box>
     )

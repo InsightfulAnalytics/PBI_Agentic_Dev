@@ -1,6 +1,6 @@
-# Naming Convention Rules Reference
+# Naming rules
 
-Rules for standardizing naming conventions in Power BI semantic models (TMDL format). These rules are derived from common best practices and should be adapted to each organization's business terminology.
+Reference for pass 2 of the `organize-semantic-model` skill. These are defaults; the organization's own documented conventions and terminology win over them.
 
 ## Core Principle
 
@@ -10,7 +10,7 @@ Names must align with the business terminology used by people in the organizatio
 
 ### 1. Human-Readable Names (No Programming Conventions)
 
-**Rule:** All table, column, and measure names must use standard casing with spaces. No CamelCase, snake_case, UPPER_CASE, or other programming conventions.
+**Rule:** All table, column, measure and hierarchy names use Title Case with spaces: capitalize every major word, keep short articles, conjunctions and prepositions lowercase unless they start the name (`Days of Supply`, `Net Sales by Region`), and keep acronyms in capitals (`YTD`, `COGS`, `ID`). No CamelCase, snake_case, UPPER_CASE, or other programming conventions.
 
 | Anti-Pattern | Correct |
 |-------------|---------|
@@ -160,29 +160,21 @@ Use the delta symbol or abbreviation consistently:
 
 ### 9. Display Folder Organization
 
-**Rule:** Use numbered prefixes for display folders to control sort order. Organize into a logical hierarchy.
+**Rule:** 3 to 5 top-level folders per table, nested with `/` (a backslash does not nest). Numbered prefixes control sort order when alphabetical order is wrong. Keep a larger structure only if it predates the session.
 
-**Recommended structure for fact tables:**
+**Fact table example:**
 ```
-0. Measures\
-    1. Value\
-        i. Total
-        ii. 1YP
-        iii. 2YP
-    2. Quantity
-    3. Lines
-1. Facts
-2. Degenerate Dimensions
-3. Keys\
-    Dates
+1. Measures
+2. Facts
+3. Degenerate Dimensions
+4. Keys
 ```
 
-**Recommended structure for dimension tables:**
+**Dimension table example:**
 ```
 1. [Primary Hierarchy Name]
-2. [Attributes]
-3. Managers
-4. Keys
+2. Attributes
+3. Keys
 ```
 
 ### 10. Descriptions
@@ -231,3 +223,20 @@ Columns generally follow simpler rules:
 3. Avoid abbreviations
 4. Hidden key columns can use `[Table Name] Key` pattern
 5. Group into display folders by purpose (Hierarchy, Attributes, Keys, Facts)
+
+## Agreeing Terminology Before Renaming
+
+Do not rename until the business vocabulary is known. Ask, or infer from existing names and reports and confirm:
+
+1. The words used for key metrics (Revenue, Turnover, Sales, Gross Sales)
+2. Any documented naming standard already in place
+3. The prior-period convention (1YP, PY, Prior Year, Last Year)
+4. The unit convention ((%), (Value), (Quantity))
+
+Then present the proposed renames grouped by issue (programming conventions, abbreviations, inconsistent period/unit/aggregation syntax, technical prefixes) and get confirmation before applying them.
+
+## Applying Renames
+
+- Tabular Editor (MCP or GUI): setting `Name` rewrites DAX references when Automatic Formula Fix-up is on. Confirm with `get_object_details` on a dependent measure afterwards
+- TMDL on disk without Tabular Editor: rename the declaration, then update every `[Old Name]` and `'Table'[Old Column]` reference across `definition/` (tables, `relationships.tmdl`, `functions.tmdl`, roles, perspectives, cultures), and finish with `rg -n "<old name>" definition/` returning nothing
+- Reports: repair bindings with `pbir fields replace` or `pbir fields replace-table` (the `pbir-cli` skill); never edit report JSON by hand

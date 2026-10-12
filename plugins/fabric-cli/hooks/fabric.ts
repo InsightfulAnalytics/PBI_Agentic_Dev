@@ -17,6 +17,23 @@ const ITEM_ROUTE: Record<string, string> = {
   KQLDatabase: 'databases',
   SQLDatabase: 'sqldatabases',
   Environment: 'sparkenvironments',
+  SQLEndpoint: 'lakewarehouses',
+  SparkJobDefinition: 'sparkjobdefinitions',
+  CopyJob: 'copyjobs',
+  KQLQueryset: 'queryworkbenches',
+  KQLDashboard: 'kustodashboards',
+  Eventstream: 'eventstreams',
+  Reflex: 'reflexes',
+  MLExperiment: 'mlexperiments',
+  MLModel: 'mlmodels',
+  MirroredDatabase: 'mirroreddatabases',
+  GraphQLApi: 'graphql',
+  MountedDataFactory: 'mounteddatafactories',
+  VariableLibrary: 'variable-libraries',
+  UserDataFunction: 'userdatafunctions',
+  Datamart: 'datamarts',
+  OrgApp: 'orgapps',
+  AppBackend: 'orgapps',
 }
 
 type Entry = { name: string; id: string; type?: string }
@@ -83,6 +100,39 @@ export function parseChildren(stdout: string, parent: TreeNode, nodes: TreeNode[
     else if (ONELAKE_ITEMS.has(type)) out.push({ ...node(id, parent.id, type, name, path, itemUrl(wsId, type, e.id ?? '')), note: typeLabel(type) }, stub(id))
     else out.push({ ...node(id, parent.id, type, name, path, itemUrl(wsId, type, e.id ?? '')), note: typeLabel(type) })
   }
+  return out
+}
+
+export type ApiItem = { id?: string; displayName?: string; type?: string; folderId?: string | null }
+export type ApiFolder = { id?: string; displayName?: string; parentFolderId?: string | null }
+
+export function folderTree(items: ApiItem[], folders: ApiFolder[], parent: TreeNode, nodes: TreeNode[], root = '', empty?: (id: string) => TreeNode): TreeNode[] {
+  const wsId = wsIdOf(parent, nodes)
+  const byId = new Map(folders.filter(f => f.id && f.displayName).map(f => [f.id!.toLowerCase(), f]))
+  const out: TreeNode[] = []
+  const place = (folder: string, at: TreeNode): void => {
+    const subs = [...byId.values()].filter(f => (f.parentFolderId ?? '').toLowerCase() === folder).sort((a, b) => a.displayName!.localeCompare(b.displayName!, undefined, { sensitivity: 'base' }))
+    const here = items
+      .filter(i => i.id && i.displayName && i.type && (i.folderId ?? '').toLowerCase() === folder)
+      .sort((a, b) => `${a.displayName}.${a.type}`.localeCompare(`${b.displayName}.${b.type}`, undefined, { sensitivity: 'base' }))
+    for (const f of subs) {
+      const name = `${f.displayName}.Folder`
+      const id = `${at.id}/${name}`
+      const kid = { ...node(id, at.id, 'fabric folder', f.displayName!, `${at.path}/${name}`, workspaceUrl(wsId)), sig: `${wsId}/${f.id!.toLowerCase()}` }
+      out.push(kid)
+      const before = out.length
+      place(f.id!.toLowerCase(), kid)
+      if (out.length === before && empty) out.push(empty(id))
+    }
+    for (const i of here) {
+      const name = `${i.displayName}.${i.type}`
+      const id = `${at.id}/${name}`
+      const kid = { ...node(id, at.id, i.type!, i.displayName!, `${at.path}/${name}`, itemUrl(wsId, i.type!, i.id!)), sig: i.id!.toLowerCase(), note: typeLabel(i.type!) }
+      out.push(kid)
+      if (ONELAKE_ITEMS.has(i.type!)) out.push(stub(id))
+    }
+  }
+  place(root.toLowerCase(), parent)
   return out
 }
 

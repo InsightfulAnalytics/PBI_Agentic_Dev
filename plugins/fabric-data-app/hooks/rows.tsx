@@ -1,6 +1,6 @@
 import type { ClientModule } from 'claude-code'
 
-export type Seg = { t: string; c?: string; b?: boolean; s?: boolean; i?: boolean; sh?: string; dim?: boolean; one?: boolean }
+export type Seg = { t: string; c?: string; b?: boolean; s?: boolean; i?: boolean; sh?: string; dim?: boolean; one?: boolean; spin?: boolean; claude?: boolean; bg?: string; tab?: string }
 export type RowSpec = { id: string; left: Seg[]; right: Seg[] }
 export type RowsProps = {
   rows: RowSpec[]
@@ -8,11 +8,14 @@ export type RowsProps = {
   activeBg: string
   hoverBg: string
   tones: Record<string, { bright: string[]; dim: string[] }>
+  pointer?: boolean
   bar?: { pos: number; size: number; thumb: string; track: string }
 }
-type Local = { hover: number; phase: number; drag: boolean; ref: { stop?: () => void } }
+type Local = { hover: number; phase: number; drag: boolean; ref: { stop?: () => void; unpoint?: () => void } }
 
 const TICK_MS = 90
+const FRAMES = ['⠋', '⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏']
+const GRADIENT = ['#5eead4', '#67e8f9', '#7dd3fc', '#93c5fd', '#a5b4fc', '#c4b5fd', '#d8b4fe', '#f0abfc', '#d8b4fe', '#c4b5fd', '#a5b4fc', '#93c5fd', '#7dd3fc', '#67e8f9']
 
 function shimmer(i: number, phase: number, len: number, palette: string[]): string {
   const band = ((phase * 1.6) % (len + 8)) - 4
@@ -27,7 +30,7 @@ const Rows: ClientModule<RowsProps, Local> = (props, surface) => {
     state = { hover: -1, phase: 0, drag: false, ref: {} }
     surface.setState(state)
   }
-  const lit = props.rows.some(r => r.left.some(s => s.sh) || r.right.some(s => s.sh))
+  const lit = props.rows.some(r => r.left.some(s => s.sh || s.spin || s.claude) || r.right.some(s => s.sh || s.spin || s.claude))
   if (lit && !state.ref.stop) {
     state.ref.stop = surface.every(TICK_MS, () => {
       const cur = surface.state
@@ -37,7 +40,10 @@ const Rows: ClientModule<RowsProps, Local> = (props, surface) => {
     state.ref.stop()
     state.ref.stop = undefined
   }
-  surface.onPointer(e => {
+  if (props.pointer === false) {
+    state.ref.unpoint?.()
+    state.ref.unpoint = undefined
+  } else state.ref.unpoint = surface.onPointer(e => {
     const cur = surface.state ?? state
     const span = Math.max(1, props.rows.length - 1)
     const onBar = Boolean(props.bar) && e.x >= surface.columns - 1
@@ -62,33 +68,69 @@ const Rows: ClientModule<RowsProps, Local> = (props, surface) => {
       surface.post({ copy: row.id, shift: Boolean(e.shift) })
       return
     }
-    if (e.type !== 'down' || (e.button ?? 'left') !== 'left' || !row?.id) return
-    surface.post({ press: row.id, ctrl: Boolean(e.ctrl), shift: Boolean(e.shift) })
+    if (e.type !== 'down' || (e.button ?? 'left') !== 'left' || !row) return
+    const wide = (seg: Seg) => [...seg.t].length + (seg.spin ? 1 : 0)
+    let x = 0
+    for (const seg of row.left) {
+      const w = wide(seg)
+      if (seg.tab && e.x >= x && e.x < x + w) {
+        surface.post({ tab: seg.tab })
+        return
+      }
+      x += w
+    }
+    x = surface.columns - (props.bar ? 1 : 0) - row.right.reduce((n, seg) => n + wide(seg), 0)
+    for (const seg of row.right) {
+      const w = wide(seg)
+      if (seg.tab && e.x >= x && e.x < x + w) {
+        surface.post({ tab: seg.tab })
+        return
+      }
+      x += w
+    }
+    if (row.id) surface.post({ press: row.id, ctrl: Boolean(e.ctrl), shift: Boolean(e.shift) })
   })
   surface.onKey(e => surface.post({ key: e.key, ctrl: Boolean(e.ctrl), shift: Boolean(e.shift) }))
   const draw = (s: Seg, k: number) => {
+    if (s.claude) {
+      const shut = Math.floor(state.phase / 3) % 12 === 11
+      return (
+        <Text key={String(k)} color={shut ? '#7a4535' : '#d97757'} bold={!shut}>
+          {s.t}
+        </Text>
+      )
+    }
+    if (s.spin) {
+      const frame = FRAMES[state.phase % FRAMES.length] ?? ''
+      return (
+        <Text key={String(k)} bold={s.b}>
+          {s.t ? <Text color={s.c}>{s.t}</Text> : null}
+          <Text color={GRADIENT[state.phase % GRADIENT.length]} bold>
+            {frame}
+          </Text>
+        </Text>
+      )
+    }
     const palette = s.sh ? (s.dim ? props.tones[s.sh]?.dim : props.tones[s.sh]?.bright) : undefined
     if (!palette) {
       return (
-        <Text key={`s${k}`} color={s.c} bold={s.b} strikethrough={s.s} italic={s.i}>
+        <Text key={String(k)} color={s.c} backgroundColor={s.bg} bold={s.b} strikethrough={s.s} italic={s.i}>
           {s.t}
         </Text>
       )
     }
     if (s.one) {
       return (
-        <Text key={`s${k}`} color={shimmer(-1, state.phase, s.t.length, palette)}>
+        <Text key={String(k)} color={shimmer(-1, state.phase, s.t.length, palette)}>
           {s.t}
         </Text>
       )
     }
     const chars = [...s.t]
     return (
-      <Text key={`s${k}`} bold={s.b}>
+      <Text key={String(k)} bold={s.b}>
         {chars.map((ch, i) => (
-          <Text key={`c${i}`} color={shimmer(i, state.phase, chars.length, palette)}>
-            {ch}
-          </Text>
+          <Text key={String(i)} color={shimmer(i, state.phase, chars.length, palette)}>{ch}</Text>
         ))}
       </Text>
     )

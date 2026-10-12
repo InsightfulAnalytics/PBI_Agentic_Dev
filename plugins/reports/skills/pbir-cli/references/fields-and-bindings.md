@@ -2,6 +2,17 @@
 
 Complete guide to managing field bindings in visuals, swapping fields across reports, and rebinding reports to different semantic models.
 
+## Table of Contents
+- [Inspecting Field Usage](#inspecting-field-usage)
+- [Discovering Model Fields](#discovering-model-fields)
+- [Field Types: Column vs Measure](#field-types-column-vs-measure)
+- [Binding Fields to Visuals](#binding-fields-to-visuals)
+- [Swapping Fields in Visuals](#swapping-fields-in-visuals)
+- [Rebinding Reports to Different Models](#rebinding-reports-to-different-models)
+- [Recommended Workflow: Rebinding](#recommended-workflow-rebinding)
+- [Recommended Workflow: Swapping Fields](#recommended-workflow-swapping-fields)
+- [Show-All and Field Hidden](#show-all-and-field-hidden)
+
 ## Inspecting Field Usage
 
 ```bash

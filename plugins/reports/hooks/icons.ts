@@ -19,6 +19,14 @@ const REPORT_NERD: Record<string, string> = {
   'data role': '\u{f0d7e}',
   field: '\u{f0835}',
   'ext measure': '\u{f00ec}',
+  'theme colors': '\u{f03d8}',
+  'theme data colors': '\u{f08b5}',
+  'theme text': '\u{f06d6}',
+  'text class': '\u{f027f}',
+  'theme styles': '\u{f027c}',
+  'theme state': '\u{f06c4}',
+  'theme card': '\u{f062e}',
+  'theme selector': '\u{f062e}',
 }
 
 const VISUAL_NERD: Record<string, string> = {
@@ -106,6 +114,7 @@ const ITEM_NERD: Record<string, string> = {
 const PLAIN: Record<string, string> = {
   report: '▣', 'semantic model': '◆', group: '■', page: '□', visual: '▢', reportfilter: '▿', pagefilter: '▿',
   visualfilter: '▿', bookmark: '⚑', theme: '◐', 'data role': '◫', field: '│', 'ext measure': 'Σ',
+  'theme colors': '◐', 'theme data colors': '◐', 'theme text': 'T', 'text class': 'T', 'theme styles': '✎', 'theme state': '*', 'theme card': '◦', 'theme selector': '◦',
 }
 
 export type Glyph = { char: string; color: string | undefined; label?: string }
@@ -163,7 +172,28 @@ export function visualLabel(type: string): string {
   return custom ? `${custom[0]?.toUpperCase()}${custom.slice(1)}, custom visual` : type
 }
 
+const SWATCH = /^#[0-9a-f]{3,8}$/i
+
+function swatch(hex: string): string {
+  const h = hex.slice(1)
+  return h.length === 3 || h.length === 4 ? `#${[...h.slice(0, 3)].map(c => c + c).join('')}` : `#${h.slice(0, 6)}`
+}
+
 export function glyph(n: TreeNode, tier: Tier): Glyph {
+  if (n.kind === 'theme color' || n.kind === 'theme prop') {
+    const code = n.note.split(' ')[0] ?? ''
+    if (SWATCH.test(code)) return { char: tier === 'plain' ? '■' : '\u{f0764}', color: swatch(code) }
+    return { char: '·', color: hex(GLYPH_DIM) }
+  }
+  if (n.kind === 'text class') {
+    const hexColor = n.note.split(' ').find(w => SWATCH.test(w))
+    const g = pick({ fabric: 0, nerd: REPORT_NERD['text class'] ?? '', rgb: GLYPH_DIM }, tier, PLAIN['text class'] ?? 'T')
+    return hexColor ? { ...g, color: swatch(hexColor) } : g
+  }
+  if (n.kind === 'theme style') {
+    if (n.name === 'All visuals') return pick({ fabric: 0, nerd: '\u{f06c4}', rgb: GLYPH_DIM }, tier, '*')
+    return glyph({ ...n, kind: 'visual', note: n.name }, tier)
+  }
   const type = n.kind === 'visual' ? n.note || n.name : ''
   if (n.kind === 'visual' && CUSTOM_VISUAL.test(type)) return pick({ fabric: 0, nerd: '\u{f0431}', rgb: GLYPH_DIM }, tier, '⧈')
   const plain = VISUAL_PLAIN[type] ?? PLAIN[n.kind] ?? '■'

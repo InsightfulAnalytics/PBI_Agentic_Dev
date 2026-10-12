@@ -33,6 +33,16 @@
         "off"
       ]
     },
+    "reportLinks": {
+      "type": "string",
+      "title": "Report links",
+      "description": "embed: opening the report in Fabric uses its reportEmbed link (autoAuth and your tenant), on the page you picked. portal: the report page in the Fabric portal.",
+      "default": "embed",
+      "options": [
+        "embed",
+        "portal"
+      ]
+    },
     "fontHint": {
       "type": "string",
       "title": "Font hint",
