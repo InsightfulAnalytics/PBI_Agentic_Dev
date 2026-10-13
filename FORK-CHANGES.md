@@ -93,10 +93,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `pbip-validator` agent and `validate_pbip.py` now suggest `<name>_query` in place of
   `#"<Name> Query"`.
 - Added M formatting to `semantic-models/power-query` (2026-10-13): M is laid out by Microsoft's
-  MIT-licensed `powerquery-formatter` at its defaults. `formatter/format_m.js` runs it over `.pq`
+  MIT-licensed `powerquery-formatter` in a house layout. `formatter/format_m.js` runs it over `.pq`
   and `.m` files, stdin, and the M blocks in TMDL (shared expressions, M partitions, refresh-policy
-  expressions), unfencing fenced blocks and leaving DAX and multi-line text literals alone. The
-  skill's examples are its output, with their `--` comments corrected to M's `//`.
+  expressions), keeping fences and leaving DAX and multi-line text literals alone. On top of the
+  formatter it uses 80-character lines, puts every `let` one binding per line, breaks a call or
+  parameter list one item per line, lifts end-of-line comments onto their own line, ignores the
+  source's record line breaks, and corrects three line-length estimates the formatter gets wrong.
+  The skill's examples are its output, with their `--` comments corrected to M's `//`.
 
 ### Fork-owned files, for upstream harvest resolution
 

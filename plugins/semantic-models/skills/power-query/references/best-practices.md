@@ -19,7 +19,11 @@ let
     // 4. Sort if needed (folds to ORDER BY)
     sorted = Table.Sort(typed, {{"Date", Order.Descending}}),
     // 5. Non-foldable transforms LAST
-    added = Table.AddColumn(sorted, "Category", each if [Amount] > 1000 then "High" else "Low")
+    added = Table.AddColumn(
+        sorted,
+        "Category",
+        each if [Amount] > 1000 then "High" else "Low"
+    )
 in
     added
 ```
@@ -30,7 +34,10 @@ If the transform logic is too complex for M, use `Value.NativeQuery` to pass nat
 let
     source = Sql.Database(SqlEndpoint, Database),
     data = Value.NativeQuery(
-        source, "SELECT Id, Date, Amount FROM dbo.MyTable WHERE IsActive = 1", null, [EnableFolding = true]
+        source,
+        "SELECT Id, Date, Amount FROM dbo.MyTable WHERE IsActive = 1",
+        null,
+        [EnableFolding = true]
     )
 in
     data
@@ -167,11 +174,20 @@ let
     data = source{[Schema = "dbo", Item = "Orders"]}[Data],
     // FOLDABLE: These translate to SQL
     filtered_rows = Table.SelectRows(data, each [Year] >= 2023),
-    selected_columns = Table.SelectColumns(filtered_rows, {"OrderId", "Date", "Amount", "CustomerId", "Status"}),
-    set_types = Table.TransformColumnTypes(selected_columns, {{"Amount", Currency.Type}, {"Date", type date}}),
+    selected_columns = Table.SelectColumns(
+        filtered_rows,
+        {"OrderId", "Date", "Amount", "CustomerId", "Status"}
+    ),
+    set_types = Table.TransformColumnTypes(
+        selected_columns,
+        {{"Amount", Currency.Type}, {"Date", type date}}
+    ),
     // NON-FOLDABLE: These run in the mashup engine
     added_category = Table.AddColumn(
-        set_types, "AmountBucket", each if [Amount] > 10000 then "Large" else "Small", type text
+        set_types,
+        "AmountBucket",
+        each if [Amount] > 10000 then "Large" else "Small",
+        type text
     )
 in
     added_category
@@ -206,7 +222,10 @@ Filter rows early for the same reason. A `Table.SelectRows` immediately after na
 
 ```
 data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-filtered = Table.SelectRows(data, each [IsActive] = true and [Year] >= 2023),
+filtered = Table.SelectRows(
+    data,
+    each [IsActive] = true and [Year] >= 2023
+),
 ```
 
 This is especially important for incremental refresh, where `RangeStart`/`RangeEnd` filters must fold to be effective.
@@ -220,7 +239,12 @@ This is especially important for incremental refresh, where `RangeStart`/`RangeE
 ```
 selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
 typed = Table.TransformColumnTypes(
-    selected, {{"OrderId", Int64.Type}, {"Date", type date}, {"Amount", Currency.Type}}
+    selected,
+    {
+        {"OrderId", Int64.Type},
+        {"Date", type date},
+        {"Amount", Currency.Type}
+    }
 ),
 ```
 
@@ -287,7 +311,10 @@ Each step adds overhead. Combine related operations where natural; don't create 
 
 ```
 // Good: one step for all renames
-renamed = Table.RenameColumns(data, {{"OldName1", "NewName1"}, {"OldName2", "NewName2"}})
+renamed = Table.RenameColumns(
+    data,
+    {{"OldName1", "NewName1"}, {"OldName2", "NewName2"}}
+)
 
 // Bad: separate step per rename
 renamed1 = Table.RenameColumns(data, {{"OldName1", "NewName1"}}),
@@ -307,6 +334,13 @@ If error handling is necessary (e.g., optional columns), make it explicit and na
 
 ```
 safe_amount = Table.TransformColumns(
-    data, {{"Amount", each try Number.FromText(_) otherwise null, type number}}
+    data,
+    {
+        {
+            "Amount",
+            each try Number.FromText(_) otherwise null,
+            type number
+        }
+    }
 )
 ```

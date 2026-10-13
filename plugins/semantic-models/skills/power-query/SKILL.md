@@ -19,7 +19,10 @@ let
     source = Sql.Database(SqlEndpoint, Database),
     data = source{[Schema = "dbo", Item = "Orders"]}[Data],
     removed_columns = Table.RemoveColumns(data, {"InternalId"}),
-    changed_type = Table.TransformColumnTypes(removed_columns, {{"Amount", Currency.Type}})
+    changed_type = Table.TransformColumnTypes(
+        removed_columns,
+        {{"Amount", Currency.Type}}
+    )
 in
     changed_type
 ```
@@ -77,11 +80,12 @@ These names are owned outside the expression and keep their spaces:
 - **Parameters of a published model.** Ask before renaming one that has a space: the Service stores
   its value, and deployment rules bind to it, by name.
 
-### Formatting: Microsoft's powerquery-formatter
+### Formatting: powerquery-formatter, house layout
 
-M is laid out the way [`microsoft/powerquery-formatter`](https://github.com/microsoft/powerquery-formatter)
-lays it out: the formatter behind the VS Code Power Query extension, at its defaults (4-space
-indent, 120-character lines). Run it over every M expression you write or edit:
+M is laid out by [`microsoft/powerquery-formatter`](https://github.com/microsoft/powerquery-formatter),
+the formatter behind the VS Code Power Query extension, run through `formatter/format_m.js` with
+the house layout: 4-space indent, 80-character lines, short lines over packed ones. Run it over
+every M expression you write or edit:
 
 ```bash
 # First use on a machine: install it (node_modules is gitignored)
@@ -95,27 +99,30 @@ echo 'let a=1 in a' | node "$FMT" -                                 # a snippet,
 
 - In a `.tmdl` file it formats shared `expression` blocks, M partition `source` blocks and
   refresh-policy expressions. DAX, one-line parameters and text literals that span lines stay as
-  they are. Desktop fences M in ```` ``` ```` when a line holds only whitespace; formatted M has
-  none, so a fenced block comes back unfenced.
-- It changes whitespace and line breaks only: every token and comment survives (checked with TOM
-  and the M lexer on the SpaceParts sample, 2026-10-13), so formatting needs no fresh validation.
+  they are, and a block fenced in ```` ``` ```` keeps its fences.
+- It changes whitespace, line breaks and comment placement only: every token and comment survives
+  (checked with TOM and the M lexer on the SpaceParts sample, 2026-10-13), so formatting needs no
+  fresh validation.
 - A block that fails to parse is reported (exit 2) and left untouched: fix the M.
+- The house rules sit on top of the formatter's own and patch its internals (the script's
+  comments say how), so `package.json` pins its version. Rerun the samples before raising it.
 
-The layout it produces, so M written by hand already matches:
+The layout, so M written by hand already matches:
 
-- Anything that fits in 120 characters stays on one line, a whole short `let` included
-  (`let source = ..., data = ... in data`).
-- A call that does not fit breaks after `(`: its arguments go on one indented line when they fit
-  there, otherwise one per line, and `)` closes at the step's indent. Lists and records break the
-  same way, one item per line.
+- Every `let` puts one binding per line and `in` on its own line, however short, and so does
+  anything that holds a `let` (a function, an `each`, a call around it).
+- Anything else stays on one line while it fits in 80 characters.
+- A call, parameter list, list or record that does not fit breaks after its opening bracket, one
+  item per line, and closes on its own line at the indent it opened on.
 - One space after each comma and around `=` in records: `[Schema = "dbo", Item = "Orders"]`.
-- A long `each` body moves under `each`. A long `if` chain puts each `if ... then`,
-  `else if ... then` and `else` on its own line, with the value indented under it. A long `&` or
-  `and` chain puts one operand per line, operator first.
-- A record written across lines stays one field per line; lists and calls collapse whenever they
-  fit. Blank lines between steps are dropped.
-- In a `let` short enough for one line, a comment lands at column 0 between the bindings. Put
-  comments above the `let`, or in queries long enough to break.
+- A long `each` body moves under `each`. A step whose value is a long `if` starts it on the next
+  line, with `if ... then`, `else if ... then` and `else` each on a line of their own and each
+  value indented under it. A long `&`, `and` or `or` chain puts one operand per line, operator
+  first.
+- A comment sits on its own line above the code it describes; one written at the end of a line
+  is lifted there. Blank lines between steps are dropped.
+- A line can still pass 80 characters inside very deep nesting, or where a single token (a long
+  string, a comment) is longer than the room left.
 
 ### Query Folding
 
@@ -152,7 +159,10 @@ let
     data = source{[Schema = "dbo", Item = "Orders"]}[Data],
     // Filter and select BEFORE any custom transforms
     filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
-    selected = Table.SelectColumns(filtered, {"OrderId", "Date", "Amount", "CustomerId"})
+    selected = Table.SelectColumns(
+        filtered,
+        {"OrderId", "Date", "Amount", "CustomerId"}
+    )
 in
     selected
 ```
@@ -250,7 +260,10 @@ Incremental refresh partitions use `RangeStart` and `RangeEnd` parameters:
 let
     source = Sql.Database(SqlEndpoint, Database),
     data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-    filtered = Table.SelectRows(data, each [OrderDate] >= RangeStart and [OrderDate] < RangeEnd)
+    filtered = Table.SelectRows(
+        data,
+        each [OrderDate] >= RangeStart and [OrderDate] < RangeEnd
+    )
 in
     filtered
 ```
@@ -275,7 +288,12 @@ For complex SQL that can't be expressed in M:
 ```
 let
     source = Sql.Database("server", "db"),
-    data = Value.NativeQuery(source, "SELECT * FROM dbo.MyView WHERE Year = 2024", null, [EnableFolding = true])
+    data = Value.NativeQuery(
+        source,
+        "SELECT * FROM dbo.MyView WHERE Year = 2024",
+        null,
+        [EnableFolding = true]
+    )
 in
     data
 ```
@@ -288,6 +306,6 @@ in
 - **`references/best-practices.md`** -- Query folding guidance, fold-breaker list, anti-patterns, performance tips
 - **`examples/execute_m.py`** -- Python script to execute M expressions via the Fabric API (CLI tool)
 - **`examples/preview_partition.py`** -- Python script to preview partition data at any step (uses `fab get` + `execute_m.py`)
-- **`formatter/format_m.js`** -- formats M in `.tmdl`, `.pq` and `.m` files, or stdin, with Microsoft's powerquery-formatter (see **Formatting**)
+- **`formatter/format_m.js`** -- formats M in `.tmdl`, `.pq` and `.m` files, or stdin, in the house layout (see **Formatting**)
 - [Power Query M Reference](https://learn.microsoft.com/en-us/powerquery-m/)
 - [Query Folding Guidance](https://learn.microsoft.com/en-us/power-bi/guidance/power-query-folding)
