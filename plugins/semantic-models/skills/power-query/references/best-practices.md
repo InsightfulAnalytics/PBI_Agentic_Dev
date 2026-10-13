@@ -8,32 +8,32 @@ When writing or generating M expressions for import partitions, follow this orde
 
 ```
 let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Source{[Schema="dbo", Item="MyTable"]}[Data],
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo", Item="MyTable"]}[Data],
     -- 1. Filter rows (folds to WHERE)
-    Filtered = Table.SelectRows(Data, each [IsActive] = true),
+    filtered = Table.SelectRows(data, each [IsActive] = true),
     -- 2. Select columns (folds to SELECT)
-    Selected = Table.SelectColumns(Filtered, {"Id", "Date", "Amount"}),
+    selected = Table.SelectColumns(filtered, {"Id", "Date", "Amount"}),
     -- 3. Set types (folds to CAST)
-    Typed = Table.TransformColumnTypes(Selected, {{"Amount", Currency.Type}}),
+    typed = Table.TransformColumnTypes(selected, {{"Amount", Currency.Type}}),
     -- 4. Sort if needed (folds to ORDER BY)
-    Sorted = Table.Sort(Typed, {{"Date", Order.Descending}}),
+    sorted = Table.Sort(typed, {{"Date", Order.Descending}}),
     -- 5. Non-foldable transforms LAST
-    Added = Table.AddColumn(Sorted, "Category", each if [Amount] > 1000 then "High" else "Low")
+    added = Table.AddColumn(sorted, "Category", each if [Amount] > 1000 then "High" else "Low")
 in
-    Added
+    added
 ```
 
 If the transform logic is too complex for M, use `Value.NativeQuery` to pass native SQL directly:
 
 ```
 let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Value.NativeQuery(Source,
+    source = Sql.Database(SqlEndpoint, Database),
+    data = Value.NativeQuery(source,
         "SELECT Id, Date, Amount FROM dbo.MyTable WHERE IsActive = 1",
         null, [EnableFolding=true])
 in
-    Data
+    data
 ```
 
 `EnableFolding=true` allows subsequent M steps to fold on top of the native query result.
@@ -163,21 +163,21 @@ Not functions, but conditions that prevent folding:
 
 ```
 let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Source{[Schema="dbo", Item="Orders"]}[Data],
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo", Item="Orders"]}[Data],
 
     -- FOLDABLE: These translate to SQL
-    #"Filtered Rows" = Table.SelectRows(Data, each [Year] >= 2023),
-    #"Selected Columns" = Table.SelectColumns(#"Filtered Rows",
+    filtered_rows = Table.SelectRows(data, each [Year] >= 2023),
+    selected_columns = Table.SelectColumns(filtered_rows,
         {"OrderId", "Date", "Amount", "CustomerId", "Status"}),
-    #"Set Types" = Table.TransformColumnTypes(#"Selected Columns", {
+    set_types = Table.TransformColumnTypes(selected_columns, {
         {"Amount", Currency.Type}, {"Date", type date}}),
 
     -- NON-FOLDABLE: These run in the mashup engine
-    #"Added Category" = Table.AddColumn(#"Set Types", "AmountBucket",
+    added_category = Table.AddColumn(set_types, "AmountBucket",
         each if [Amount] > 10000 then "Large" else "Small", type text)
 in
-    #"Added Category"
+    added_category
 ```
 
 ### Verifying Folding
@@ -192,13 +192,13 @@ Remove columns as early as possible. Every column not removed travels through ev
 
 ```
 -- Good: remove columns immediately after navigation
-Data = Source{[Schema="dbo", Item="Orders"]}[Data],
-#"Selected" = Table.SelectColumns(Data, {"OrderId", "Date", "Amount"}),
+data = source{[Schema="dbo", Item="Orders"]}[Data],
+selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
 ...
 
 -- Bad: remove columns at the end after all transforms
 ...
-#"Final" = Table.RemoveColumns(#"Transformed", {"Col1", "Col2", "Col3", ...})
+final = Table.RemoveColumns(transformed, {"Col1", "Col2", "Col3", ...})
 ```
 
 Early column pruning folds to SQL `SELECT`, reducing data transfer from the source.
@@ -208,8 +208,8 @@ Early column pruning folds to SQL `SELECT`, reducing data transfer from the sour
 Filter rows early for the same reason. A `Table.SelectRows` immediately after navigation folds to `WHERE`:
 
 ```
-Data = Source{[Schema="dbo", Item="Orders"]}[Data],
-#"Filtered" = Table.SelectRows(Data, each [IsActive] = true and [Year] >= 2023),
+data = source{[Schema="dbo", Item="Orders"]}[Data],
+filtered = Table.SelectRows(data, each [IsActive] = true and [Year] >= 2023),
 ```
 
 This is especially important for incremental refresh, where `RangeStart`/`RangeEnd` filters must fold to be effective.
@@ -221,8 +221,8 @@ This is especially important for incremental refresh, where `RangeStart`/`RangeE
 `Table.TransformColumnTypes` folds to `CAST` in SQL. Apply it right after column selection:
 
 ```
-#"Selected" = Table.SelectColumns(Data, {"OrderId", "Date", "Amount"}),
-#"Typed" = Table.TransformColumnTypes(#"Selected", {
+selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
+typed = Table.TransformColumnTypes(selected, {
     {"OrderId", Int64.Type},
     {"Date", type date},
     {"Amount", Currency.Type}
@@ -272,9 +272,9 @@ Keep the secret file itself out of source control.
 
 ```
 -- Anti-pattern: filter after all transforms
-Data = Source{[Schema="dbo", Item="BigTable"]}[Data],
-#"Added Column" = Table.AddColumn(Data, ...),  -- breaks folding
-#"Filtered" = Table.SelectRows(#"Added Column", each [Year] >= 2023)
+data = source{[Schema="dbo", Item="BigTable"]}[Data],
+added_column = Table.AddColumn(data, ...),  -- breaks folding
+filtered = Table.SelectRows(added_column, each [Year] >= 2023)
 -- Filter runs locally on ALL rows
 ```
 
@@ -292,22 +292,20 @@ Each step adds overhead. Combine related operations where natural; don't create 
 
 ```
 -- Good: one step for all renames
-#"Renamed" = Table.RenameColumns(Data, {
+renamed = Table.RenameColumns(data, {
     {"OldName1", "NewName1"},
     {"OldName2", "NewName2"}
 })
 
 -- Bad: separate step per rename
-#"Renamed1" = Table.RenameColumns(Data, {{"OldName1", "NewName1"}}),
-#"Renamed2" = Table.RenameColumns(#"Renamed1", {{"OldName2", "NewName2"}})
+renamed1 = Table.RenameColumns(data, {{"OldName1", "NewName1"}}),
+renamed2 = Table.RenameColumns(renamed1, {{"OldName2", "NewName2"}})
 ```
 
 ## Naming Conventions
 
-- Use descriptive step names: `#"Filtered Active Orders"` not `#"Custom1"`
-- Use `#"Quoted Identifiers"` for steps with spaces (standard Power Query convention)
-- Parameters: `PascalCase` without spaces (`SqlEndpoint`, `DatabaseName`)
-- Keep step names consistent with what the Power Query UI would generate
+Steps, variables and functions are snake_case and parameters PascalCase, with no spaces in either.
+The full rule, including renaming spaced names in existing M, is **Naming** in `SKILL.md`.
 
 ## Error Handling
 
@@ -316,7 +314,7 @@ For production partitions, avoid `try...otherwise` patterns that silently swallo
 If error handling is necessary (e.g., optional columns), make it explicit and narrow:
 
 ```
-#"Safe Amount" = Table.TransformColumns(Data, {
+safe_amount = Table.TransformColumns(data, {
     {"Amount", each try Number.FromText(_) otherwise null, type number}
 })
 ```

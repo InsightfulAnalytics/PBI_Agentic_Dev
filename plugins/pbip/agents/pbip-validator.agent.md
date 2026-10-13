@@ -124,8 +124,8 @@ Microsoft.Data.Mashup.Preview; This document contains a duplicate member '<name>
 `validate_pbip.py` enumerates top-level declarations in `definition/expressions.tmdl` (the `expression <name>` lines) and `definition/tables/*.tmdl` (the `table <name>` lines), then reports any name in the intersection as `m_table_name_collision` with severity `ERROR`. The rule handles bare, single-quoted, double-quoted, and escaped (`#"name"`) identifiers, and ignores `expression` keywords that appear inside nested `let` blocks.
 
 When you see this error:
-- Rename the M expression. Common pattern: append ` Query` or ` Source` (e.g. `Globals` -> `Globals Query`).
-- Update every partition whose `source = <name>` referenced the old expression to use M escaped-identifier syntax: `source = #"Globals Query"`.
+- Rename the M expression in snake_case with a `_query` suffix (e.g. `Globals` -> `globals_query`). M names carry no spaces, so no `#"..."` quoting is needed.
+- Update every partition whose `source = <name>` referenced the old expression to the new bare name: `source = globals_query`.
 - Re-run `validate_pbip.py` to confirm the collision clears.
 
 The Rust `tmdl-validate` binary now also supports a directory mode that runs the same check across `definition/expressions.tmdl` and `definition/tables/*.tmdl`:

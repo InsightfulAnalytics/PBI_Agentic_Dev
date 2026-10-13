@@ -16,19 +16,18 @@ Each import table in a semantic model has a partition with an M expression defin
 
 ```
 let
-    Source = Sql.Database(#"SqlEndpoint", #"Database"),
-    Data = Source{[Schema="dbo", Item="Orders"]}[Data],
-    #"Removed Columns" = Table.RemoveColumns(Data, {"InternalId"}),
-    #"Changed Type" = Table.TransformColumnTypes(#"Removed Columns", {{"Amount", Currency.Type}})
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo", Item="Orders"]}[Data],
+    removed_columns = Table.RemoveColumns(data, {"InternalId"}),
+    changed_type = Table.TransformColumnTypes(removed_columns, {{"Amount", Currency.Type}})
 in
-    #"Changed Type"
+    changed_type
 ```
 
 Key elements:
-- **Parameters**: `#"SqlEndpoint"`, `#"Database"` are shared M parameters defined at the model level
-- **Navigation**: `Source{[Schema="dbo", Item="Orders"]}[Data]` navigates to a specific table
-- **Steps**: Each step is a named variable in the `let...in` chain
-- **Quoted identifiers**: Step names with spaces use `#"Step Name"` syntax
+- **Parameters**: `SqlEndpoint`, `Database` are shared M parameters defined at the model level
+- **Navigation**: `source{[Schema="dbo", Item="Orders"]}[Data]` navigates to a specific table
+- **Steps**: Each step is a named variable in the `let...in` chain, named in snake_case (see **Naming** below)
 
 ### Extracting Expressions
 
@@ -43,6 +42,40 @@ fab get "<Workspace>.Workspace/<Model>.SemanticModel" -f \
 ```
 
 ## Writing M Expressions
+
+### Naming: snake_case identifiers
+
+Name every step, `let` variable, custom function and function argument in lowercase snake_case:
+letters, digits and underscores, starting with a letter (`added_column`, `filtered_active`,
+`fn_clean_text`). A snake_case name is a plain identifier, so every reference to it is bare. A name
+with a space has to be written `#"Added Column"` at its definition and at every reference.
+
+- Describe the transformation (`removed_duplicates`), not the position (`custom1`, `step1`).
+- Pick a name that is not an M keyword. `type`, `error`, `each`, `in`, `let`, `if`, `try`, `meta`,
+  `null`, `section` and `shared` still need `#"..."`, so write `typed` or `errors_removed`.
+- Parameters are PascalCase with no spaces (`SqlEndpoint`, `DatabaseName`). `RangeStart` and
+  `RangeEnd` keep that exact spelling: incremental refresh looks them up by name.
+
+**Existing M.** Whenever you read or edit an expression that names a step, variable or function
+with a space (`#"Added Custom"`, `#"fn Clean Text"`), rename it to snake_case (`added_custom`,
+`fn_clean_text`) in the same edit:
+
+1. Replace the quoted name at its definition, at every later step that references it, and in the
+   `in` clause. M is case-sensitive, and one missed reference fails the whole query with
+   `The name 'x' wasn't recognized`.
+2. For a shared function or query in `expressions.tmdl`, also rename its declaration
+   (`expression 'fn Clean Text'` becomes `expression fn_clean_text`) and every caller: search the
+   whole `definition/` folder for the old `#"..."` form.
+3. Validate the renamed expression (see **Validating M Expressions**) before calling it done.
+
+These names are owned outside the expression and keep their spaces:
+
+- **Column names.** Text literals (`"Order Date"`) and field access (`[Order Date]`,
+  `[#"Week & Year"]`) name model columns; renaming them changes the model.
+- **Table names.** A query that references another loaded table writes `#"Dim Customer"`. That is
+  the model table's name: rename it only through a model rename (`pbip:pbip`), when asked.
+- **Parameters of a published model.** Ask before renaming one that has a space: the Service stores
+  its value, and deployment rules bind to it, by name.
 
 ### Query Folding
 
@@ -75,13 +108,13 @@ Remove unused columns and filter rows as early as possible:
 
 ```
 let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Source{[Schema="dbo", Item="Orders"]}[Data],
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo", Item="Orders"]}[Data],
     // Filter and select BEFORE any custom transforms
-    #"Filtered" = Table.SelectRows(Data, each [Status] <> "Cancelled"),
-    #"Selected" = Table.SelectColumns(#"Filtered", {"OrderId", "Date", "Amount", "CustomerId"})
+    filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
+    selected = Table.SelectColumns(filtered, {"OrderId", "Date", "Amount", "CustomerId"})
 in
-    #"Selected"
+    selected
 ```
 
 These steps fold to SQL: `SELECT OrderId, Date, Amount, CustomerId FROM dbo.Orders WHERE Status <> 'Cancelled'`
@@ -91,12 +124,6 @@ These steps fold to SQL: `SELECT OrderId, Date, Amount, CustomerId FROM dbo.Orde
 - Apply `Table.TransformColumnTypes` early (folds to `CAST` in SQL)
 - Use explicit M types: `Int64.Type`, `type text`, `type date`, `Currency.Type`, `type logical`
 - Avoid implicit type inference on large datasets
-
-### Naming Conventions
-
-- Step names should describe the transformation: `#"Removed Duplicates"`, `#"Filtered Active"`
-- Avoid generic names like `#"Custom1"` or `#"Step1"`
-- Use quoted identifiers `#"Name"` for steps with spaces (Power Query convention)
 
 ## Validating M Expressions
 
@@ -119,9 +146,9 @@ MASHUP='section Section1;
 shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDB";
 shared Result = let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Table.FirstN(Source{[Schema="dbo",Item="Orders"]}[Data], 10)
-in Data;'
+    source = Sql.Database(SqlEndpoint, Database),
+    data = Table.FirstN(source{[Schema="dbo",Item="Orders"]}[Data], 10)
+in data;'
 
 curl -s -o result.bin -X POST ".../executeQuery" \
   -H "Authorization: Bearer ${TOKEN}" -H "Content-Type: application/json" \
@@ -162,13 +189,13 @@ See the data at any point in the transformation chain by truncating the `let...i
 
 ```
 -- See raw source data (all columns)
-in Data;
+in data;
 
 -- See after column removal
-in #"Removed Columns";
+in removed_columns;
 
 -- See final result
-in #"Changed Type";
+in changed_type;
 ```
 
 Add `Table.FirstN(stepName, 100)` before the `in` to limit rows for large tables. See **`references/validation.md`** for the complete procedure.
@@ -181,12 +208,12 @@ Incremental refresh partitions use `RangeStart` and `RangeEnd` parameters:
 
 ```
 let
-    Source = Sql.Database(#"SqlEndpoint", #"Database"),
-    Data = Source{[Schema="dbo", Item="Orders"]}[Data],
-    #"Filtered" = Table.SelectRows(Data, each
-        [OrderDate] >= #"RangeStart" and [OrderDate] < #"RangeEnd")
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo", Item="Orders"]}[Data],
+    filtered = Table.SelectRows(data, each
+        [OrderDate] >= RangeStart and [OrderDate] < RangeEnd)
 in
-    #"Filtered"
+    filtered
 ```
 
 When testing, inline concrete date values for `RangeStart` and `RangeEnd`.
@@ -195,11 +222,11 @@ When testing, inline concrete date values for `RangeStart` and `RangeEnd`.
 
 ```
 let
-    Source = Lakehouse.Contents(null),
-    Data = Source{[Id="lakehouse-guid"]}[Data],
-    Table = Data{[Id="table-name", ItemKind="Table"]}[Data]
+    source = Lakehouse.Contents(null),
+    lakehouse = source{[Id="lakehouse-guid"]}[Data],
+    data = lakehouse{[Id="table-name", ItemKind="Table"]}[Data]
 in
-    Table
+    data
 ```
 
 ### SQL with Native Query
@@ -208,10 +235,10 @@ For complex SQL that can't be expressed in M:
 
 ```
 let
-    Source = Sql.Database("server", "db"),
-    Data = Value.NativeQuery(Source, "SELECT * FROM dbo.MyView WHERE Year = 2024", null, [EnableFolding=true])
+    source = Sql.Database("server", "db"),
+    data = Value.NativeQuery(source, "SELECT * FROM dbo.MyView WHERE Year = 2024", null, [EnableFolding=true])
 in
-    Data
+    data
 ```
 
 `Value.NativeQuery` with `EnableFolding=true` allows subsequent M steps to fold on top of the native query.
