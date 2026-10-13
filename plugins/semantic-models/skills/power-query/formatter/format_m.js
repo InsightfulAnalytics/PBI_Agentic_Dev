@@ -1,37 +1,132 @@
 #!/usr/bin/env node
 // Format Power Query M with Microsoft's powerquery-formatter, the formatter behind the
-// VS Code Power Query extension (https://github.com/microsoft/powerquery-formatter).
+// VS Code Power Query extension (https://github.com/microsoft/powerquery-formatter), in the
+// house layout: 80-character lines, every `let` one binding per line, comments on their own line.
 //
 //   node format_m.js [--check] [--width N] <path>...   .tmdl, .pq, .m, .pqm files or folders
 //   node format_m.js [--width N] -                     M on stdin, formatted M on stdout
 //
 // In a .tmdl file it formats the multi-line M blocks only: `expression <name> =` shared
 // expressions, `source =` under an M partition, and `sourceExpression =` / `pollingExpression =`
-// under a refreshPolicy. One-line parameters, DAX and text literals spanning lines are left alone;
-// a ``` fenced block comes back unfenced. Exit codes: 0 done, 1 --check found unformatted M,
-// 2 an expression failed to parse (that block is left as is).
+// under a refreshPolicy. One-line parameters, DAX and text literals spanning lines are left alone,
+// and ``` fences stay. Exit codes: 0 done, 1 --check found unformatted M, 2 an expression failed
+// to parse (that block is left as is).
 
 const fs = require("fs");
 const path = require("path");
 
+// The formatter estimates an `if` 4 characters short, a `let` 2 short, and a binary operation
+// with its operator's length in place of the two spaces around it. An expression just past the
+// width then stays on one line and a call inside it breaks instead. Load its length module with
+// those counts corrected, before the formatter itself.
+function loadCorrectedLinearLength(internal) {
+    const Module = require("module");
+    const file = require.resolve(`${internal}/passes/utils/linearLength`);
+    const source = fs.readFileSync(file, "utf8");
+    const corrected = source
+        .replace("sumLinearLengths(state, trace.id, 1, node.ifConstant", "sumLinearLengths(state, trace.id, 5, node.ifConstant")
+        .replace("sumLinearLengths(state, trace.id, 1, node.letConstant", "sumLinearLengths(state, trace.id, 3, node.letConstant")
+        .replace(
+            "sumLinearLengths(state, correlationId, node.operatorConstant.constantKind.length, node.left",
+            "sumLinearLengths(state, correlationId, 2, node.left",
+        );
+    if (corrected === source) return;
+    const loaded = new Module(file, module);
+    loaded.filename = file;
+    loaded.paths = Module._nodeModulePaths(path.dirname(file));
+    loaded._compile(corrected, file);
+    loaded.loaded = true;
+    require.cache[file] = loaded;
+}
+
 let F;
+let PQP;
+let preProcess;
+let themes;
 try {
+    const internal = "@microsoft/powerquery-formatter/lib/powerquery-formatter";
+    loadCorrectedLinearLength(internal);
     F = require("@microsoft/powerquery-formatter");
+    PQP = require("@microsoft/powerquery-parser");
+    preProcess = require(`${internal}/passes/preProcessParameter`);
+    themes = { ...require(`${internal}/themes`), ...require(`${internal}/themes/constants`) };
 } catch {
     console.error(`powerquery-formatter is not installed. Run once: ( cd "${__dirname}" && npm install )`);
     process.exit(2);
 }
 
 const M_EXTENSIONS = new Set([".pq", ".m", ".pqm"]);
+const DEFAULT_WIDTH = 80;
+const BOM = String.fromCharCode(0xfeff);
+
+// House layout on top of the formatter. A `let` always puts one binding per line and `in` on its
+// own line, however short, and so does everything that encloses a `let`. A record breaks across
+// lines only when it is too long (or holds another record), never because its source did, so the
+// layout depends on the code alone. The formatter has no settings for either, so the pass that
+// sets forceBlockMode is wrapped. package.json pins the formatter, so the internal path holds.
+const tryPreProcessParameter = preProcess.tryPreProcessParameter;
+preProcess.tryPreProcessParameter = async (ast, nodeIdMapCollection, ...rest) => {
+    const result = await tryPreProcessParameter(ast, nodeIdMapCollection, ...rest);
+    if (result.kind === PQP.ResultKind.Ok) {
+        unforceSourceLayoutRecords(nodeIdMapCollection, result.value.parametersMap);
+        forceLetBlocks(nodeIdMapCollection, result.value.parametersMap);
+    }
+    return result;
+};
+
+// A call or parameter list that has to break puts one item per line, never several packed onto
+// one continuation line. A record argument stays on one line when it fits, as a list does,
+// instead of breaking whenever the call around it breaks.
+const { NodeKind } = PQP.Language.Ast;
+themes.SyncThemeRegistry.defaultInstance.setTheme({
+    name: "house",
+    settings: [
+        ...themes.defaultTheme.settings,
+        {
+            scope: [`${NodeKind.InvokeExpression}> ${NodeKind.ArrayWrapper}`, `${NodeKind.ParameterList}> ${NodeKind.ArrayWrapper}`],
+            parameters: { ignoreInline: true },
+        },
+        {
+            scope: [`${NodeKind.Csv}> ${NodeKind.RecordExpression}`, `${NodeKind.Csv}> ${NodeKind.RecordLiteral}`],
+            parameters: { inheritParentMode: false },
+        },
+    ],
+});
+
+function unforceSourceLayoutRecords(collection, parameters) {
+    for (const kind of [NodeKind.RecordExpression, NodeKind.RecordLiteral]) {
+        for (const id of collection.idsByNodeKind.get(kind) || []) {
+            const node = collection.astNodeById.get(id);
+            const holdsRecord = node.content.elements.some((csv) => csv.node.value.kind === NodeKind.RecordExpression);
+            if (holdsRecord) continue;
+            for (const target of [node, node.content]) {
+                const parameter = parameters.get(target.id);
+                if (parameter && parameter.forceBlockMode) parameters.set(target.id, { ...parameter, forceBlockMode: false });
+            }
+        }
+    }
+}
+
+function forceLetBlocks(collection, parameters) {
+    const force = (id) => parameters.set(id, { ...(parameters.get(id) || {}), forceBlockMode: true });
+    const letIds = collection.idsByNodeKind.get(NodeKind.LetExpression) || [];
+    for (const id of letIds) {
+        force(collection.astNodeById.get(id).variableList.id);
+        for (let node = collection.astNodeById.get(id); node; ) {
+            force(node.id);
+            node = PQP.Parser.NodeIdMapUtils.parentAst(collection, node.id);
+        }
+    }
+}
 
 function parseArgs(argv) {
-    const opts = { check: false, width: F.DefaultSettings.maxWidth, paths: [] };
+    const opts = { check: false, width: DEFAULT_WIDTH, paths: [] };
     for (let i = 0; i < argv.length; i++) {
         const arg = argv[i];
         if (arg === "--check") opts.check = true;
         else if (arg === "--width") opts.width = Number(argv[++i]);
         else if (arg === "-h" || arg === "--help") {
-            console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 12).join("\n"));
+            console.log(fs.readFileSync(__filename, "utf8").split("\n").slice(1, 13).join("\n"));
             process.exit(0);
         } else opts.paths.push(arg);
     }
@@ -44,9 +139,34 @@ function parseArgs(argv) {
 
 async function formatM(text, width) {
     const settings = { ...F.DefaultSettings, maxWidth: width, newlineLiteral: "\n" };
-    const result = await F.tryFormat(settings, text);
+    const result = await F.tryFormat(settings, liftTrailingComments(text.replace(/\r\n/g, "\n")));
     if (result.kind !== "Ok") return { error: (result.error && result.error.message) || String(result.error) };
     return { text: result.value.replace(/\s+$/, "") };
+}
+
+// The formatter attaches a comment to the token after it, so a comment at the end of a line would
+// drop onto the next line and read as a note on the next step. Lift each one onto its own line
+// above the code it follows, which keeps it with that code.
+function liftTrailingComments(text) {
+    const lexed = PQP.TaskUtils.tryLex(PQP.DefaultSettings, text);
+    if (!PQP.TaskUtils.isOk(lexed)) return text;
+    const { tokens, comments } = lexed.lexerSnapshot;
+    const trailing = comments.filter(
+        (c) =>
+            c.kind === "Line" &&
+            tokens.some(
+                (t) =>
+                    t.positionStart.lineNumber === c.positionStart.lineNumber &&
+                    t.positionStart.codeUnit < c.positionStart.codeUnit,
+            ),
+    );
+    const lines = text.split("\n");
+    for (const c of trailing.reverse()) {
+        const n = c.positionStart.lineNumber;
+        const indent = lines[n].match(/^\s*/)[0];
+        lines.splice(n, 1, indent + c.data, lines[n].slice(0, c.positionStart.lineCodeUnit).trimEnd());
+    }
+    return lines.join("\n");
 }
 
 const tabsOf = (line) => line.match(/^\t*/)[0].length;
@@ -73,8 +193,8 @@ function hasMultilineText(m) {
     return false;
 }
 
-// Locate the M blocks in a TMDL file. Lines start..end-1 hold the M; header is the `... =` line.
-// A fenced block (`= ```` ... ```) is read verbatim by TMDL, so its closing fence sits at `end`.
+// Locate the M blocks in a TMDL file. Lines start..end-1 hold the M. A fenced block (`= ````
+// ... ```) is read verbatim by TMDL; its fences stay where they are and only the M between moves.
 function findTmdlBlocks(lines) {
     const blocks = [];
     const lastAtDepth = [];
@@ -106,8 +226,8 @@ function findTmdlBlocks(lines) {
             while (close < lines.length && lines[close].trim() !== "```") close++;
             if (close >= lines.length) continue;
             const content = lines.slice(i + 1, close).filter((l) => !isBlank(l));
-            const tabsIn = content.length ? Math.min(...content.map(tabsOf)) : 0;
-            blocks.push({ name, header: i, start: i + 1, end: close, tabsIn, tabsOut: depth + 2, fenced });
+            const tabs = content.length ? Math.min(...content.map(tabsOf)) : 0;
+            blocks.push({ name, start: i + 1, end: close, tabs });
             i = close;
             continue;
         }
@@ -122,7 +242,7 @@ function findTmdlBlocks(lines) {
         while (end < lines.length && (isBlank(lines[end]) || tabsOf(lines[end]) >= tabs)) end++;
         const ragged = end < lines.length && tabsOf(lines[end]) > propertyDepth;
         while (end > first && isBlank(lines[end - 1])) end--;
-        blocks.push({ name, header: i, start: first, end, tabsIn: tabs, tabsOut: tabs, fenced, ragged });
+        blocks.push({ name, start: first, end, tabs, ragged });
         i = end - 1;
     }
     return blocks;
@@ -141,7 +261,7 @@ async function formatTmdl(text, width) {
             continue;
         }
         const original = lines.slice(block.start, block.end);
-        const body = original.map((l) => (isBlank(l) ? "" : l.slice(block.tabsIn)));
+        const body = original.map((l) => (isBlank(l) ? "" : l.slice(block.tabs)));
         const formatted = await formatM(body.join("\n"), width);
         if (formatted.error) {
             report.errors.push(`${block.name}: ${formatted.error}`);
@@ -151,14 +271,11 @@ async function formatTmdl(text, width) {
             report.skipped.push(`${block.name} (multi-line text literal)`);
             continue;
         }
-        // Formatted M has no whitespace-only lines, so a fenced block can drop its fences.
-        const prefix = "\t".repeat(block.tabsOut);
+        const prefix = "\t".repeat(block.tabs);
         const out = formatted.text.split("\n").map((l) => (l.trim() ? prefix + l.trimEnd() : ""));
-        if (!block.fenced && out.join("\n") === original.join("\n")) continue;
+        if (out.join("\n") === original.join("\n")) continue;
         report.changed.push(block.name);
-        const header = block.fenced ? lines[block.header].replace(/\s*```\s*$/, "") : lines[block.header];
-        const removeTo = block.fenced ? block.end + 1 : block.end;
-        lines.splice(block.header, removeTo - block.header, header, ...out);
+        lines.splice(block.start, block.end - block.start, ...out);
     }
     report.changed.reverse();
     return { text: lines.join(newline), report };
@@ -166,7 +283,7 @@ async function formatTmdl(text, width) {
 
 async function formatFile(file, opts) {
     const raw = fs.readFileSync(file, "utf8");
-    const bom = raw.startsWith("﻿") ? "﻿" : "";
+    const bom = raw.startsWith(BOM) ? BOM : "";
     const original = raw.slice(bom.length);
     let result;
     if (path.extname(file).toLowerCase() === ".tmdl") {
