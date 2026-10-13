@@ -37,8 +37,13 @@ shared Database = "MyDatabase";
 shared Result =
     let
         source = Sql.Database(SqlEndpoint, Database),
-        data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-        selected_columns = Table.SelectColumns(data, {"OrderId", "Amount"}),
+        data = source{
+            [Schema = "dbo", Item = "Orders"]
+        }[Data],
+        selected_columns = Table.SelectColumns(
+            data,
+            {"OrderId", "Amount"}
+        ),
         limited = Table.FirstN(selected_columns, 100)
     in
         limited;
@@ -154,9 +159,17 @@ shared Database = "MyDB";
 shared Result =
     let
         source = Sql.Database(SqlEndpoint, Database),
-        data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-        filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
-        selected = Table.SelectColumns(filtered, {"OrderId", "Amount"})
+        data = source{
+            [Schema = "dbo", Item = "Orders"]
+        }[Data],
+        filtered = Table.SelectRows(
+            data,
+            each [Status] <> "Cancelled"
+        ),
+        selected = Table.SelectColumns(
+            filtered,
+            {"OrderId", "Amount"}
+        )
     in
         data;
 ```
