@@ -31,14 +31,17 @@ Wrap the expression in a section document, inlining parameter values as `shared`
 
 ```
 section Section1;
+
 shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDatabase";
-shared Result = let
-    source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo",Item="Orders"]}[Data],
-    selected_columns = Table.SelectColumns(data, {"OrderId", "Amount"}),
-    limited = Table.FirstN(selected_columns, 100)
-in limited;
+shared Result =
+    let
+        source = Sql.Database(SqlEndpoint, Database),
+        data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+        selected_columns = Table.SelectColumns(data, {"OrderId", "Amount"}),
+        limited = Table.FirstN(selected_columns, 100)
+    in
+        limited;
 ```
 
 Key points:
@@ -144,14 +147,18 @@ When an expression fails or produces unexpected results, preview intermediate st
 
 ```
 section Section1;
+
 shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDB";
-shared Result = let
-    source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo",Item="Orders"]}[Data],
-    filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
-    selected = Table.SelectColumns(filtered, {"OrderId", "Amount"})
-in data;  -- Change this to inspect different steps
+// Change the step after `in` to inspect a different one
+shared Result =
+    let
+        source = Sql.Database(SqlEndpoint, Database),
+        data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+        filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
+        selected = Table.SelectColumns(filtered, {"OrderId", "Amount"})
+    in
+        data;
 ```
 
 | `in` target | What it shows |

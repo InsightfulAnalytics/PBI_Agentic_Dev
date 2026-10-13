@@ -92,6 +92,11 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   So does the advice for an M expression that collides with a table name: `tmdl/SKILL.md`, the
   `pbip-validator` agent and `validate_pbip.py` now suggest `<name>_query` in place of
   `#"<Name> Query"`.
+- Added M formatting to `semantic-models/power-query` (2026-10-13): M is laid out by Microsoft's
+  MIT-licensed `powerquery-formatter` at its defaults. `formatter/format_m.js` runs it over `.pq`
+  and `.m` files, stdin, and the M blocks in TMDL (shared expressions, M partitions, refresh-policy
+  expressions), unfencing fenced blocks and leaving DAX and multi-line text literals alone. The
+  skill's examples are its output, with their `--` comments corrected to M's `//`.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -112,6 +117,7 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/semantic-models/skills/semantic-model/references/synthetic-datasets.md`
 - `plugins/reports/skills/pbi-report-design/scripts/find_title_textboxes.py`
 - `plugins/fabric-cli/skills/fabric-cli/references/{consumer-access.md,usage-and-lineage.md}`
+- `plugins/semantic-models/skills/power-query/formatter/{format_m.js,package.json,package-lock.json}`
 - `scripts/{bootstrap-agent-env.sh,record-learning.sh,check-skill-hygiene.py,sync-boundary-rule.py,denylist-add.py}`
 - `.github/denylist-hashes.txt`, `.github/denylist-patterns.txt`
 
@@ -146,10 +152,12 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   and `scripts/convert_legacy_to_pbir.py`, which now converts legacy types 1 and 2 as well as 3.
   Keep the fork's lines until upstream uses the schema's names. Upstream's CLI-only rewrite
   (`42fd294`) deletes the script and the how-to text; taking it drops those hunks.
-- The M naming rule: `power-query/SKILL.md` (the **Naming** section and every example) and the
-  examples in its `references/{best-practices,validation}.md`; the name-collision advice in
+- The M naming and formatting rules: `power-query/SKILL.md` (the description's last trigger, the
+  **Naming** and **Formatting** sections, the `format_m.js` reference line and every example) and
+  the examples in its `references/{best-practices,validation}.md`; the name-collision advice in
   `tmdl/SKILL.md`, `agents/pbip-validator.agent.md` and `pbip/scripts/validate_pbip.py`. Keep the
-  fork's snake_case names when taking upstream changes to these files.
+  fork's snake_case names and formatter layout when taking upstream changes to these files, and
+  the two `formatter/` lines in `.gitignore`.
 - `organize-semantic-model/SKILL.md`: the `version:` line, `dax-optimisation` in the
   description, and passes 12 and 13, rewritten to defer to `dax-standard`; plus the body-comment
   line in its `references/udfs.md`. Keep the fork's versions.
