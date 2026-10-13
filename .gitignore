@@ -19,6 +19,9 @@ package.json
 # but the deneb-pbir offline renderer ships its manifests (node_modules stays ignored)
 !plugins/custom-visuals/skills/deneb-pbir/renderer/package.json
 !plugins/custom-visuals/skills/deneb-pbir/renderer/package-lock.json
+# and so does the power-query M formatter
+!plugins/semantic-models/skills/power-query/formatter/package.json
+!plugins/semantic-models/skills/power-query/formatter/package-lock.json
 plugins/pbi-desktop/hooks/bin/
 plugins/pbi-desktop/skills/connect-pbid/bin/
 # pbir portable builds are fetched on demand; the Windows one is ~180 MB, past GitHub's limit

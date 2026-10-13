@@ -1,0 +1,8 @@
+{
+  "name": "power-query-formatter-runner",
+  "private": true,
+  "description": "Formats Power Query M in .pq/.m files and TMDL partitions with Microsoft's powerquery-formatter",
+  "dependencies": {
+    "@microsoft/powerquery-formatter": "1.0.1"
+  }
+}

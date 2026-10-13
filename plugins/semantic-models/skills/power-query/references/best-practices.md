@@ -9,16 +9,16 @@ When writing or generating M expressions for import partitions, follow this orde
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo", Item="MyTable"]}[Data],
-    -- 1. Filter rows (folds to WHERE)
+    data = source{[Schema = "dbo", Item = "MyTable"]}[Data],
+    // 1. Filter rows (folds to WHERE)
     filtered = Table.SelectRows(data, each [IsActive] = true),
-    -- 2. Select columns (folds to SELECT)
+    // 2. Select columns (folds to SELECT)
     selected = Table.SelectColumns(filtered, {"Id", "Date", "Amount"}),
-    -- 3. Set types (folds to CAST)
+    // 3. Set types (folds to CAST)
     typed = Table.TransformColumnTypes(selected, {{"Amount", Currency.Type}}),
-    -- 4. Sort if needed (folds to ORDER BY)
+    // 4. Sort if needed (folds to ORDER BY)
     sorted = Table.Sort(typed, {{"Date", Order.Descending}}),
-    -- 5. Non-foldable transforms LAST
+    // 5. Non-foldable transforms LAST
     added = Table.AddColumn(sorted, "Category", each if [Amount] > 1000 then "High" else "Low")
 in
     added
@@ -29,9 +29,9 @@ If the transform logic is too complex for M, use `Value.NativeQuery` to pass nat
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = Value.NativeQuery(source,
-        "SELECT Id, Date, Amount FROM dbo.MyTable WHERE IsActive = 1",
-        null, [EnableFolding=true])
+    data = Value.NativeQuery(
+        source, "SELECT Id, Date, Amount FROM dbo.MyTable WHERE IsActive = 1", null, [EnableFolding = true]
+    )
 in
     data
 ```
@@ -164,18 +164,15 @@ Not functions, but conditions that prevent folding:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo", Item="Orders"]}[Data],
-
-    -- FOLDABLE: These translate to SQL
+    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+    // FOLDABLE: These translate to SQL
     filtered_rows = Table.SelectRows(data, each [Year] >= 2023),
-    selected_columns = Table.SelectColumns(filtered_rows,
-        {"OrderId", "Date", "Amount", "CustomerId", "Status"}),
-    set_types = Table.TransformColumnTypes(selected_columns, {
-        {"Amount", Currency.Type}, {"Date", type date}}),
-
-    -- NON-FOLDABLE: These run in the mashup engine
-    added_category = Table.AddColumn(set_types, "AmountBucket",
-        each if [Amount] > 10000 then "Large" else "Small", type text)
+    selected_columns = Table.SelectColumns(filtered_rows, {"OrderId", "Date", "Amount", "CustomerId", "Status"}),
+    set_types = Table.TransformColumnTypes(selected_columns, {{"Amount", Currency.Type}, {"Date", type date}}),
+    // NON-FOLDABLE: These run in the mashup engine
+    added_category = Table.AddColumn(
+        set_types, "AmountBucket", each if [Amount] > 10000 then "Large" else "Small", type text
+    )
 in
     added_category
 ```
@@ -191,12 +188,12 @@ Programmatically: execute the expression via the `executeQuery` API. If a query 
 Remove columns as early as possible. Every column not removed travels through every subsequent step.
 
 ```
--- Good: remove columns immediately after navigation
-data = source{[Schema="dbo", Item="Orders"]}[Data],
+// Good: remove columns immediately after navigation
+data = source{[Schema = "dbo", Item = "Orders"]}[Data],
 selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
 ...
 
--- Bad: remove columns at the end after all transforms
+// Bad: remove columns at the end after all transforms
 ...
 final = Table.RemoveColumns(transformed, {"Col1", "Col2", "Col3", ...})
 ```
@@ -208,7 +205,7 @@ Early column pruning folds to SQL `SELECT`, reducing data transfer from the sour
 Filter rows early for the same reason. A `Table.SelectRows` immediately after navigation folds to `WHERE`:
 
 ```
-data = source{[Schema="dbo", Item="Orders"]}[Data],
+data = source{[Schema = "dbo", Item = "Orders"]}[Data],
 filtered = Table.SelectRows(data, each [IsActive] = true and [Year] >= 2023),
 ```
 
@@ -222,11 +219,9 @@ This is especially important for incremental refresh, where `RangeStart`/`RangeE
 
 ```
 selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
-typed = Table.TransformColumnTypes(selected, {
-    {"OrderId", Int64.Type},
-    {"Date", type date},
-    {"Amount", Currency.Type}
-}),
+typed = Table.TransformColumnTypes(
+    selected, {{"OrderId", Int64.Type}, {"Date", type date}, {"Amount", Currency.Type}}
+),
 ```
 
 ### Avoid Implicit Type Detection
@@ -271,11 +266,11 @@ Keep the secret file itself out of source control.
 ### Pulling Entire Tables Then Filtering
 
 ```
--- Anti-pattern: filter after all transforms
-data = source{[Schema="dbo", Item="BigTable"]}[Data],
-added_column = Table.AddColumn(data, ...),  -- breaks folding
+// Anti-pattern: filter after all transforms
+data = source{[Schema = "dbo", Item = "BigTable"]}[Data],
+added_column = Table.AddColumn(data, ...),  // breaks folding
 filtered = Table.SelectRows(added_column, each [Year] >= 2023)
--- Filter runs locally on ALL rows
+// Filter runs locally on ALL rows
 ```
 
 ### Using Table.Buffer Unnecessarily
@@ -291,13 +286,10 @@ Cross-query references (accessing a column from a different query) break folding
 Each step adds overhead. Combine related operations where natural; don't create a separate step for each individual column rename when `Table.RenameColumns` handles multiples:
 
 ```
--- Good: one step for all renames
-renamed = Table.RenameColumns(data, {
-    {"OldName1", "NewName1"},
-    {"OldName2", "NewName2"}
-})
+// Good: one step for all renames
+renamed = Table.RenameColumns(data, {{"OldName1", "NewName1"}, {"OldName2", "NewName2"}})
 
--- Bad: separate step per rename
+// Bad: separate step per rename
 renamed1 = Table.RenameColumns(data, {{"OldName1", "NewName1"}}),
 renamed2 = Table.RenameColumns(renamed1, {{"OldName2", "NewName2"}})
 ```
@@ -314,7 +306,7 @@ For production partitions, avoid `try...otherwise` patterns that silently swallo
 If error handling is necessary (e.g., optional columns), make it explicit and narrow:
 
 ```
-safe_amount = Table.TransformColumns(data, {
-    {"Amount", each try Number.FromText(_) otherwise null, type number}
-})
+safe_amount = Table.TransformColumns(
+    data, {{"Amount", each try Number.FromText(_) otherwise null, type number}}
+)
 ```

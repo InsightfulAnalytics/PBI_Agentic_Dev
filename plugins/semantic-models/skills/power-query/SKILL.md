@@ -1,7 +1,7 @@
 ---
 name: power-query
 version: 26.40.3
-description: Author, validate, and test Power Query M expressions in semantic model partitions. Automatically invoke when the user mentions "Power Query", "M code", "M expression", "partition expression", "query folding", or asks to "write Power Query", "fix Power Query", "test a partition", "preview partition data", "debug Power Query step", "optimize Power Query".
+description: Author, validate, and test Power Query M expressions in semantic model partitions. Automatically invoke when the user mentions "Power Query", "M code", "M expression", "partition expression", "query folding", or asks to "write Power Query", "fix Power Query", "test a partition", "preview partition data", "debug Power Query step", "optimize Power Query", "format M code".
 ---
 
 # Power Query for Semantic Models
@@ -17,7 +17,7 @@ Each import table in a semantic model has a partition with an M expression defin
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo", Item="Orders"]}[Data],
+    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
     removed_columns = Table.RemoveColumns(data, {"InternalId"}),
     changed_type = Table.TransformColumnTypes(removed_columns, {{"Amount", Currency.Type}})
 in
@@ -26,7 +26,7 @@ in
 
 Key elements:
 - **Parameters**: `SqlEndpoint`, `Database` are shared M parameters defined at the model level
-- **Navigation**: `source{[Schema="dbo", Item="Orders"]}[Data]` navigates to a specific table
+- **Navigation**: `source{[Schema = "dbo", Item = "Orders"]}[Data]` navigates to a specific table
 - **Steps**: Each step is a named variable in the `let...in` chain, named in snake_case (see **Naming** below)
 
 ### Extracting Expressions
@@ -77,6 +77,46 @@ These names are owned outside the expression and keep their spaces:
 - **Parameters of a published model.** Ask before renaming one that has a space: the Service stores
   its value, and deployment rules bind to it, by name.
 
+### Formatting: Microsoft's powerquery-formatter
+
+M is laid out the way [`microsoft/powerquery-formatter`](https://github.com/microsoft/powerquery-formatter)
+lays it out: the formatter behind the VS Code Power Query extension, at its defaults (4-space
+indent, 120-character lines). Run it over every M expression you write or edit:
+
+```bash
+# First use on a machine: install it (node_modules is gitignored)
+( cd "${CLAUDE_PLUGIN_ROOT}/skills/power-query/formatter" && npm install )
+
+FMT="${CLAUDE_PLUGIN_ROOT}/skills/power-query/formatter/format_m.js"
+node "$FMT" "<Model>.SemanticModel/definition/tables/Orders.tmdl"   # in place
+node "$FMT" --check "<Model>.SemanticModel/definition"              # list unformatted M, write nothing
+echo 'let a=1 in a' | node "$FMT" -                                 # a snippet, to stdout
+```
+
+- In a `.tmdl` file it formats shared `expression` blocks, M partition `source` blocks and
+  refresh-policy expressions. DAX, one-line parameters and text literals that span lines stay as
+  they are. Desktop fences M in ```` ``` ```` when a line holds only whitespace; formatted M has
+  none, so a fenced block comes back unfenced.
+- It changes whitespace and line breaks only: every token and comment survives (checked with TOM
+  and the M lexer on the SpaceParts sample, 2026-10-13), so formatting needs no fresh validation.
+- A block that fails to parse is reported (exit 2) and left untouched: fix the M.
+
+The layout it produces, so M written by hand already matches:
+
+- Anything that fits in 120 characters stays on one line, a whole short `let` included
+  (`let source = ..., data = ... in data`).
+- A call that does not fit breaks after `(`: its arguments go on one indented line when they fit
+  there, otherwise one per line, and `)` closes at the step's indent. Lists and records break the
+  same way, one item per line.
+- One space after each comma and around `=` in records: `[Schema = "dbo", Item = "Orders"]`.
+- A long `each` body moves under `each`. A long `if` chain puts each `if ... then`,
+  `else if ... then` and `else` on its own line, with the value indented under it. A long `&` or
+  `and` chain puts one operand per line, operator first.
+- A record written across lines stays one field per line; lists and calls collapse whenever they
+  fit. Blank lines between steps are dropped.
+- In a `let` short enough for one line, a comment lands at column 0 between the bindings. Put
+  comments above the `let`, or in queries long enough to break.
+
 ### Query Folding
 
 Query folding is the most important performance concept. The M engine translates compatible steps into native data source queries (e.g., SQL). When folding breaks, subsequent steps run in the mashup engine, pulling all data into memory first.
@@ -109,7 +149,7 @@ Remove unused columns and filter rows as early as possible:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo", Item="Orders"]}[Data],
+    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
     // Filter and select BEFORE any custom transforms
     filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
     selected = Table.SelectColumns(filtered, {"OrderId", "Date", "Amount", "CustomerId"})
@@ -147,7 +187,7 @@ shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDB";
 shared Result = let
     source = Sql.Database(SqlEndpoint, Database),
-    data = Table.FirstN(source{[Schema="dbo",Item="Orders"]}[Data], 10)
+    data = Table.FirstN(source{[Schema = "dbo", Item = "Orders"]}[Data], 10)
 in data;'
 
 curl -s -o result.bin -X POST ".../executeQuery" \
@@ -188,13 +228,13 @@ AS returns an error if the expression is malformed. This is faster than a full e
 See the data at any point in the transformation chain by truncating the `let...in`:
 
 ```
--- See raw source data (all columns)
+// See raw source data (all columns)
 in data;
 
--- See after column removal
+// See after column removal
 in removed_columns;
 
--- See final result
+// See final result
 in changed_type;
 ```
 
@@ -209,9 +249,8 @@ Incremental refresh partitions use `RangeStart` and `RangeEnd` parameters:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema="dbo", Item="Orders"]}[Data],
-    filtered = Table.SelectRows(data, each
-        [OrderDate] >= RangeStart and [OrderDate] < RangeEnd)
+    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+    filtered = Table.SelectRows(data, each [OrderDate] >= RangeStart and [OrderDate] < RangeEnd)
 in
     filtered
 ```
@@ -223,8 +262,8 @@ When testing, inline concrete date values for `RangeStart` and `RangeEnd`.
 ```
 let
     source = Lakehouse.Contents(null),
-    lakehouse = source{[Id="lakehouse-guid"]}[Data],
-    data = lakehouse{[Id="table-name", ItemKind="Table"]}[Data]
+    lakehouse = source{[Id = "lakehouse-guid"]}[Data],
+    data = lakehouse{[Id = "table-name", ItemKind = "Table"]}[Data]
 in
     data
 ```
@@ -236,7 +275,7 @@ For complex SQL that can't be expressed in M:
 ```
 let
     source = Sql.Database("server", "db"),
-    data = Value.NativeQuery(source, "SELECT * FROM dbo.MyView WHERE Year = 2024", null, [EnableFolding=true])
+    data = Value.NativeQuery(source, "SELECT * FROM dbo.MyView WHERE Year = 2024", null, [EnableFolding = true])
 in
     data
 ```
@@ -249,5 +288,6 @@ in
 - **`references/best-practices.md`** -- Query folding guidance, fold-breaker list, anti-patterns, performance tips
 - **`examples/execute_m.py`** -- Python script to execute M expressions via the Fabric API (CLI tool)
 - **`examples/preview_partition.py`** -- Python script to preview partition data at any step (uses `fab get` + `execute_m.py`)
+- **`formatter/format_m.js`** -- formats M in `.tmdl`, `.pq` and `.m` files, or stdin, with Microsoft's powerquery-formatter (see **Formatting**)
 - [Power Query M Reference](https://learn.microsoft.com/en-us/powerquery-m/)
 - [Query Folding Guidance](https://learn.microsoft.com/en-us/power-bi/guidance/power-query-folding)
