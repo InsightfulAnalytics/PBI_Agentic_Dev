@@ -85,6 +85,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `__` variables in place of upstream's `_`, the house layout instead of `FormatDax()`, a comment
   on every step, only the TE3 code actions that keep the table-first shape, and UDF bodies laid
   out like measures.
+- Added an M naming rule to `semantic-models/power-query` (2026-10-13): steps, variables and
+  functions are snake_case, so no reference needs `#"..."`, and an agent that meets a spaced name
+  in existing M renames it with every reference. The skill's examples, those in its
+  `references/{best-practices,validation}.md` and the `date-table` helper expressions follow it.
+  So does the advice for an M expression that collides with a table name: `tmdl/SKILL.md`, the
+  `pbip-validator` agent and `validate_pbip.py` now suggest `<name>_query` in place of
+  `#"<Name> Query"`.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -139,6 +146,10 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   and `scripts/convert_legacy_to_pbir.py`, which now converts legacy types 1 and 2 as well as 3.
   Keep the fork's lines until upstream uses the schema's names. Upstream's CLI-only rewrite
   (`42fd294`) deletes the script and the how-to text; taking it drops those hunks.
+- The M naming rule: `power-query/SKILL.md` (the **Naming** section and every example) and the
+  examples in its `references/{best-practices,validation}.md`; the name-collision advice in
+  `tmdl/SKILL.md`, `agents/pbip-validator.agent.md` and `pbip/scripts/validate_pbip.py`. Keep the
+  fork's snake_case names when taking upstream changes to these files.
 - `organize-semantic-model/SKILL.md`: the `version:` line, `dax-optimisation` in the
   description, and passes 12 and 13, rewritten to defer to `dax-standard`; plus the body-comment
   line in its `references/udfs.md`. Keep the fork's versions.

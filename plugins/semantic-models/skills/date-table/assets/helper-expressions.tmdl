@@ -13,9 +13,9 @@ expression Year_Variable =
 expression TodayDate =
 		let
 		  Source = Date.From(DateTime.LocalNow()),
-		  #"Convert to table" = Table.FromValue(Source)
+		  convert_to_table = Table.FromValue(Source)
 		in
-		  #"Convert to table"
+		  convert_to_table
 	lineageTag: cf1f5e38-0cab-4c05-9ac9-4893a6b9a6ac
 	queryGroup: Others
 

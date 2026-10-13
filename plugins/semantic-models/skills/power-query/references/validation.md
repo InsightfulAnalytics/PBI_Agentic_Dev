@@ -34,11 +34,11 @@ section Section1;
 shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDatabase";
 shared Result = let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Source{[Schema="dbo",Item="Orders"]}[Data],
-    #"Select Columns" = Table.SelectColumns(Data, {"OrderId", "Amount"}),
-    Limited = Table.FirstN(#"Select Columns", 100)
-in Limited;
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo",Item="Orders"]}[Data],
+    selected_columns = Table.SelectColumns(data, {"OrderId", "Amount"}),
+    limited = Table.FirstN(selected_columns, 100)
+in limited;
 ```
 
 Key points:
@@ -126,7 +126,7 @@ Edit the partition `source =` block in the `.tmdl` file and deploy. The deployme
 ### What XMLA Validation Catches
 
 - Missing or mismatched `let`/`in` blocks
-- Undefined step references (e.g., referencing `#"Step3"` that doesn't exist)
+- Undefined step references (e.g., referencing `step3` that doesn't exist)
 - Invalid M function names
 - Syntax errors (missing commas, unbalanced brackets)
 - Invalid type names in `TransformColumnTypes`
@@ -147,19 +147,19 @@ section Section1;
 shared SqlEndpoint = "myserver.database.windows.net";
 shared Database = "MyDB";
 shared Result = let
-    Source = Sql.Database(SqlEndpoint, Database),
-    Data = Source{[Schema="dbo",Item="Orders"]}[Data],
-    #"Filtered" = Table.SelectRows(Data, each [Status] <> "Cancelled"),
-    #"Selected" = Table.SelectColumns(#"Filtered", {"OrderId", "Amount"})
-in Data;  -- Change this to inspect different steps
+    source = Sql.Database(SqlEndpoint, Database),
+    data = source{[Schema="dbo",Item="Orders"]}[Data],
+    filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
+    selected = Table.SelectColumns(filtered, {"OrderId", "Amount"})
+in data;  -- Change this to inspect different steps
 ```
 
 | `in` target | What it shows |
 |-------------|---------------|
-| `in Source` | Table listing from the database |
-| `in Data` | All columns from the source table |
-| `in #"Filtered"` | After row filtering |
-| `in #"Selected"` | After column selection (final) |
+| `in source` | Table listing from the database |
+| `in data` | All columns from the source table |
+| `in filtered` | After row filtering |
+| `in selected` | After column selection (final) |
 
 For each step, check:
 - Column names and count (did a rename/select work?)

@@ -525,9 +525,9 @@ def check_m_table_name_collisions(def_dir: Path, result: Result) -> None:
         'Microsoft.Data.Mashup.Preview; This document contains a
         duplicate member <name>.'
 
-    Resolution: rename the M expression (common pattern: append " Query"
-    or " Source") and update any partition that references it via M
-    escaped-identifier syntax: Source = #"Renamed Expression".
+    Resolution: rename the M expression in snake_case with a "_query"
+    suffix (M names carry no spaces) and update any partition that
+    references it to the new bare name: source = globals_query.
     """
     expressions_file = def_dir / "expressions.tmdl"
     tables_dir = def_dir / "tables"
@@ -543,14 +543,15 @@ def check_m_table_name_collisions(def_dir: Path, result: Result) -> None:
 
     collisions = sorted(expr_names & table_names)
     for name in collisions:
+        renamed = re.sub(r"[^0-9A-Za-z]+", "_", name).strip("_").lower() + "_query"
         result.add(
             ERROR,
             "m_table_name_collision",
             (f"M expression '{name}' collides with table '{name}'. "
              f"PBI Desktop will fail to load the model with "
              f"'duplicate member {name}'. Rename the M expression "
-             f"(e.g. '{name} Query') and update dependent partitions "
-             f"to reference it via #\"{name} Query\"."),
+             f"(e.g. '{renamed}') and update dependent partitions "
+             f"to reference it as {renamed}."),
             expressions_file,
         )
 
