@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Format Power Query M with Microsoft's powerquery-formatter, the formatter behind the
 // VS Code Power Query extension (https://github.com/microsoft/powerquery-formatter), in the
-// house layout: 80-character lines, every `let` one binding per line, comments on their own line.
+// house layout: 60-character lines, every `let` one binding per line, comments on their own line.
 //
 //   node format_m.js [--check] [--width N] <path>...   .tmdl, .pq, .m, .pqm files or folders
 //   node format_m.js [--width N] -                     M on stdin, formatted M on stdout
@@ -56,7 +56,7 @@ try {
 }
 
 const M_EXTENSIONS = new Set([".pq", ".m", ".pqm"]);
-const DEFAULT_WIDTH = 80;
+const DEFAULT_WIDTH = 60;
 const BOM = String.fromCharCode(0xfeff);
 
 // House layout on top of the formatter. A `let` always puts one binding per line and `in` on its
@@ -76,7 +76,8 @@ preProcess.tryPreProcessParameter = async (ast, nodeIdMapCollection, ...rest) =>
 
 // A call or parameter list that has to break puts one item per line, never several packed onto
 // one continuation line. A record argument stays on one line when it fits, as a list does,
-// instead of breaking whenever the call around it breaks.
+// instead of breaking whenever the call around it breaks. A `try` that breaks starts its
+// `otherwise` or `catch` on a line of its own, rather than leaving `x otherwise y` under `try`.
 const { NodeKind } = PQP.Language.Ast;
 themes.SyncThemeRegistry.defaultInstance.setTheme({
     name: "house",
@@ -89,6 +90,17 @@ themes.SyncThemeRegistry.defaultInstance.setTheme({
         {
             scope: [`${NodeKind.Csv}> ${NodeKind.RecordExpression}`, `${NodeKind.Csv}> ${NodeKind.RecordLiteral}`],
             parameters: { inheritParentMode: false },
+        },
+        {
+            scope: [
+                `${NodeKind.ErrorHandlingExpression}> ${NodeKind.OtherwiseExpression}`,
+                `${NodeKind.ErrorHandlingExpression}> ${NodeKind.CatchExpression}`,
+            ],
+            parameters: { inheritParentMode: true },
+        },
+        {
+            scope: ["constant.language.catch"],
+            parameters: { leftPadding: true, rightPadding: true, blockCloser: "L" },
         },
     ],
 });

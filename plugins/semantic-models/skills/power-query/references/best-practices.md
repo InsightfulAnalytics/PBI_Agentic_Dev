@@ -9,15 +9,29 @@ When writing or generating M expressions for import partitions, follow this orde
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema = "dbo", Item = "MyTable"]}[Data],
+    data = source{
+        [Schema = "dbo", Item = "MyTable"]
+    }[Data],
     // 1. Filter rows (folds to WHERE)
-    filtered = Table.SelectRows(data, each [IsActive] = true),
+    filtered = Table.SelectRows(
+        data,
+        each [IsActive] = true
+    ),
     // 2. Select columns (folds to SELECT)
-    selected = Table.SelectColumns(filtered, {"Id", "Date", "Amount"}),
+    selected = Table.SelectColumns(
+        filtered,
+        {"Id", "Date", "Amount"}
+    ),
     // 3. Set types (folds to CAST)
-    typed = Table.TransformColumnTypes(selected, {{"Amount", Currency.Type}}),
+    typed = Table.TransformColumnTypes(
+        selected,
+        {{"Amount", Currency.Type}}
+    ),
     // 4. Sort if needed (folds to ORDER BY)
-    sorted = Table.Sort(typed, {{"Date", Order.Descending}}),
+    sorted = Table.Sort(
+        typed,
+        {{"Date", Order.Descending}}
+    ),
     // 5. Non-foldable transforms LAST
     added = Table.AddColumn(
         sorted,
@@ -171,12 +185,23 @@ Not functions, but conditions that prevent folding:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+    data = source{
+        [Schema = "dbo", Item = "Orders"]
+    }[Data],
     // FOLDABLE: These translate to SQL
-    filtered_rows = Table.SelectRows(data, each [Year] >= 2023),
+    filtered_rows = Table.SelectRows(
+        data,
+        each [Year] >= 2023
+    ),
     selected_columns = Table.SelectColumns(
         filtered_rows,
-        {"OrderId", "Date", "Amount", "CustomerId", "Status"}
+        {
+            "OrderId",
+            "Date",
+            "Amount",
+            "CustomerId",
+            "Status"
+        }
     ),
     set_types = Table.TransformColumnTypes(
         selected_columns,
@@ -186,7 +211,11 @@ let
     added_category = Table.AddColumn(
         set_types,
         "AmountBucket",
-        each if [Amount] > 10000 then "Large" else "Small",
+        each
+            if [Amount] > 10000 then
+                "Large"
+            else
+                "Small",
         type text
     )
 in
@@ -205,13 +234,21 @@ Remove columns as early as possible. Every column not removed travels through ev
 
 ```
 // Good: remove columns immediately after navigation
-data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
+data = source{
+    [Schema = "dbo", Item = "Orders"]
+}[Data],
+selected = Table.SelectColumns(
+    data,
+    {"OrderId", "Date", "Amount"}
+),
 ...
 
 // Bad: remove columns at the end after all transforms
 ...
-final = Table.RemoveColumns(transformed, {"Col1", "Col2", "Col3", ...})
+final = Table.RemoveColumns(
+    transformed,
+    {"Col1", "Col2", "Col3", ...}
+)
 ```
 
 Early column pruning folds to SQL `SELECT`, reducing data transfer from the source.
@@ -221,7 +258,9 @@ Early column pruning folds to SQL `SELECT`, reducing data transfer from the sour
 Filter rows early for the same reason. A `Table.SelectRows` immediately after navigation folds to `WHERE`:
 
 ```
-data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+data = source{
+    [Schema = "dbo", Item = "Orders"]
+}[Data],
 filtered = Table.SelectRows(
     data,
     each [IsActive] = true and [Year] >= 2023
@@ -237,7 +276,10 @@ This is especially important for incremental refresh, where `RangeStart`/`RangeE
 `Table.TransformColumnTypes` folds to `CAST` in SQL. Apply it right after column selection:
 
 ```
-selected = Table.SelectColumns(data, {"OrderId", "Date", "Amount"}),
+selected = Table.SelectColumns(
+    data,
+    {"OrderId", "Date", "Amount"}
+),
 typed = Table.TransformColumnTypes(
     selected,
     {
@@ -291,9 +333,15 @@ Keep the secret file itself out of source control.
 
 ```
 // Anti-pattern: filter after all transforms
-data = source{[Schema = "dbo", Item = "BigTable"]}[Data],
-added_column = Table.AddColumn(data, ...),  // breaks folding
-filtered = Table.SelectRows(added_column, each [Year] >= 2023)
+data = source{
+    [Schema = "dbo", Item = "BigTable"]
+}[Data],
+// breaks folding
+added_column = Table.AddColumn(data, ...),
+filtered = Table.SelectRows(
+    added_column,
+    each [Year] >= 2023
+)
 // Filter runs locally on ALL rows
 ```
 
@@ -313,12 +361,21 @@ Each step adds overhead. Combine related operations where natural; don't create 
 // Good: one step for all renames
 renamed = Table.RenameColumns(
     data,
-    {{"OldName1", "NewName1"}, {"OldName2", "NewName2"}}
+    {
+        {"OldName1", "NewName1"},
+        {"OldName2", "NewName2"}
+    }
 )
 
 // Bad: separate step per rename
-renamed1 = Table.RenameColumns(data, {{"OldName1", "NewName1"}}),
-renamed2 = Table.RenameColumns(renamed1, {{"OldName2", "NewName2"}})
+renamed1 = Table.RenameColumns(
+    data,
+    {{"OldName1", "NewName1"}}
+),
+renamed2 = Table.RenameColumns(
+    renamed1,
+    {{"OldName2", "NewName2"}}
+)
 ```
 
 ## Naming Conventions
@@ -338,7 +395,11 @@ safe_amount = Table.TransformColumns(
     {
         {
             "Amount",
-            each try Number.FromText(_) otherwise null,
+            each
+                try
+                    Number.FromText(_)
+                otherwise
+                    null,
             type number
         }
     }

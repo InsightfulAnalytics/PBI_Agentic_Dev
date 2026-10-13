@@ -17,8 +17,13 @@ Each import table in a semantic model has a partition with an M expression defin
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
-    removed_columns = Table.RemoveColumns(data, {"InternalId"}),
+    data = source{
+        [Schema = "dbo", Item = "Orders"]
+    }[Data],
+    removed_columns = Table.RemoveColumns(
+        data,
+        {"InternalId"}
+    ),
     changed_type = Table.TransformColumnTypes(
         removed_columns,
         {{"Amount", Currency.Type}}
@@ -84,7 +89,7 @@ These names are owned outside the expression and keep their spaces:
 
 M is laid out by [`microsoft/powerquery-formatter`](https://github.com/microsoft/powerquery-formatter),
 the formatter behind the VS Code Power Query extension, run through `formatter/format_m.js` with
-the house layout: 4-space indent, 80-character lines, short lines over packed ones. Run it over
+the house layout: 4-space indent, 60-character lines, short lines over packed ones. Run it over
 every M expression you write or edit:
 
 ```bash
@@ -111,7 +116,7 @@ The layout, so M written by hand already matches:
 
 - Every `let` puts one binding per line and `in` on its own line, however short, and so does
   anything that holds a `let` (a function, an `each`, a call around it).
-- Anything else stays on one line while it fits in 80 characters.
+- Anything else stays on one line while it fits in 60 characters.
 - A call, parameter list, list or record that does not fit breaks after its opening bracket, one
   item per line, and closes on its own line at the indent it opened on.
 - One space after each comma and around `=` in records: `[Schema = "dbo", Item = "Orders"]`.
@@ -121,7 +126,7 @@ The layout, so M written by hand already matches:
   first.
 - A comment sits on its own line above the code it describes; one written at the end of a line
   is lifted there. Blank lines between steps are dropped.
-- A line can still pass 80 characters inside very deep nesting, or where a single token (a long
+- A line can still pass 60 characters inside very deep nesting, or where a single token (a long
   string, a comment) is longer than the room left.
 
 ### Query Folding
@@ -156,9 +161,14 @@ Remove unused columns and filter rows as early as possible:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+    data = source{
+        [Schema = "dbo", Item = "Orders"]
+    }[Data],
     // Filter and select BEFORE any custom transforms
-    filtered = Table.SelectRows(data, each [Status] <> "Cancelled"),
+    filtered = Table.SelectRows(
+        data,
+        each [Status] <> "Cancelled"
+    ),
     selected = Table.SelectColumns(
         filtered,
         {"OrderId", "Date", "Amount", "CustomerId"}
@@ -259,10 +269,14 @@ Incremental refresh partitions use `RangeStart` and `RangeEnd` parameters:
 ```
 let
     source = Sql.Database(SqlEndpoint, Database),
-    data = source{[Schema = "dbo", Item = "Orders"]}[Data],
+    data = source{
+        [Schema = "dbo", Item = "Orders"]
+    }[Data],
     filtered = Table.SelectRows(
         data,
-        each [OrderDate] >= RangeStart and [OrderDate] < RangeEnd
+        each
+            [OrderDate] >= RangeStart
+            and [OrderDate] < RangeEnd
     )
 in
     filtered
@@ -276,7 +290,9 @@ When testing, inline concrete date values for `RangeStart` and `RangeEnd`.
 let
     source = Lakehouse.Contents(null),
     lakehouse = source{[Id = "lakehouse-guid"]}[Data],
-    data = lakehouse{[Id = "table-name", ItemKind = "Table"]}[Data]
+    data = lakehouse{
+        [Id = "table-name", ItemKind = "Table"]
+    }[Data]
 in
     data
 ```

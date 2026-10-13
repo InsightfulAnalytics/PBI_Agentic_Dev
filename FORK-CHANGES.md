@@ -96,7 +96,7 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   MIT-licensed `powerquery-formatter` in a house layout. `formatter/format_m.js` runs it over `.pq`
   and `.m` files, stdin, and the M blocks in TMDL (shared expressions, M partitions, refresh-policy
   expressions), keeping fences and leaving DAX and multi-line text literals alone. On top of the
-  formatter it uses 80-character lines, puts every `let` one binding per line, breaks a call or
+  formatter it uses 60-character lines, puts every `let` one binding per line, breaks a call or
   parameter list one item per line, lifts end-of-line comments onto their own line, ignores the
   source's record line breaks, and corrects three line-length estimates the formatter gets wrong.
   The skill's examples are its output, with their `--` comments corrected to M's `//`.
