@@ -118,5 +118,5 @@ the change as working. The trap and its workaround are in `pbip:tmdl`
   `pbir desktop refresh` is unavailable.
 - Report visuals affected by the change? Hand over to `reports:pbir-cli`, and verify with
   `reports:pbi-verify-loop`.
-- After fixing a nontrivial error, record the root cause in the project's note under
-  `Vault\Projects\<project>\` and add its row to `Vault\Projects\index.md`.
+- After fixing a nontrivial error, record the root cause in the project's own `LEARNINGS.md`,
+  beside its code.
