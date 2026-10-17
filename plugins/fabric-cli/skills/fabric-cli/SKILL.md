@@ -9,6 +9,7 @@ description: "Expert guidance for the Fabric CLI (`fab`) and the Fabric and Powe
 Guidance for using `fab` to programmatically manage Fabric & Power BI service
 
 - Install via `uv tool install ms-fabric-cli` (get `uv` via `winget install uv` or `brew install uv`)
+- Every `ms-fabric-cli` release since 0.2.0 caps the Python version; 1.7.0 (August 2026) needs 3.10 to 3.13. On a newer Python, `pip install ms-fabric-cli` resolves without an error to 0.1.10 (March 2025), the last release with no cap, so `fab --version` reports 0.1.10 and newer commands are missing. Pin a supported interpreter: `uv tool install ms-fabric-cli --python 3.13`
 - Fabric CLI is for working with the Cloud environment and not local files; it works with Power BI Pro, PPU, or Fabric; you DO NOT need a Fabric SKU to use the Fabric CLI
 - Keep `fab` current: check the installed version against the latest `ms-fabric-cli` release and upgrade with `uv tool upgrade ms-fabric-cli` unless the user has pinned a specific version. Discover commands and flags with `fab --help` and `fab <command> --help` rather than hard-coding behavior; the CLI surface changes regularly
 
