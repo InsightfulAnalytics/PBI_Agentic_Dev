@@ -222,6 +222,13 @@ reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FO
 - `fabric-cli/.../export_semantic_model_as_pbip.py` stays fork-local.
 - Skills removed from the fork on purpose stay removed: `pbi-lifecycle`, `pbi-project-hub`,
   `fabric-app-bootstrap`, `fabric-app-lakehouse-live`, `fabric-app-sqldb-writeback`, `pbi-theme`.
+- Upstream's rule that every table name is quoted, `'Table'[Column]` (26.40.6, `144c6d5` and
+  `717534b`), and its sweeps that add the quotes. The house style in `dax-standard` quotes a table
+  name only where DAX requires it. Drop those hunks; take the rest of each file.
+- Upstream's removal of the Microsoft Learn MCP server (`fabric-cli/.mcp.json`) and of the skills'
+  references to it (26.40.6, `dab666f` and `f808bfd`). The fork keeps the MCP and falls back to
+  learn.microsoft.com, as upstream now does throughout.
+- The `dashboards` plugin (26.40.7), deferred: its tools come from a claude.ai Fabric connector.
 
 **Gotchas:**
 
