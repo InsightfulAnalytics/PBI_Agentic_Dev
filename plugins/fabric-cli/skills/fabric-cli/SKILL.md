@@ -105,15 +105,9 @@ Nothing portable belongs in `~/.claude/rules/`, `.cursor/rules/` or `.github/ins
 are per-machine and per-user.
 <!-- boundary-rule:end -->
 
-## When to use this skill
-
-- Use whenever the user mentions "Fabric" or "Power BI"
-- Use when user asks about Power BI workspaces, deployment, tenants, publishing, download, permissions, or data
-
-
 ## Critical general rules
 
-- IMPORTANT: The first time you use `fab` run check that it is up to date to the latest version (upgrade with `uv tool upgrade ms-fabric-cli` unless the user has pinned a version) and run `fab auth status`; If user isn't authenticated, ask them to run `fab auth login`
+- On first use, run `fab auth status`; if it is not authenticated, ask the user to run `fab auth login`
 - On a Windows console left on the cp1252 codepage, `fab` dies part-way through its own output with `'charmap' codec can't encode character` even though the server-side work succeeded; export `PYTHONIOENCODING=utf-8` and `PYTHONUTF8=1` in every shell block that calls `fab` (details in [reference.md](./references/reference.md#console-encoding-on-windows)). Linux and macOS never hit this
 - Always use `fab --help` and `fab <command> --help` the first time you use a command to understand its syntax
 - You must search the skill /references/ for relevant reference files that explain certain commands, examples, scripts, or workflows before you start using `fab`
@@ -644,9 +638,9 @@ Check references before deploying:
 
 ## Gotchas
 
-- **IMPORTANT:** DON'T try to use `fab ls` on items that aren't data items (.Lakehouse, .Warehouse, etc); use `fab ls` to find workspaces and items, and use `fab get` to look at definitions
-- ALWAYS Use the `-f` flag when using `fab get`, `fab import`, `fab export`, etc. as described above
-- ONLY fallback to `fab api` when a command doesn't exist
+- `fab ls` lists workspaces and items and browses data items (.Lakehouse, .Warehouse); on other items it fails, so read their definitions with `fab get`
+- Pass `-f` to `fab get`, `fab import` and `fab export` to skip the overwrite and sensitivity prompts
+- Use `fab api` only when no command covers the operation
 - **`fab api` returns a `{status_code, text}` envelope, not the raw body:** `-q` filters must start with `text.` or they silently return `None`, there is no `-o` flag (redirect stdout), and binary bodies (PDF, PNG, XLSX, PBIX, `.rdl`) are corrupted, so fetch files over raw HTTP with an `az` bearer token. See [fab-api.md](./references/fab-api.md#output-shape-and-flags)
 - **Definition changes feel slow but aren't:** `fab import` / `nb create` / `nb cell edit` take 25-60s to push a notebook definition only because they poll the LRO at the server's `Retry-After: 20`. The work is ~1s. Use [`scripts/deploy_notebook.py`](./scripts/deploy_notebook.py) (tight-polls at ~0.3s) for definition changes; the poll interval is the single biggest lever
 
