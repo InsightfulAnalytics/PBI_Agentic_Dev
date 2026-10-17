@@ -36,6 +36,7 @@ export type Explorer = {
   setup: Setup | null
   byDomain?: boolean
   byCapacity?: boolean
+  pin?: string[]
 }
 
 declare module 'claude-code' {

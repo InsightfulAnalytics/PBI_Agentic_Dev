@@ -1351,6 +1351,21 @@ async function afterFab($: EngineInterface, calls: Invocation[], stale: Set<stri
   await flash($, lit.touched, lit.opened)
 }
 
+async function pinWorkspaces($: EngineInterface, calls: Invocation[]): Promise<void> {
+  const ex = await get($)
+  const byId = new Map(ex.nodes.map(n => [n.id, n]))
+  const spaceOf = (id: string) => [id, ...ancestors(ex.nodes, id, byId)].find(a => byId.get(a)?.kind === 'workspace')
+  const ids = calls.flatMap(inv => [
+    ...fabWorkspaces(inv).map(w => wsNode(ex.nodes, w)?.id ?? ''),
+    ...byGuid(fabGuids(inv), ex.nodes).map(id => spaceOf(id) ?? ''),
+  ])
+  await patchView($, cur => {
+    const pin = [...(cur.pin ?? [])]
+    for (const id of ids) if (id && !pin.includes(id)) pin.push(id)
+    return pin.length === (cur.pin ?? []).length ? {} : { pin }
+  })
+}
+
 function byGuid(guids: string[], nodes: TreeNode[]): string[] {
   if (guids.length === 0) return []
   const want = new Set(guids)
@@ -1468,6 +1483,7 @@ export const register: Register = (on, options) => {
     const settle = async () => {
       try {
         if (result.deny || closed || noDock) return
+        if (calls.length && !result.isError) await pinWorkspaces($, calls)
         if (calls.length) await afterFab($, calls, stale, !result.isError)
         if (queries.length && !result.isError) await afterQueries($, asked)
       } finally {

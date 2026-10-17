@@ -9,6 +9,7 @@ description: "Expert guidance for the Fabric CLI (`fab`) and the Fabric and Powe
 Guidance for using `fab` to programmatically manage Fabric & Power BI service
 
 - Install via `uv tool install ms-fabric-cli` (get `uv` via `winget install uv` or `brew install uv`)
+- Every `ms-fabric-cli` release since 0.2.0 caps the Python version; 1.7.0 (August 2026) needs 3.10 to 3.13. On a newer Python, `pip install ms-fabric-cli` resolves without an error to 0.1.10 (March 2025), the last release with no cap, so `fab --version` reports 0.1.10 and newer commands are missing. Pin a supported interpreter: `uv tool install ms-fabric-cli --python 3.13`
 - Fabric CLI is for working with the Cloud environment and not local files; it works with Power BI Pro, PPU, or Fabric; you DO NOT need a Fabric SKU to use the Fabric CLI
 - Keep `fab` current: check the installed version against the latest `ms-fabric-cli` release and upgrade with `uv tool upgrade ms-fabric-cli` unless the user has pinned a specific version. Discover commands and flags with `fab --help` and `fab <command> --help` rather than hard-coding behavior; the CLI surface changes regularly
 
@@ -105,15 +106,9 @@ Nothing portable belongs in `~/.claude/rules/`, `.cursor/rules/` or `.github/ins
 are per-machine and per-user.
 <!-- boundary-rule:end -->
 
-## When to use this skill
-
-- Use whenever the user mentions "Fabric" or "Power BI"
-- Use when user asks about Power BI workspaces, deployment, tenants, publishing, download, permissions, or data
-
-
 ## Critical general rules
 
-- IMPORTANT: The first time you use `fab` run check that it is up to date to the latest version (upgrade with `uv tool upgrade ms-fabric-cli` unless the user has pinned a version) and run `fab auth status`; If user isn't authenticated, ask them to run `fab auth login`
+- On first use, run `fab auth status`; if it is not authenticated, ask the user to run `fab auth login`
 - On a Windows console left on the cp1252 codepage, `fab` dies part-way through its own output with `'charmap' codec can't encode character` even though the server-side work succeeded; export `PYTHONIOENCODING=utf-8` and `PYTHONUTF8=1` in every shell block that calls `fab` (details in [reference.md](./references/reference.md#console-encoding-on-windows)). Linux and macOS never hit this
 - Always use `fab --help` and `fab <command> --help` the first time you use a command to understand its syntax
 - You must search the skill /references/ for relevant reference files that explain certain commands, examples, scripts, or workflows before you start using `fab`
@@ -644,9 +639,9 @@ Check references before deploying:
 
 ## Gotchas
 
-- **IMPORTANT:** DON'T try to use `fab ls` on items that aren't data items (.Lakehouse, .Warehouse, etc); use `fab ls` to find workspaces and items, and use `fab get` to look at definitions
-- ALWAYS Use the `-f` flag when using `fab get`, `fab import`, `fab export`, etc. as described above
-- ONLY fallback to `fab api` when a command doesn't exist
+- `fab ls` lists workspaces and items and browses data items (.Lakehouse, .Warehouse); on other items it fails, so read their definitions with `fab get`
+- Pass `-f` to `fab get`, `fab import` and `fab export` to skip the overwrite and sensitivity prompts
+- Use `fab api` only when no command covers the operation
 - **`fab api` returns a `{status_code, text}` envelope, not the raw body:** `-q` filters must start with `text.` or they silently return `None`, there is no `-o` flag (redirect stdout), and binary bodies (PDF, PNG, XLSX, PBIX, `.rdl`) are corrupted, so fetch files over raw HTTP with an `az` bearer token. See [fab-api.md](./references/fab-api.md#output-shape-and-flags)
 - **Definition changes feel slow but aren't:** `fab import` / `nb create` / `nb cell edit` take 25-60s to push a notebook definition only because they poll the LRO at the server's `Retry-After: 20`. The work is ~1s. Use [`scripts/deploy_notebook.py`](./scripts/deploy_notebook.py) (tight-polls at ~0.3s) for definition changes; the poll interval is the single biggest lever
 

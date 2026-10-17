@@ -100,6 +100,10 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   parameter list one item per line, lifts end-of-line comments onto their own line, ignores the
   source's record line breaks, and corrects three line-length estimates the formatter gets wrong.
   The skill's examples are its output, with their `--` comments corrected to M's `//`.
+- Harvested part of upstream 26.40.5 to 26.40.7 (2026-10-18): the Fabric pane pins the workspaces
+  Claude works in to the top of its tree, taken whole, and `fabric-cli/SKILL.md` takes upstream's
+  plain-statement gotchas and first-use rule and drops its *When to use* section, keeping the
+  fork's learnings block.
 
 ### Fork-owned files, for upstream harvest resolution
 
