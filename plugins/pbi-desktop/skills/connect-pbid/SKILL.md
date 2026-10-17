@@ -659,7 +659,7 @@ Retest: edit a `.tmdl` file of an open PBIP on disk and watch for the banner, or
 | **DAX Reference** | `dax.guide` |
 | **Compatibility Levels** | `learn.microsoft.com/en-us/analysis-services/tabular-models/compatibility-level-for-tabular-models-in-analysis-services` |
 
-To retrieve current TOM/ADOMD.NET reference docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise `mslearn search` + `mslearn fetch` (CLI). Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
+To retrieve current TOM/ADOMD.NET reference docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise search https://learn.microsoft.com and fetch the relevant pages. Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
 
 
 ## 11. Debugging DAX with EVALUATEANDLOG

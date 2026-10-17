@@ -477,7 +477,7 @@ For the complete property reference for every object type, see **`references/obj
 
 ### Fetching Docs
 
-To retrieve current TMDL reference docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise `mslearn search` + `mslearn fetch` (CLI). Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
+To retrieve current TMDL reference docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise search https://learn.microsoft.com and fetch the relevant pages. Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
 
 ### Example Model
 

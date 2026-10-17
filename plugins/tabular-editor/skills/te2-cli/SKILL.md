@@ -236,7 +236,7 @@ For common errors (database not found, authentication failed, script execution f
 
 ## References
 
-To retrieve current XMLA and deployment docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise `mslearn search` + `mslearn fetch` (CLI). Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
+To retrieve current XMLA and deployment docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise search https://learn.microsoft.com and fetch the relevant pages. Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding.
 
 - [TE2 CLI Documentation](https://docs.tabulareditor.com/features/Command-line-Options.html)
 - [XMLA Endpoints](https://learn.microsoft.com/en-us/power-bi/enterprise/service-premium-connect-tools)
