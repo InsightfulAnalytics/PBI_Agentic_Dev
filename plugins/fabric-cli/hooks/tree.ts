@@ -116,10 +116,13 @@ export function visible(ex: Explorer, sort = false, root = ''): Row[] {
     }
   }
   const open = new Set(ex.expanded)
+  const rank = new Map((ex.pin ?? []).map((id, i) => [id, i]))
+  const pinned = (list: TreeNode[]) =>
+    rank.size === 0 ? list : [...list].sort((a, b) => (rank.get(a.id) ?? Infinity) - (rank.get(b.id) ?? Infinity))
   const rows: Row[] = []
   const walk = (parent: string, depth: number) => {
     const list = kids.get(parent) ?? []
-    for (const n of sort ? sorted(list) : list) {
+    for (const n of pinned(sort ? sorted(list) : list)) {
       if (keep && !keep.has(n.id)) continue
       const leaf = !kids.has(n.id)
       const isOpen = !leaf && (keep ? true : open.has(n.id))
