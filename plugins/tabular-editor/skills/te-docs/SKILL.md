@@ -20,6 +20,7 @@ If the command is not found, inform the user and offer two options:
 
 1. **Install `pbi-search`** (recommended): see `bin/README.md` for install instructions via `cargo install` or GitHub Releases at [data-goblin/pbi-search](https://github.com/data-goblin/pbi-search)
 2. **Search without the CLI**: use the `microsoft-learn` MCP tools (`microsoft_docs_search`, `microsoft_docs_fetch`) for Microsoft Learn content, or `WebFetch` to retrieve docs directly from these sources:
+   - Microsoft Learn: `https://learn.microsoft.com/`
    - Tabular Editor docs: `https://docs.tabulareditor.com/`
    - DAX reference: `https://dax.guide/<function>/`
    - SQLBI articles: `https://www.sqlbi.com/articles/`

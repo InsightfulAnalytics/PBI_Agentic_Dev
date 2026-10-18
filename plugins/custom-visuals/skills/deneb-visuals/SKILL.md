@@ -384,7 +384,7 @@ Absence from the native set is a feasibility fact, not a justification: it means
 
 ## Fetching Docs
 
-To retrieve current Power BI custom visual docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise `mslearn search` + `mslearn fetch` (CLI). Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding. Note: Vega/Vega-Lite docs live at vega.github.io (not MS Learn) -- use `WebFetch` for those.
+To retrieve current Power BI custom visual docs, use `microsoft_docs_search` + `microsoft_docs_fetch` (MCP) if available, otherwise search https://learn.microsoft.com and fetch the relevant pages. Search based on the user's request and run multiple searches as needed to ensure sufficient context before proceeding. Note: Vega/Vega-Lite docs live at vega.github.io (not MS Learn) -- use `WebFetch` for those.
 
 ## Related Skills
 

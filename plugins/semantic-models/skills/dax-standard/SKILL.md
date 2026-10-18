@@ -46,6 +46,10 @@ Naming conventions (non-negotiable, they make measures greppable and diffable):
   No `VAR … RETURN` block inside a function argument. See
   [Keep the VARs flat](#keep-the-vars-flat).
 - Use `&&` / `||` / `<>` inside `FILTER`, not nested `AND()` / `OR()`.
+- Write a column as `Table[Column]`, always with its table, and quote the table name only where
+  DAX requires it (a space, a special character, a leading digit or a reserved word):
+  `Sales[Amount]`, `'Sales Order'[Amount]`. Write a measure as `[Measure]`, never with its table
+  in front. Examples in other skills that quote every table name do not override this.
 
 ## Step 3 is not always an X-aggregator
 

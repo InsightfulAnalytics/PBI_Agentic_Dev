@@ -100,6 +100,13 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   parameter list one item per line, lifts end-of-line comments onto their own line, ignores the
   source's record line breaks, and corrects three line-length estimates the formatter gets wrong.
   The skill's examples are its output, with their `--` comments corrected to M's `//`.
+- Harvested part of upstream 26.40.5 to 26.40.7 (2026-10-18): the Fabric pane pins the workspaces
+  Claude works in to the top of its tree, taken whole, and `fabric-cli/SKILL.md` takes upstream's
+  plain-statement gotchas and first-use rule and drops its *When to use* section, keeping the
+  fork's learnings block. The fork keeps the Microsoft Learn MCP server upstream removed; the
+  skills that named the `mslearn` CLI as its fallback now name learn.microsoft.com instead.
+  `dax-standard` states its reference rule (`Table[Column]`, the table quoted only where DAX
+  requires it, measures as `[Measure]`) in place of upstream's always-quoted `'Table'[Column]`.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -164,6 +171,10 @@ Modified upstream-authored files, which **will** conflict on a harvest:
 - `organize-semantic-model/SKILL.md`: the `version:` line, `dax-optimisation` in the
   description, and passes 12 and 13, rewritten to defer to `dax-standard`; plus the body-comment
   line in its `references/udfs.md`. Keep the fork's versions.
+- The docs-lookup line in the skills that fetch Microsoft Learn (`deneb-visuals`, `python-visuals`,
+  `r-visuals`, `connect-pbid`, `pbip`, `pbir-format`, `tmdl`, `bpa-rules`, `c-sharp-scripting`,
+  `te2-cli`, `te-docs`, `audit-tenant-settings`, `fabric-cli` and its `references/{admin,reference}.md`),
+  plus `fabric-cli/.mcp.json`: the fork names the Microsoft Learn MCP first. Keep the fork's lines.
 - `useful-stuff/themes/*.json` (every font line) and the font note in
   `useful-stuff/themes/README.md`. After taking upstream changes to a theme, replace the
   `'JetBrainsMono Nerd Font', 'JetBrains Mono', Consolas, monospace` stack with `Consolas` again.

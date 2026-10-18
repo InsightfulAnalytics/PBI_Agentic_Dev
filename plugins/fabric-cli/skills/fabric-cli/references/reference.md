@@ -409,7 +409,7 @@ Consequences of enabling item recovery:
 - **OneLake catalog admin insights** ignore soft-deleted items until permanently deleted.
 - Recovery fails if a new item with the same name exists; rename the new item and retry. Dependent items may need to be restored first. Permanent deletion cannot be undone.
 
-Docs: search for "Fabric item recovery" or "retention and recovery in Fabric" via the `mslearn` CLI (confirm the alias with `type mslearn` first) or the Microsoft Learn MCP server.
+Docs: search for "Fabric item recovery" or "retention and recovery in Fabric" via the Microsoft Learn MCP server or on https://learn.microsoft.com.
 
 ### export - Export Item Definitions
 
