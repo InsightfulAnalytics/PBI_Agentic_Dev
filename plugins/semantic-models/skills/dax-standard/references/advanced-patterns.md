@@ -25,8 +25,8 @@ This is the foundation for most of what follows. It is a feature, not a smell.
   `#table`, with a `SWITCH` in the measure dispatching on the selection. Use when the
   *calculation* changes, not just the field.
 - **NOT slicer (inverse selection)** — show everything *except* the selection: read the
-  selected keys from the disconnected slicer table, then
-  `FILTER( ALL( Fact ), NOT Fact[Key] IN __Selected )`.
+  selected keys from the disconnected slicer table, then filter the real dimension with
+  `FILTER( ALL( Dim[Key] ), NOT Dim[Key] IN __Selected )` as the `CALCULATE` filter.
 - **AND slicer** — require rows to match **all** selected tags rather than any: count matched
   tags per row and keep the rows whose match count equals the number of selected tags.
 - **Complex selector** — a measure that encodes multi-condition selection logic and returns

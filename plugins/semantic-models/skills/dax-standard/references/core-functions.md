@@ -1,7 +1,9 @@
 # Core Functions
 
 The building blocks the pattern is assembled from. Examples use a generic `Sales` fact with
-`Dim` / `Date` dimensions — swap in the real table and column names.
+`Product` / `Date` dimensions — swap in the real table and column names. Attributes are read
+and filtered on the dimension, not the fact
+([Filter the dimension, not the fact](../SKILL.md#filter-the-dimension-not-the-fact)).
 
 ## Looking up values — FILTER + MINX/MAXX (instead of LOOKUPVALUE)
 
@@ -11,8 +13,8 @@ yields a single distinct value, MIN/MAX simply return it.
 ```DAX
 Price For Item =
     VAR __Item   = "Widget"
-    VAR __Table  = FILTER( Sales, Sales[Item] = __Item )
-    VAR __Result = MAXX( __Table, Sales[Price] )
+    VAR __Table  = FILTER( Product, Product[Item] = __Item )
+    VAR __Result = MAXX( __Table, Product[List Price] )
     RETURN __Result
 ```
 
@@ -25,10 +27,13 @@ degrades gracefully — `LOOKUPVALUE` errors when the criteria aren't unique, wh
 ```DAX
 Value On Last Date =
     VAR __MaxDate = MAX( Sales[Date] )
-    VAR __Table   = FILTER( Sales, Sales[Date] = __MaxDate )
-    VAR __Result  = MAXX( __Table, Sales[Amount] )
+    VAR __Rows    = CALCULATETABLE( Sales, KEEPFILTERS( Date[Date] = __MaxDate ) )
+    VAR __Result  = MAXX( __Rows, Sales[Amount] )
     RETURN __Result
 ```
+
+`MAX( Sales[Date] )` reads the last date that has a sale; the filter that follows sits on the
+calendar.
 
 ## Removing filters — ALL and ALLSELECTED
 
@@ -50,31 +55,34 @@ Running Total =
 Swap `ALL` → `ALLSELECTED` to make the running total respect slicer selections.
 
 **Previous row / previous occurrence** — find the latest date strictly before the current
-one within the same key, then look up its value (a double lookup over an `ALL` table):
+one for the item in context, then look up its value (a double lookup with the date filter
+removed):
 
 ```DAX
 Previous Value =
-    VAR __Item = MAX( Sales[Item] )
-    VAR __Date = MAX( Sales[Date] )
-    VAR __Table = FILTER( ALL( Sales ), Sales[Item] = __Item && Sales[Date] < __Date )
-    VAR __PrevDate = MAXX( __Table, Sales[Date] )
-    VAR __Result   = MAXX( FILTER( __Table, Sales[Date] = __PrevDate ), Sales[Amount] )
+    VAR __Date     = MAX( Date[Date] )
+    VAR __Earlier  = CALCULATETABLE( Sales, REMOVEFILTERS( Date ), Date[Date] < __Date )
+    VAR __PrevDate = MAXX( __Earlier, Sales[Date] )
+    VAR __Result   = CALCULATE( SUM( Sales[Amount] ), REMOVEFILTERS( Date ), Date[Date] = __PrevDate )
     RETURN __Result
 ```
 
+The item stays filtered by `Product[Item]` from the visual; only the calendar's filters are
+removed and replaced.
+
 > **auto-exist caveat:** if two filters target the same table (e.g. a slicer on
-> `Item` and an axis on `Date` from the same table), Power BI computes only the
-> *intersection*, which can surprise you even when you used `ALL`. Use a proper dimension
-> table, or be aware of the model's *Value Filter Behavior* setting.
+> `Item` and an axis on `Date`, both columns of the fact), Power BI computes only the
+> *intersection*, which can surprise you even when you used `ALL`. Slice by the dimension
+> columns, as above, or be aware of the model's *Value Filter Behavior* setting.
 
 ## Grouping rows — three options
 
 All three produce a grouped table; pick by ergonomics:
 
 ```DAX
-SUMMARIZE(   Sales, Sales[Item], "Total", SUM( Sales[Amount] ) )
-GROUPBY(     Sales, Sales[Item], "Total", SUMX( CURRENTGROUP(), Sales[Amount] ) )  -- must use X + CURRENTGROUP()
-SUMMARIZECOLUMNS( Sales[Item], "Total", SUM( Sales[Amount] ) )
+SUMMARIZE(   Sales, Product[Item], "Total", SUM( Sales[Amount] ) )
+GROUPBY(     Sales, Product[Item], "Total", SUMX( CURRENTGROUP(), Sales[Amount] ) )  -- must use X + CURRENTGROUP()
+SUMMARIZECOLUMNS( Product[Item], "Total", SUM( Sales[Amount] ) )
 ```
 
 `SUMMARIZECOLUMNS` is the most efficient/modern for set-the-grain work and is the one used
@@ -125,7 +133,7 @@ logic into DAX.
 ## Selecting columns, IN, set functions
 
 - `SELECTCOLUMNS( table, "NewName", expr, … )` — keep/rename a subset (perf + clarity).
-- `IN` / `CONTAINSROW`: `FILTER( Sales, Sales[Item] IN { "A", "B" } )`. The `{ … }` table
+- `IN` / `CONTAINSROW`: `FILTER( ALL( Product[Item] ), Product[Item] IN { "A", "B" } )`. The `{ … }` table
   constructor builds an inline table; `IN` and `CONTAINSROW( table, value )` are equivalent.
 - `DISTINCT` / `VALUES` — distinct rows/values of a column (`VALUES` includes a blank row
   for invalid relationships; `DISTINCT` does not).

@@ -1,7 +1,7 @@
 ---
 name: dax-standard
 version: 26.40.3
-description: The house style for authoring DAX measures — build the rows the calculation needs into a table variable, then aggregate over it with an X-function, composing the steps with VARs so every measure reads top-to-bottom and can be debugged step by step. Covers measure formatting (dynamic format strings + user-defined functions), the time-intelligence exception, and worked recipes. Invoke when asked to "write a measure", "how do I write DAX for…", "rewrite this measure", "make this DAX readable/easier to debug", "the DAX pattern", "format a measure", "dynamic format string", "number formatting", or for a recipe (time intelligence, customer/HR/finance/operations KPIs, geospatial, streaks, fuzzy matching, SVG). For tuning a measure that is measurably slow, or reading server timings, use `semantic-models:dax-optimisation` instead.
+description: The house style for authoring DAX measures — build the rows the calculation needs into a table variable, then aggregate over it with an X-function, composing the steps with VARs so every measure reads top-to-bottom and can be debugged step by step. Covers measure formatting (dynamic format strings + user-defined functions), the time-intelligence exception, and worked recipes. Invoke when asked to "write a measure", "how do I write DAX for…", "rewrite this measure", "review this measure", "make this DAX readable/easier to debug", "the DAX pattern", "format a measure", "dynamic format string", "number formatting", or for a recipe (time intelligence, customer/HR/finance/operations KPIs, geospatial, streaks, fuzzy matching, SVG). For tuning a measure that is measurably slow, or reading server timings, use `semantic-models:dax-optimisation` instead.
 ---
 # Standard DAX
 
@@ -32,7 +32,8 @@ Measure =
 ```
 
 Three steps: **(1)** capture the scalars you need out of the current context, **(2)** build a
-table variable holding the rows the calculation runs over, **(3)** reduce it — usually with an
+table variable holding the rows the calculation runs over, filtered on dimension columns
+([Filter the dimension, not the fact](#filter-the-dimension-not-the-fact)), **(3)** reduce it — usually with an
 X-aggregator, sometimes with `CALCULATE` (see
 [Step 3 is not always an X-aggregator](#step-3-is-not-always-an-x-aggregator)). Complex measures
 grow to dozens of lines — the *shape* stays the same.
@@ -50,6 +51,50 @@ Naming conventions (non-negotiable, they make measures greppable and diffable):
   DAX requires it (a space, a special character, a leading digit or a reserved word):
   `Sales[Amount]`, `'Sales Order'[Amount]`. Write a measure as `[Measure]`, never with its table
   in front. Examples in other skills that quote every table name do not override this.
+
+## Filter the dimension, not the fact
+
+Step 2 filters a dimension column wherever one carries the attribute: `Store[Region]`, not
+`Sales[Region]`, and not `FILTER ( Sales, RELATED ( Store[Region] ) … )`. Group by dimension columns
+too, the calendar's own period columns included, rather than by the fact's date or key. The
+dimension filter runs over the dimension's few rows and reaches the fact through the relationship,
+and it is the same column the slicers use.
+
+```DAX
+Sales Excl East =
+    // Every region except East, from the store dimension ...
+    VAR __Regions =
+        FILTER (
+            ALL ( Store[Region] ),
+            Store[Region] <> "East"
+        )
+    // ... and the sales under them, intersected with the slicers
+    VAR __Result =
+        CALCULATE (
+            [Total Sales],
+            KEEPFILTERS ( __Regions )
+        )
+    RETURN
+        __Result
+```
+
+Before filtering a fact column, find what it relates to:
+`grep -n -A1 "fromColumn: Sales\." definition/relationships.tmdl`. One of three things holds:
+
+| What you find | What to write |
+| --- | --- |
+| A relationship from the column | Filter its `toColumn`. Switching an existing measure: run the two checks first (values missing from the dimension, slicers on the same column) |
+| No relationship, and the column is dimension-like (text or a code people slice by, repeated across many rows) | Propose a dimension and wait for the user. Meanwhile, a column filter on the fact with a comment naming the proposed dimension |
+| A numeric or degenerate condition, a dimension over about 131K rows, or an inactive relationship | The fact column, as the reference's exceptions say |
+
+**Always discuss it.** Every reply that writes or reviews a measure filtering or grouping by an
+attribute says which column carries the filter and why: the dimension it moved to and what the two
+checks found, the dimension you propose (name, columns, where it is built, the relationship), or the
+exception that keeps it on the fact. A proposed dimension gets built only after the user agrees, and
+through `semantic-models:model-change`, since it changes the model.
+
+The patterns, the two checks, what a proposal contains and the review checklist are in
+[`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md).
 
 ## Step 3 is not always an X-aggregator
 
@@ -307,16 +352,22 @@ Worked example in this house style:
 
 ```DAX
 Net Sales % =
-    // Keep only the orders that were not cancelled ...
-    VAR __Table =
+    // Keep every order status except Cancelled ...
+    VAR __Statuses =
         FILTER (
-            Sales,
-            Sales[Status] <> "Cancelled"
+            ALL ( 'Order Status'[Status] ),
+            'Order Status'[Status] <> "Cancelled"
         )
-    // ... and express their value as a share of all sales
+    // ... take the sales of those orders ...
+    VAR __NetSales =
+        CALCULATE (
+            [Total Sales],
+            KEEPFILTERS ( __Statuses )
+        )
+    // ... and express them as a share of all sales
     VAR __Result =
         DIVIDE (
-            SUMX ( __Table, Sales[Amount] ),
+            __NetSales,
             [Total Sales]
         )
     RETURN
@@ -331,16 +382,22 @@ body on line 2:
 /// Cancelled-adjusted sales as a share of all sales.
 measure 'Net Sales %' =
 
-		// keep only the orders that were not cancelled ...
-		VAR __Table =
+		// keep every order status except Cancelled ...
+		VAR __Statuses =
 		    FILTER (
-		        Sales,
-		        Sales[Status] <> "Cancelled"
+		        ALL ( 'Order Status'[Status] ),
+		        'Order Status'[Status] <> "Cancelled"
 		    )
-		// ... and express their value as a share of all sales
+		// ... take the sales of those orders ...
+		VAR __NetSales =
+		    CALCULATE (
+		        [Total Sales],
+		        KEEPFILTERS ( __Statuses )
+		    )
+		// ... and express them as a share of all sales
 		VAR __Result =
 		    DIVIDE (
-		        SUMX ( __Table, Sales[Amount] ),
+		        __NetSales,
 		        [Total Sales]
 		    )
 		RETURN
@@ -579,6 +636,9 @@ full reconciliation.
   wrong call (a filter argument that constrains the column being aggregated), the FE/SE
   optimization model, the debugging toolbox, and how this skill coexists with the
   `semantic-models:dax-optimisation` performance skill.
+- [`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md): filter
+  and group by the dimension column, the two checks before moving an existing filter off the fact,
+  proposing a dimension for a dimension-like fact column, the exceptions, and a review checklist.
 - [`references/filter-context-traps.md`](references/filter-context-traps.md): measures that are
   right in a clean context and wrong in the report's. A second calendar's relationship, calculation
   items that block time intelligence, report-page tooltips inheriting every projected column, a
