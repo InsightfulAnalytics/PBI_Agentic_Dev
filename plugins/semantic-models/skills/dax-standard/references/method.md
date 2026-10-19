@@ -22,11 +22,15 @@ naturally):
 - Group with parentheses: `( a || b ) && c`
 
 ```DAX
-FILTER( Sales, ( Sales[Region] = "East" || Sales[Region] = "West" ) && Sales[Qty] = 3 )
+FILTER( ALL( Store[Region] ), Store[Region] = "East" || Store[Region] = "West" )
+FILTER( Sales, ( Sales[Qty] = 1 || Sales[Qty] > 10 ) && Sales[Discount] = 0 )
 ```
 
 `FILTER` is the workhorse. Anything a `CALCULATE` filter argument does, an explicit
-`FILTER` over the right table can do — visibly, and as a step you can inspect.
+`FILTER` over the right table can do — visibly, and as a step you can inspect. The right
+table for an attribute is its dimension: `Store[Region]`, not `Sales[Region]`. Over the fact,
+`FILTER` takes the conditions no dimension can hold, such as a quantity or an amount (SKILL.md
+[Filter the dimension, not the fact](../SKILL.md#filter-the-dimension-not-the-fact)).
 
 ## 3. X-aggregators — iterate a table, then aggregate
 
@@ -43,7 +47,7 @@ expression** — including a `FILTER(...)` or a table `VAR`. That is what lets y
 first, then aggregate, with no CALCULATE:
 
 ```DAX
-MINX( FILTER( Sales, Sales[Region] <> "East" ), Sales[Amount] )
+MINX( FILTER( Sales, Sales[Qty] > 0 ), Sales[Amount] )
 ```
 
 ## 4. Variables — compose the steps
@@ -79,7 +83,8 @@ Measure =
 1. **Scalar VAR(s)** — capture values from the current filter context, almost always with
    `MAX( Dim[Col] )` / `SELECTEDVALUE( Dim[Col] )` (a single value "in scope" for the row).
 2. **Table VAR** — build the exact set of rows the calculation needs (`FILTER`, often over
-   `ALL(...)` to escape the visual's context, and/or `SUMMARIZE` to set the grain).
+   `ALL(...)` to escape the visual's context, and/or `SUMMARIZE` to set the grain). Filter and
+   group on dimension columns wherever a dimension carries the attribute.
 3. **X-aggregator** — reduce the table to the answer.
 
 Everything scales from here: add more scalar VARs, chain table VARs (filter a filtered
@@ -121,15 +126,17 @@ The same calculation, both ways:
 ```DAX
 -- house style
 Sales No East =
-    VAR __Table  = FILTER( Sales, Sales[Region] <> "East" )
-    VAR __Result = SUMX( __Table, Sales[Amount] )
+    VAR __Regions = FILTER( ALL( Store[Region] ), Store[Region] <> "East" )
+    VAR __Rows    = CALCULATETABLE( Sales, KEEPFILTERS( __Regions ) )
+    VAR __Result  = SUMX( __Rows, Sales[Amount] )
     RETURN __Result
 
 -- CALCULATE
-Sales No East C = CALCULATE( SUM( Sales[Amount] ), Sales[Region] <> "East" )
+Sales No East C = CALCULATE( SUM( Sales[Amount] ), Store[Region] <> "East" )
 ```
 
-Both return the same number. CALCULATE is more compact, but:
+Both return the same number until a slicer filters `Store[Region]`: the house form keeps that
+selection, and the CALCULATE form's filter argument replaces it. CALCULATE is more compact, but:
 
 - It is a **black box** — its filter argument silently *replaces* context, and you cannot
   step through it.

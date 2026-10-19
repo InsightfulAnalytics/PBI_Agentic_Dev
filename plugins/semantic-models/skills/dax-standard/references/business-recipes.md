@@ -60,7 +60,7 @@ numerator, and a deliberate choice of denominator.
 | **Retention / churn rate** | Active at start ∩ active at end ÷ active at start. Churn is its complement — derive it, don't write it twice. |
 | **Customer lifetime value** | Per-customer revenue via `SUMMARIZE` + `ADDCOLUMNS`, then `AVERAGEX` over customers — not a grand total ÷ a count. |
 | **Top N + Other** | Rank the entities, keep the top N as themselves, roll the rest into one "Other" row. A user-selected N needs a disconnected parameter table — see [`advanced-patterns.md`](advanced-patterns.md). |
-| **Sales after an event** | Event date as a scalar VAR, then `FILTER` sales to `Date >= __Event`, optionally within N days. |
+| **Sales after an event** | Event date as a scalar VAR, then filter the calendar to `Date[Date] >= __Event`, optionally within N days, and aggregate sales under it. |
 | **Basket / co-occurrence** | Self-join orders on the order key and count item pairs. Expensive — set the grain before iterating. |
 
 ## Delivery and operations
@@ -70,7 +70,7 @@ numerator, and a deliberate choice of denominator.
 | **On-time delivery %** | `COUNTROWS( FILTER( Orders, Delivered <= Promised ) )` ÷ total orders. Compute the boolean in the model if the model can. |
 | **Days late / order cycle time** | `AVERAGEX( Orders, Delivered - Ordered )` — date arithmetic, no function needed. Weight by value if the business means value, not order count. |
 | **Open / as-of counts** | The as-of shape: open at the date, not closed by it (open POs, open tickets, WIP). |
-| **Backlog splits (overdue, on hold, disputed)** | One `FILTER` per status over the same fact, as separate measures, so a visual can stack them. |
+| **Backlog splits (overdue, on hold, disputed)** | One filter per status on the status dimension, as separate measures, so a visual can stack them. A status that sits only on the fact is dimension-like: propose a status dimension ([Filter the dimension, not the fact](../SKILL.md#filter-the-dimension-not-the-fact)). |
 | **Delivery date + N business days** | Count forward over DimDate filtered on `IsBusinessDay = TRUE()`. The holiday calendar lives in the date table, not the measure. |
 | **Capacity vs demand, utilisation** | `SUMMARIZE` to the resource grain, assigned ÷ available per resource, then `AVERAGEX`. |
 | **Days of supply / cover** | On-hand ÷ average daily usage over a trailing window. |
