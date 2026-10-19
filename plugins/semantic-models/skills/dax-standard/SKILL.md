@@ -83,17 +83,25 @@ Before filtering a fact column, find what it relates to:
 
 | What you find | What to write |
 | --- | --- |
-| A relationship from the column | Filter its `toColumn`. Switching an existing measure: run the two checks first (values missing from the dimension, slicers on the same column) |
+| A relationship from the column | Filter its `toColumn`, assuming referential integrity. Switching an existing measure: decide how it meets slicers on that column (`KEEPFILTERS` or not) |
 | No relationship, and the column is dimension-like (text or a code people slice by, repeated across many rows) | Propose a dimension and wait for the user. Meanwhile, a column filter on the fact with a comment naming the proposed dimension |
 | A numeric or degenerate condition, a dimension over about 131K rows, or an inactive relationship | The fact column, as the reference's exceptions say |
 
-**Always discuss it.** Every reply that writes or reviews a measure filtering or grouping by an
-attribute says which column carries the filter and why: the dimension it moved to and what the two
-checks found, the dimension you propose (name, columns, where it is built, the relationship), or the
-exception that keeps it on the fact. A proposed dimension gets built only after the user agrees, and
-through `semantic-models:model-change`, since it changes the model.
+**Assume referential integrity.** A dimension related to a fact holds every key the fact uses, so
+filtering the dimension reaches every fact row it should. Write measures on that premise, with no
+fallback for keys the dimension might lack. A missing key is proven, never assumed: suspect one only
+on evidence, test it with the query in the reference, and report a proven gap so it is fixed
+upstream. This governs how measures are written; it is not the DirectQuery relationship property
+`relyOnReferentialIntegrity`, which stays the modeller's call.
 
-The patterns, the two checks, what a proposal contains and the review checklist are in
+**Always discuss it.** Every reply that writes or reviews a measure filtering or grouping by an
+attribute says which column carries the filter and why: the dimension it moved to and how it meets
+slicers on that column, the dimension you propose (name, columns, where it is built, the
+relationship), or the exception that keeps it on the fact. A proposed dimension gets built only
+after the user agrees, and through `semantic-models:model-change`, since it changes the model.
+
+The patterns, the referential-integrity test, the slicer check, what a proposal contains and the
+review checklist are in
 [`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md).
 
 ## Step 3 is not always an X-aggregator
@@ -637,7 +645,8 @@ full reconciliation.
   optimization model, the debugging toolbox, and how this skill coexists with the
   `semantic-models:dax-optimisation` performance skill.
 - [`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md): filter
-  and group by the dimension column, the two checks before moving an existing filter off the fact,
+  and group by the dimension column, referential integrity (assumed, and a gap proven by test),
+  the slicer check before moving an existing filter off the fact,
   proposing a dimension for a dimension-like fact column, the exceptions, and a review checklist.
 - [`references/filter-context-traps.md`](references/filter-context-traps.md): measures that are
   right in a clean context and wrong in the report's. A second calendar's relationship, calculation

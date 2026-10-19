@@ -151,33 +151,47 @@ shift and intersects the shifted period, so the last-year number comes back blan
 
 For a week grain, use the column the calendar tags for weeks, not the fact's date.
 
+## Assume referential integrity
+
+A dimension related to a fact holds every key the fact uses. Write measures on that premise: filter
+the dimension and expect it to reach every fact row it should, with no fallback to the fact column,
+no handling for the blank member and no comment hedging against keys the dimension might lack.
+
+A gap is proven, never assumed. Suspect one only on evidence:
+
+- a (Blank) item in a slicer or on an axis bound to the dimension column;
+- old and new measures that disagree when you [prove a switch](#check-before-you-switch).
+
+Then test it:
+
+```dax
+EVALUATE
+EXCEPT (
+    DISTINCT ( Fact_Sales[Pricing Type] ),
+    DISTINCT ( Dim_Pricing_Type[Pricing Type] )
+)
+```
+
+No rows back: integrity holds, and the cause lies elsewhere. A row back proves the gap: fact rows
+carrying that key (a blank key included) belong to the dimension's blank member, and a dimension
+filter that excludes blank drops them. Show the user the missing values and fix them upstream, in the
+dimension's source or query.
+
+This governs how measures are written. It is not the DirectQuery relationship property
+`relyOnReferentialIntegrity`, which changes the SQL joins and stays the modeller's call.
+
 ## Check before you switch
 
-Moving a filter from the fact to the dimension can change the number in two ways.
-
-1. **Values missing from the dimension.** A fact row whose key has no match in the dimension belongs
-   to the blank member. A dimension filter that excludes blank drops that row, where the fact filter
-   kept it. Find such values first:
-
-   ```dax
-   EVALUATE
-   EXCEPT (
-       DISTINCT ( Fact_Sales[Pricing Type] ),
-       DISTINCT ( Dim_Pricing_Type[Pricing Type] )
-   )
-   ```
-
-   A row back is a referential-integrity gap. Fix it upstream, or say in the measure's comment that
-   those rows now drop out.
-
-2. **Slicers on the same column.** A slicer on `Dim_Pricing_Type[Pricing Type]` never touched a
-   fact-column filter, because the two sat on different columns. Once the measure filters the
-   dimension column, a `CALCULATE` filter replaces the slicer's selection unless it is wrapped in
-   `KEEPFILTERS`. Decide which you want and say so in the comment.
+With referential integrity assumed, moving a filter from the fact to the dimension changes the
+number in one way: **slicers on the same column.** A slicer on `Dim_Pricing_Type[Pricing Type]`
+never touched a fact-column filter, because the two sat on different columns. Once the measure
+filters the dimension column, a `CALCULATE` filter replaces the slicer's selection unless it is
+wrapped in `KEEPFILTERS`. Decide which you want and say so in the comment.
 
 Prove the switch the way this skill proves any rewrite. Define the old body as a query measure, then
 compare it with the new one over the cells the report shows (**Prove a flattened measure**, under
-[Keep the VARs flat](../SKILL.md#keep-the-vars-flat)).
+[Keep the VARs flat](../SKILL.md#keep-the-vars-flat)). Cells that disagree are evidence, not proof:
+run the [referential-integrity test](#assume-referential-integrity) before concluding a gap.
 
 ## When the fact is the right place
 
@@ -211,4 +225,7 @@ Flag any of these when writing or reviewing a measure:
   the dimension's.
 - A filter or grouping on a dimension-like fact column that no dimension carries: propose the
   dimension.
+- A measure that hedges against keys missing from the dimension (a fact-column fallback,
+  blank-member handling, a comment about an incomplete dimension) with no gap proven by the
+  referential-integrity test.
 - A time-intelligence measure that filters a calendar-table column the calendar does not tag.
