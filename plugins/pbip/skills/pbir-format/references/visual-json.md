@@ -85,7 +85,8 @@ Six patterns for referencing fields in queries and expressions:
 | pivotTable | Rows, Columns, Values |
 | slicer | Values |
 | advancedSlicerVisual | Values |
-| listSlicer | Values (unverified — not present in K201 examples; verify against a live PBI Desktop export) |
+| listSlicer | Values (rendered in Desktop 26.10, 2026-10-19) |
+| ganttChart (preview) | Category, Task, StartDate, EndDate, Progress, Columns, Tooltips (see Gantt Chart) |
 | pieChart / donutChart | Category, Y |
 | lineChart | Category, Y (also Y2 for combo) |
 | areaChart / stackedAreaChart / hundredPercentStackedAreaChart | Category, Y (also Series) |
@@ -316,6 +317,102 @@ Two companions from the same build: give a slicer its own `header.text` rather t
 and at least **76px** of height, or the header or the selector clips. Verified 2026-08-05.
 
 See `examples/visuals/default/slicer-dropdown.json` for the whole shape.
+
+### The list slicer (`listSlicer`) in dropdown mode
+
+The newer list slicer spells it differently: a boolean `dropdownMode` under `data`, not the classic
+slicer's `mode = 'Dropdown'`. Single select is two booleans under `selection`. Default values go in
+`objects.general[0].properties.filter`, the same `In` filter as the classic slicer above. Its
+formatting objects for the dropdown are `selectionBox` (the closed box and placeholder), `pills`
+(the selected values), `dropdownButton` and `dropdownMenu`. A visual-level measure filter such as
+"Release Count is not blank" goes in `filterConfig` (below) and leaves only values that return data.
+This shape rendered in Power BI Desktop 26.10 with the list slicer preview on; the same property
+written to the theme (`listSlicer.*.data.dropdownMode`) did not take effect. Verified 2026-10-19.
+
+Retest: set `dropdownMode` in one list slicer's `objects`, apply the change in Desktop and screenshot.
+
+```json
+"objects": {
+  "data": [{"properties": {"dropdownMode": {"expr": {"Literal": {"Value": "true"}}}}}],
+  "selection": [{"properties": {
+    "singleSelect": {"expr": {"Literal": {"Value": "true"}}},
+    "strictSingleSelect": {"expr": {"Literal": {"Value": "true"}}}
+  }}]
+}
+```
+
+A measure "is not blank" filter, as Desktop writes it:
+
+```json
+"filterConfig": {"filters": [{
+  "name": "<20 hex>",
+  "field": {"Measure": {"Expression": {"SourceRef": {"Entity": "<Table>"}}, "Property": "<Measure>"}},
+  "type": "Advanced",
+  "filter": {"Version": 2, "From": [{"Name": "m", "Entity": "<Table>", "Type": 0}],
+    "Where": [{"Condition": {"Not": {"Expression": {"Comparison": {"ComparisonKind": 0,
+      "Left": {"Measure": {"Expression": {"SourceRef": {"Source": "m"}}, "Property": "<Measure>"}},
+      "Right": {"Literal": {"Value": "null"}}}}}}}]},
+  "howCreated": "User"
+}]}
+```
+
+## Gantt Chart
+
+The native Gantt (`ganttChart`, an October 2026 preview) as it rendered in Power BI Desktop 26.10.
+The roles, selectors and defaults below were read from Desktop's own bundle
+(`WebView2Resources\minerva\scripts\desktop.GanttChartVisual.min.js` and `desktop.min.js`) and
+confirmed on the canvas. Verified 2026-10-19.
+
+Retest: bind one Gantt from this section, apply it in Desktop and screenshot it; then search the
+bundle for `level:task` and `isCategory` to see whether the selectors or the task-only bars changed.
+
+- **Roles** (`queryState` keys): `Category` (grouping, up to 3 levels, outermost first), `Task`
+  (grouping, exactly 1), `StartDate` and `EndDate` (measures, dateTime), `Progress` (measure, 0-1),
+  `Columns` (measures, up to 20), `Tooltips`. Groupings carry `active: true`. A blank `EndDate`, or
+  one equal to the start, draws a milestone. The data view is a matrix, Category then Task, top
+  1,000 rows.
+- **Every measure in the query decides which rows exist.** A task value appears as a row whenever any
+  bound measure, conditional-formatting measures included, is non-blank for it. A text column that
+  wraps `FORMAT` around a blank returns "" and keeps every task value as an empty row; guard it
+  with `IF ( NOT ISBLANK ( x ), FORMAT ( x, ... ) )`, and guard colour measures with a
+  `NOT ISEMPTY ( <fact> )` test.
+- **Bars and milestones draw on task rows only.** Category rows carry their columns and a
+  background band, never a summary bar.
+- **Per-level formatting** uses `{"id": "level:level1"}`, `level:level2`, `level:level3` for category
+  levels and `{"id": "level:task"}` for task rows, on `row`, `bar`, `progress` and `milestone`.
+- **Per-column formatting** (`columnWidth.value`, `horizontalAlignment` on `columnHeaders` and
+  `columnValue`) uses `{"metadata": "<queryRef>"}`; the task column's queryRef is the Task field's.
+  Per-column widths need `columnHeaders.customColumnWidth = true`. The task column's header text is
+  the Task projection's `displayName`.
+- **Row height** = round(font px x 1.35) + `columnValue` top and bottom padding. At 9 pt (12 px)
+  with `paddingTop` 4 and `paddingBottom` 3 (`individualPadding = true`) that is 23 px. Above the
+  first row sit the visual title and subtitle, the column header and the axis: about 91 px with a
+  two-tier axis, 117 px with the zoom bar on. Leave about 24 px below the last row, or a scrollbar
+  appears.
+- **Colour cascade:** a bar, progress fill or milestone uses its own `color` only when its
+  `customizeColor` is true; otherwise it takes the row's `row.color`. So one measure on `row.color`
+  colours bars and milestones together. Conditional formatting by measure (selector
+  `{"data": [{"dataViewWildcard": {"matchingOption": 1}}]}`) reaches **task rows only**, with
+  `matchingOption` 0 as well. To colour category rows per value, give `row.color` one static entry
+  per value with a `scopeId` selector, the shape Desktop writes for per-value colours:
+
+  ```json
+  {"properties": {"color": {"solid": {"color": {"expr": {"Literal": {"Value": "'#14A39A'"}}}}}},
+   "selector": {"data": [{"scopeId": {"Comparison": {"ComparisonKind": 0,
+     "Left": {"Column": {"Expression": {"SourceRef": {"Entity": "<Table>"}}, "Property": "<Column>"}},
+     "Right": {"Literal": {"Value": "'Testing'"}}}}}]}}
+  ```
+
+  The row band takes `row.backgroundColor` when `backgroundCustomizeColor` is true and the row
+  colour when it is false, at `row.backgroundTransparency`.
+- **Defaults worth knowing:** `progress` is a white overlay at 70% transparency over the bar
+  (`customizeColor` true); set its `color`, `transparency` 0 and `relativeHeight` (percent of the bar)
+  for a solid fill. Bar `height` is in px. Milestones are 12 px diamonds.
+- **Axis:** `axis.autoScale` defaults on and then ignores `primaryUnit` and `secondaryUnit`; set it
+  false for fixed tiers. Units are `day`, `month` or `year` (secondary also `none`); there is no week
+  or quarter. `shadingShow` shades Saturday and Sunday by default. `zoomShow` adds a zoom bar, and
+  `zoomMin` / `zoomMax` hold the saved window as epoch milliseconds: absolute dates, so a saved zoom
+  only fits the selection it was saved on.
 
 ## Slicer Sync Groups
 

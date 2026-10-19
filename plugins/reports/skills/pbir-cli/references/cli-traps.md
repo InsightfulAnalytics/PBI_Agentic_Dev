@@ -130,6 +130,101 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   treats that as valid; the `pbip:pbir-format` skill expects them equal. To line them up, rename the
   folder to the `name` the JSON already carries.
 
+## Visual types and properties the catalog does not know yet
+
+A built-in visual newer than pbir's core catalog is treated like a custom visual, and only its
+position can be changed. If `pbir schema roles <type>` answers `Unknown visual type`, plan for this
+before promising a build. (pbir 0.9.32, Power BI Desktop 26.10. Verified 2026-10-19.)
+
+Retest: `pbir schema roles ganttChart`.
+
+- **The native Gantt (`ganttChart`) cannot be created, bound or formatted per visual.**
+  `pbir add visual ganttChart` has no template; `pbir visuals bind` stops with
+  `Data roles for 'ganttChart' not found`, with `--rawdog` too; `pbir visuals title`, `subtitle`,
+  `cf` and `pbir set` on any of its objects stop with `Unknown component`. `pbir visuals position`
+  and `z-order` work. Two routes do work: type-wide defaults in the report theme,
+  `pbir theme set-formatting "<Report>.Report" "ganttChart.*.axis.primaryUnit" --value month`
+  (any Gantt object: `axis`, `bar`, `progress`, `milestone`, `row`, `columnHeaders`, `columnValue`,
+  plus `title` and `subTitle`), and field wells, measure-driven colours and per-visual titles set in
+  Desktop. Seed the visual in Desktop first; `pbir cp` then copies it, formatting included. Where
+  the user allows hand-edited PBIR for the gap, the wells, selectors and format shapes that
+  rendered are in the `pbip:pbir-format` skill, `references/visual-json.md`, "Gantt Chart".
+- **`listSlicer` has no `data.dropdownMode` in the catalog**, so `pbir set "<Slicer>.data.dropdownMode"`
+  fails with `Component 'data' has no property 'dropdownMode'`. Writing it to the theme
+  (`listSlicer.*.data.dropdownMode`) succeeds but Desktop still drew a list. Switch one slicer to
+  dropdown in Desktop, then `pbir cp` it and rebind with `pbir visuals bind -r/-a`, or (where hand
+  edits are allowed) set it in the visual's own `objects`, as `pbip:pbir-format` "Slicer Formatting"
+  shows.
+- **`pbir visuals padding` on a `listSlicer` fails** with
+  `Component 'padding' has no property 'paddingIndividual'`. Set the padding in the theme instead:
+  `listSlicer.*.padding.top`.
+- **`pbir visuals border --radius` on a new Card (`cardVisual`) fails** with
+  `Component 'border' has no property 'radius'`: the card's own `border` object shadows the container
+  one. For a tile with rounded corners, put a rounded shape behind a transparent card.
+
+## Measure filters and measure-driven shape text
+
+- **`pbir add filter` takes columns only.** A visual-level filter on a measure, such as
+  `Release Count is not blank` to hide slicer items with no data, fails with
+  `Filter field must be a Column, got Measure`. Set it in Desktop's Filters pane, then `pbir cp` the
+  configured visual where it is needed again. (pbir 0.9.32. Verified 2026-10-19.)
+
+  Retest: `pbir add filter "<Table>" "<Measure>" -v "<Visual>" --type Advanced --operator IsNotBlank`.
+- **A shape's text from a measure has to go in its default-state entry.** Shapes keep their text
+  styling in an `objects.text` entry with `"selector": {"id": "default"}`; `pbir set "<Shape>.text.text"`
+  writes there. `pbir visuals cf "<Shape>" --measure "text.text <Table>.<Measure>"` writes the
+  measure to a separate entry with no selector, and a literal `text` in the default-state entry wins,
+  so the shape keeps showing the literal. This writes the measure where Desktop reads it, and it
+  rendered:
+
+  ```bash
+  pbir set "<Shape>.text.default.text" --rawdog \
+    --json '{"expr":{"Measure":{"Expression":{"SourceRef":{"Entity":"<Table>"}},"Property":"<Measure>"}}}'
+  pbir set "<Shape>.text.default.fontColor" --rawdog \
+    --json '{"solid":{"color":{"expr":{"Measure":{"Expression":{"SourceRef":{"Entity":"<Table>"}},"Property":"<Colour measure>"}}}}}'
+  ```
+
+  Without `--rawdog` the `--json` value is refused as `Expected string, got dict`. A measure added to
+  the TMDL must be applied in Desktop first, or `cf` refuses it as not found in the model.
+  (pbir 0.9.32, Desktop 26.10. Verified 2026-10-19.)
+
+  Retest: bind a measure with `pbir visuals cf ... --measure "text.text ..."` on a shape cloned from
+  one with literal text, then screenshot it.
+- **`pbir visuals group --add` keeps the visual's page coordinates**, while the other children of a
+  group are positioned relative to it. Run `pbir visuals position` on the child afterwards with
+  group-relative values. (pbir 0.9.32. Verified 2026-10-19.)
+- **`pbir add filter` appends; it never replaces.** Running the same command twice leaves two
+  identical filters on the visual. Read `filterConfig` before adding, or remove the extra one with
+  `pbir rm "<Visual>/filter:<name>" -f`. (pbir 0.9.32. Verified 2026-10-19.)
+- **Shapes have no diamond.** `shape.tileShape` refuses `diamond`. For a milestone-style legend
+  marker, set `shape.tileShape` to `rectangle` and `rotation.shapeAngle` to `45`. A
+  `rectangleRoundedByPixel` swatch about 22x10 px drew as an oval, so legend swatches want
+  `rectangle` too. (pbir 0.9.32, Desktop 26.10. Verified 2026-10-19.)
+
+  Retest: `pbir set "<Shape>.shape.tileShape" --value diamond`.
+
+## Bookmarks on a copied page
+
+`pbir cp` copies a page without its bookmarks, and a copied bookmark cannot be pointed at the new
+page. `pbir cp "<Report>.Report/bookmark:<name>" "<Report>.Report/bookmark:<new>"` copies one, and
+`pbir bookmarks page <report> <bookmark> <page>` then rewrites only `explorationState.activeSection`:
+the visual states stay keyed under the source page in `explorationState.sections`, so the bookmark
+opens the new page and changes nothing on it. pbir also has no command that puts a bookmark in a
+group, which a bookmark navigator reads. A per-page show/hide panel driven by bookmarks therefore
+needs its bookmarks made in Desktop on each page (or, where the user allows hand edits, a copy of the
+bookmark file with the section key renamed and the group added to `bookmarks.json`).
+(pbir 0.9.32. Verified 2026-10-19.)
+
+Retest: copy a bookmark, run `pbir bookmarks page` on it, and read the copy's `sections` keys.
+
+## `pbir model -q`
+
+**`-F json` fails on any date value** with `Error: Object of type datetime is not JSON serializable`,
+whatever the query. Format dates in the query (`FORMAT ( [Start], "yyyy-mm-dd" )`, or `"" & [Measure]`
+to stringify every column), or use the default table output. (pbir 0.9.32. Verified 2026-10-19.)
+
+Retest: `pbir model "<Report>.Report" -F json -q "EVALUATE ROW(\"d\", TODAY())"`.
+
 ## Publishing
 
 **`pbir publish` on a thick project failed with a bare "Publishing failed".** It publishes the report
