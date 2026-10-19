@@ -108,9 +108,10 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `dax-standard` states its reference rule (`Table[Column]`, the table quoted only where DAX
   requires it, measures as `[Measure]`) in place of upstream's always-quoted `'Table'[Column]`.
 - Added "filter the dimension, not the fact" to `dax-standard` (2026-10-19): measures filter and
-  group by the dimension column a fact relates to, never the fact's copy of it, with the two checks
-  before moving an existing filter, the exceptions and a review checklist in the new
-  `references/filter-dimensions-not-facts.md`. A dimension-like column that sits only on the fact
+  group by the dimension column a fact relates to, never the fact's copy of it, with the slicer
+  check before moving an existing filter, the exceptions and a review checklist in the new
+  `references/filter-dimensions-not-facts.md`. Measures assume referential integrity: a missing
+  dimension key is tested with a query and proven, never assumed or hedged against. A dimension-like column that sits only on the fact
   gets a proposed dimension, built in the source or Power Query once the user agrees, and every
   reply says which column carries the filter. The skill's examples that filtered a fact attribute
   (`method.md`, `core-functions.md`, `business-recipes.md`, `advanced-patterns.md`, the `Net Sales %`
