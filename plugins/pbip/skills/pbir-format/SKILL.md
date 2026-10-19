@@ -116,7 +116,8 @@ For detailed report design guidance (layout, spacing, visual hierarchy, color, a
 | Bind a field parameter | **`references/visual-json.md`** -- Field Parameters: expanded projections plus the sibling `fieldParameters` array; measure wells only |
 | Clone a page or a visual | **`references/page.md`** -- regenerate every `name` id, `filterConfig` filter names included, then grep `definition/bookmarks/` |
 | Add or remove a page or visual by hand | **`references/pbir-structure.md`** -- visuals are discovered from their folders; pages must also be listed in `pages.json` `pageOrder` |
-| Format a slicer (dropdown, header, height) | **`references/visual-json.md`** -- Slicer Formatting: `objects.data` mode, the slicer object set, the 76px floor |
+| Format a slicer (dropdown, header, height) | **`references/visual-json.md`** -- Slicer Formatting: `objects.data` mode, the slicer object set, the 76px floor; the list slicer's boolean `dropdownMode` |
+| Bind or format the native Gantt (`ganttChart`) | **`references/visual-json.md`** -- Gantt Chart: roles, level and column selectors, row height, colour cascade, category rows without bars, axis units |
 | Set an axis title | **`references/visual-json.md`** -- Axis Titles: the property is `titleText`, not `axisTitle` |
 | A formatting change did nothing | **`references/visual-container-formatting.md`** (What Goes Wrong) + **`references/schema-patterns/selectors.md`** (a missing `{"id": "default"}` selector) |
 | A slicer, button, navigator, bookmark or shape renders wrong though `pbir validate` passes | **`references/silent-render-traps.md`** -- slicer object sets, button states, navigator page ids, data bookmarks, theme wildcard reach, textbox heights, project-file blank opens |
