@@ -121,6 +121,11 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   PowerShell that runs TOM work on Windows, and they needed `jq` and a `tom_nuget` folder this
   machine never had, so they validated nothing while spawning bash on every matching Bash call.
   `connect-pbid/SKILL.md` and `hooks/README.md` say so.
+- Took `powerbi-custom-visuals` out of the model's listing (2026-10-24):
+  `disable-model-invocation: true` in its frontmatter. Tim no longer builds pbiviz visuals, the
+  global `powerbi-visuals-tools` is uninstalled and the plugin's `pbiviz` MCP server is denied in
+  his user settings. `/custom-visuals:powerbi-custom-visuals` still runs it. Plugin skills ignore
+  `skillOverrides`, so a frontmatter line is the only switch.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -156,6 +161,8 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   `session_context` toggle and its table row. Keep them when taking upstream hook changes.
 - `plugins/pbi-desktop/hooks/{hooks.json,config.yaml,README.md}` and the *Validation hooks* line in
   `connect-pbid/SKILL.md`: the hooks are off. Keep `"hooks": {}` when taking upstream hook changes.
+- The `disable-model-invocation: true` line in `custom-visuals/skills/powerbi-custom-visuals/SKILL.md`.
+  Keep it when taking upstream frontmatter changes.
 - One-line links to the fork-owned references above, added to upstream-authored files:
   `pbir-format/SKILL.md` and its `references/{validation,page,bookmarks}.md`, `pbip/SKILL.md`
   (one project per folder, fork step 6), `deneb-visuals/SKILL.md` (also the native-versus-Deneb

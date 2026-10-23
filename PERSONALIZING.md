@@ -210,6 +210,8 @@ reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FO
   `description`; take upstream's `types`, `userConfig` and keyword changes (the mod options).
 - `plugins/pbi-desktop/hooks/hooks.json` stays `"hooks": {}` and `config.yaml` stays
   `all_hooks_enabled: false` (see FORK-CHANGES.md).
+- `custom-visuals/skills/powerbi-custom-visuals/SKILL.md` keeps `disable-model-invocation: true`
+  (see FORK-CHANGES.md).
 
 **Deliberate exclusions; do not harvest:**
 

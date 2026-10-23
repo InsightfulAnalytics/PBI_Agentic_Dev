@@ -1,6 +1,7 @@
 ---
 name: powerbi-custom-visuals
 version: 26.40.3
+disable-model-invocation: true
 description: Power BI custom visual (.pbiviz) development with the pbiviz toolchain and its MCP server. Automatically invoke when the user mentions "custom visual", "pbiviz", "develop a Power BI visual", "powerbi-visuals-tools", "IVisual", "capabilities.json", "visual formatting model", "visual certification", "publish a visual to AppSource", or asks to scaffold, build, debug, package, certify, or publish a .pbiviz developer visual.
 ---
 
