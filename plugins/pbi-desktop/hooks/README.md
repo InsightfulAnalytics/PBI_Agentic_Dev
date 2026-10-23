@@ -1,5 +1,10 @@
 # PBI Desktop Validation Hooks
 
+> **Disabled in this fork.** `hooks.json` registers no hooks and `config.yaml` sets
+> `all_hooks_enabled: false`. The `Bash` matchers never see TOM work, which runs through PowerShell
+> on Windows, yet each matching Bash call still spawned bash. The scripts stay for reference; see
+> FORK-CHANGES.md.
+
 PreToolUse and PostToolUse hooks that validate DAX references, enforce measure metadata, refresh model metadata, and check referential integrity when working with Power BI Desktop via TOM/ADOMD.NET.
 
 ## Hook files
