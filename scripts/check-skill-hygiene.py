@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Skill hygiene checks for the power-bi-agentic-dev marketplace.
 
-Four jobs, one walk of the tracked markdown:
+Six jobs, one walk of the tracked markdown:
 
 1. Dated-claim rot. A ``Verified <date>`` stamp older than ``--max-age-days`` is reported
    when it carries a ``Retest:`` line, and is an error when the claim pins a tool version
@@ -14,6 +14,10 @@ Four jobs, one walk of the tracked markdown:
    ``plugins/`` must resolve to a real file and a real heading.
 5. SKILL.md frontmatter sanity. An unquoted YAML scalar cannot contain ": ", and a skill whose
    frontmatter fails to parse loads with EVERY field silently dropped, so it never triggers.
+6. Skill budget (warnings). After a compaction an invoked skill is re-attached up to about
+   20,000 chars and the tail is dropped, usually the reference index, so a SKILL.md over
+   19,000 chars, or one whose reference index starts past char 19,000, is reported. So is a
+   description plus ``when_to_use`` over 400 chars, which every session pays in the listing.
 
 Usage::
 
@@ -44,9 +48,9 @@ LEARNINGS = REPO / "LEARNINGS.md"
 
 # Files carrying a copy of the boundary rule, kept byte-identical to LEARNINGS.md.
 SENTINEL_FILES = [
-    REPO / "plugins/fabric-cli/skills/fabric-cli/SKILL.md",
-    REPO / "plugins/pbi-desktop/skills/connect-pbid/SKILL.md",
-    REPO / "plugins/reports/skills/pbir-cli/SKILL.md",
+    REPO / "plugins/fabric-cli/skills/fabric-cli/references/where-learnings-go.md",
+    REPO / "plugins/pbi-desktop/skills/connect-pbid/references/where-learnings-go.md",
+    REPO / "plugins/reports/skills/pbir-cli/references/where-learnings-go.md",
 ]
 SENTINEL_BEGIN = "<!-- boundary-rule:begin -->"
 SENTINEL_END = "<!-- boundary-rule:end -->"
@@ -365,6 +369,61 @@ def check_frontmatter(path: Path, text: str, rep: Report) -> None:
     flush()
 
 
+# --- skill budget ---------------------------------------------------------------------
+
+BODY_BUDGET = 19_000
+LISTING_BUDGET = 400
+INDEX_RE = re.compile(r"^#{2,3} (Additional )?(References|Reference files)\b", re.MULTILINE)
+
+
+def frontmatter_value(lines: list[str], end: int, key: str) -> str:
+    """The text of one top-level frontmatter key, continuation lines joined, quotes stripped."""
+    out: list[str] = []
+    for i in range(1, end):
+        line = lines[i]
+        m = FM_KEY_RE.match(line)
+        if m and not line.startswith((" ", "	", "-")):
+            if out:
+                break
+            if m.group(1) == key:
+                out.append(m.group(2).strip())
+        elif out:
+            out.append(line.strip())
+    value = " ".join(out).strip()
+    if len(value) > 1 and value[0] in "\"'" and value[-1] == value[0]:
+        value = value[1:-1]
+    return value
+
+
+def check_budget(path: Path, text: str, rep: Report) -> None:
+    if path.name != "SKILL.md":
+        return
+    where = rel(path)
+    if len(text) > BODY_BUDGET:
+        rep.add(Finding(where, 1, "SKILL_OVER_BUDGET",
+                        f"{len(text):,} chars, over the {BODY_BUDGET:,} a compaction keeps; move "
+                        f"fork-added detail into a fork-owned references/ file", "warning"))
+    m = INDEX_RE.search(text)
+    if m and m.start() > BODY_BUDGET:
+        line = text.count("\n", 0, m.start()) + 1
+        rep.add(Finding(where, line, "INDEX_PAST_BUDGET",
+                        f"the reference index starts at char {m.start():,}, so a compaction drops it",
+                        "warning"))
+    lines = text.splitlines()
+    if not lines or lines[0].strip() != "---":
+        return
+    end = next((i for i in range(1, len(lines)) if lines[i].strip() == "---"), None)
+    if end is None:
+        return
+    if frontmatter_value(lines, end, "disable-model-invocation") == "true":
+        return  # not in the listing, so its description costs nothing
+    listed = len(frontmatter_value(lines, end, "description")) + len(frontmatter_value(lines, end, "when_to_use"))
+    if listed > LISTING_BUDGET:
+        rep.add(Finding(where, 1, "DESCRIPTION_OVER_BUDGET",
+                        f"description plus when_to_use is {listed} chars, over {LISTING_BUDGET}; every "
+                        f"session pays it in the skill listing", "warning"))
+
+
 # --- boundary-rule drift -------------------------------------------------------------
 
 def extract_sentinel(text: str) -> str | None:
@@ -389,7 +448,7 @@ def check_boundary_rule(rep: Report) -> None:
         copy = extract_sentinel(read(f))
         if copy is None:
             rep.add(Finding(rel(f), 1, "MISSING_BOUNDARY_RULE",
-                            "SKILL.md carries no boundary-rule block"))
+                            "file carries no boundary-rule block"))
         elif copy != canonical:
             rep.add(Finding(rel(f), 1, "BOUNDARY_RULE_DRIFT",
                             "boundary-rule block differs from LEARNINGS.md"))
@@ -419,6 +478,7 @@ def main() -> int:
         check_dated_claims(path, text, args.max_age_days, args.today, rep)
         check_leakage(path, text, patterns, hashes, rep)
         check_frontmatter(path, text, rep)
+        check_budget(path, text, rep)
         if not args.no_links and rel(path).startswith("plugins/"):
             check_links(path, text, anchor_cache, rep)
     check_boundary_rule(rep)

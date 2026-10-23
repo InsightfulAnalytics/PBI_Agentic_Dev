@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
-"""Copy the boundary rule from LEARNINGS.md into the SKILL.md files that carry it.
+"""Copy the boundary rule from LEARNINGS.md into the three skills that carry it.
 
-Three skills instruct an agent to record what it learns. Each needs the routing rule inline,
-because ``${CLAUDE_PLUGIN_ROOT}`` scopes a plugin to its own directory: a link to a repo-root
+Three skills instruct an agent to record what it learns. Each needs its own copy of the routing
+rule, because ``${CLAUDE_PLUGIN_ROOT}`` scopes a plugin to its own directory: a link to a repo-root
 policy file does not resolve from an installed plugin. Three copies is therefore the correct
-design, and this script is what stops them drifting.
+design, and this script is what stops them drifting. The copies live in each skill's
+``references/where-learnings-go.md``, and the SKILL.md body links to it, so the 4,400-char block
+is read when a learning is recorded rather than carried in every invocation.
 
 LEARNINGS.md is the source. Run this after editing it.
 
@@ -26,9 +28,9 @@ BEGIN = "<!-- boundary-rule:begin -->"
 END = "<!-- boundary-rule:end -->"
 
 TARGETS = [
-    REPO / "plugins/fabric-cli/skills/fabric-cli/SKILL.md",
-    REPO / "plugins/pbi-desktop/skills/connect-pbid/SKILL.md",
-    REPO / "plugins/reports/skills/pbir-cli/SKILL.md",
+    REPO / "plugins/fabric-cli/skills/fabric-cli/references/where-learnings-go.md",
+    REPO / "plugins/pbi-desktop/skills/connect-pbid/references/where-learnings-go.md",
+    REPO / "plugins/reports/skills/pbir-cli/references/where-learnings-go.md",
 ]
 
 

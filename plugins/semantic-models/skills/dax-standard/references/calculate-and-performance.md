@@ -47,6 +47,19 @@ There is no prize for avoiding it. Reasonable uses:
 Rule of thumb: **a single, simple column predicate over a base measure** is the safe and
 readable use. Stacked filter modifiers are where it stops being readable.
 
+## What cannot move into CALCULATE
+
+Two things cannot move into `CALCULATE`, so there the X-aggregator stays:
+
+- **Computed columns.** Extension columns carry no data lineage, so they filter nothing *and*
+  cannot be referenced: `CALCULATE( [@Revenue], __Table )` fails with *"The value for '@Revenue'
+  cannot be determined."* Materialise-then-aggregate — weighted averages, per-row currency
+  conversion, per-customer thresholds — is X-function territory.
+- **Row-level expressions.** `CALCULATE`'s first argument has no row context, so
+  `CALCULATE( Sales[Qty] * Sales[Price], __Table )` fails with *"A single value for column 'Qty'
+  … cannot be determined."* The working rewrite is `CALCULATE( SUMX( Sales, … ), __Table )` — the
+  `SUMX` did not disappear, it moved inside and now iterates `Sales`.
+
 ## When CALCULATE is the wrong call: filtering the column you are aggregating
 
 One carve-out from the row above. "Non-additive, so `CALCULATE`" holds right up until a filter
