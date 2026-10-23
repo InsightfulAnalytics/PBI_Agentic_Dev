@@ -122,10 +122,38 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   machine never had, so they validated nothing while spawning bash on every matching Bash call.
   `connect-pbid/SKILL.md` and `hooks/README.md` say so.
 - Took `powerbi-custom-visuals` out of the model's listing (2026-10-24):
-  `disable-model-invocation: true` in its frontmatter. Tim no longer builds pbiviz visuals, the
-  global `powerbi-visuals-tools` is uninstalled and the plugin's `pbiviz` MCP server is denied in
-  his user settings. `/custom-visuals:powerbi-custom-visuals` still runs it. Plugin skills ignore
-  `skillOverrides`, so a frontmatter line is the only switch.
+  `disable-model-invocation: true` in its frontmatter. The maintainer no longer builds pbiviz
+  visuals, so the global `powerbi-visuals-tools` is uninstalled and the plugin's `pbiviz` MCP server
+  is denied in the maintainer's user settings. `/custom-visuals:powerbi-custom-visuals` still runs
+  it. Plugin skills ignore `skillOverrides`, so a frontmatter line is the only switch.
+- Cut the listing and the bodies a compaction truncates (2026-10-24). After a compaction an invoked
+  skill is re-attached up to about 20,000 chars and the tail, usually the reference index, is
+  dropped. Only fork-written text moved, and only into new fork-owned `references/` files, with one
+  routing line left behind, so upstream's lines stay where a harvest expects them:
+  - `dax-standard` 34,845 to 18,857 chars: `references/{flat-vars,house-style,number-formatting,tables-from-power-query}.md`,
+    and *What cannot move into CALCULATE* appended to `references/calculate-and-performance.md`.
+  - `deneb-visuals` 45,966 to 23,015: `references/{gotchas,editions-and-editor,expression-functions,interactivity-and-runtime-fields,field-parameters,images-and-external-resources}.md`.
+    The rest is upstream text and the fork's edits to upstream lines; going lower means moving upstream text.
+  - `performant-matrix` 21,933 to 17,895: `references/{consultation-block,gotchas}.md`.
+    `deneb-pbir` 19,482 to 13,730: `references/audit-report.md`. `modifying-theme-json` 19,813 to
+    18,419: `references/schema-and-docs.md`.
+  - The 4,392-char boundary-rule block left `fabric-cli`, `connect-pbid` and `pbir-cli` for a
+    `references/where-learnings-go.md` in each, with a one-line pointer in the body.
+    `scripts/sync-boundary-rule.py`, `scripts/check-skill-hygiene.py` and the allow globs in
+    `.github/denylist-patterns.txt` follow the copies there.
+  - Descriptions of fork-owned skills cut to 400 chars or less: `dax-standard`, `deneb-pbir`,
+    `performant-matrix`, `model-change`, `date-table`, `power-bi-theme`, `pbi-verify-loop`,
+    `desktop-screen-capture`; `modifying-theme-json` too. `fabric-cli` is back on the fork's
+    240-char description after the 26.40.5 harvest brought upstream's 607 back.
+  - `disable-model-invocation: true` on `python-visuals`, `r-visuals` and the `audit-context`,
+    `migrating-fabric-trial-capacities` and `pbi-plan` commands: nothing the maintainer runs
+    routes to them by model invocation, and each still runs as a slash command.
+  - `plugins/pbip/hooks/session-context.md` 3,540 to 2,991 chars: the header paragraph, the
+    tenant-settings and paginated clauses and the tooltip line (which `pbir-cli` routes) are gone;
+    the Desktop rules are unchanged.
+  - `scripts/check-skill-hygiene.py` job 6 warns on a SKILL.md over 19,000 chars, a reference
+    index that starts past char 19,000, and a description plus `when_to_use` over 400 chars
+    (skipped for a `disable-model-invocation` skill), so a harvest cannot quietly undo this.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -143,6 +171,13 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/reports/skills/pbir-cli/references/cli-traps.md`
 - `plugins/reports/skills/pbi-plan/references/data-triage.md`
 - `plugins/semantic-models/skills/dax-standard/references/filter-context-traps.md`
+- `plugins/semantic-models/skills/dax-standard/references/{flat-vars,house-style,number-formatting,tables-from-power-query}.md`
+- `plugins/custom-visuals/skills/deneb-visuals/references/{gotchas,editions-and-editor,expression-functions,interactivity-and-runtime-fields,field-parameters,images-and-external-resources}.md`
+- `plugins/custom-visuals/skills/performant-matrix/references/{consultation-block,gotchas}.md`
+  (the whole `performant-matrix` and `deneb-pbir` skills are fork-owned)
+- `plugins/custom-visuals/skills/deneb-pbir/references/audit-report.md`
+- `plugins/reports/skills/modifying-theme-json/references/schema-and-docs.md`
+- `plugins/{fabric-cli/skills/fabric-cli,pbi-desktop/skills/connect-pbid,reports/skills/pbir-cli}/references/where-learnings-go.md`
 - `plugins/semantic-models/skills/semantic-model/references/synthetic-datasets.md`
 - `plugins/reports/skills/pbi-report-design/scripts/find_title_textboxes.py`
 - `plugins/fabric-cli/skills/fabric-cli/references/{consumer-access.md,usage-and-lineage.md}`
@@ -155,8 +190,20 @@ Modified upstream-authored files, which **will** conflict on a harvest:
 - `.github/workflows/validate-plugins.yml` (widened path filters, added the hygiene and
   boundary-rule steps)
 - The learnings instruction in `fabric-cli/SKILL.md`, `connect-pbid/SKILL.md` and
-  `pbir-cli/SKILL.md`, each now carrying a `<!-- boundary-rule:begin -->` block. Keep the fork's
-  version and re-run `python scripts/sync-boundary-rule.py`.
+  `pbir-cli/SKILL.md`: a one-line pointer to the skill's `references/where-learnings-go.md`, which
+  carries the `<!-- boundary-rule:begin -->` block. Keep the pointer in place of any learnings
+  block upstream adds, and re-run `python scripts/sync-boundary-rule.py`.
+- `fabric-cli/SKILL.md`'s 240-char `description`. Upstream's runs to 607; keep the fork's.
+- The `disable-model-invocation: true` lines in `python-visuals/SKILL.md`, `r-visuals/SKILL.md`
+  and `fabric-cli/commands/migrating-fabric-trial-capacities.md`. Keep them when taking upstream
+  frontmatter changes.
+- Bodies that diverge far beyond link edits (`git diff -w --ignore-cr-at-eol --numstat 97410b1 --
+  "plugins/*/skills/*/SKILL.md"`, 2026-10-24): `modifying-theme-json` (+271/-84; upstream has since
+  rewritten it CLI-only at 6,684 chars, so a harvest is a rewrite, not a merge), `pbip` (+151/-19),
+  `power-query` (+144/-42), `deneb-visuals` (+108/-42, after the split above), `pbir-cli`
+  (+103/-56), `tmdl` (+95/-51), `connect-pbid` (+72/-37), `pbi-report-design` (+62/-19),
+  `create-pbi-report` (+51/-11), `fabric-cli` (+49/-20) and `svg-visuals` (+32/-6). Harvest these
+  hunk by hunk.
 - `plugins/pbip/hooks/{hooks.json,config.yaml,README.md}`: the `SessionStart` entry, the
   `session_context` toggle and its table row. Keep them when taking upstream hook changes.
 - `plugins/pbi-desktop/hooks/{hooks.json,config.yaml,README.md}` and the *Validation hooks* line in

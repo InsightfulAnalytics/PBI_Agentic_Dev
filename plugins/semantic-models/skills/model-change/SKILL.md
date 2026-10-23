@@ -1,7 +1,7 @@
 ---
 name: model-change
 version: 26.40.3
-description: The end-to-end pipeline for changing a semantic model in a local PBIP — confirm the field exists, author, land it in TMDL, validate offline, then prove it against real data. Invoke on "change the model", "add a measure", "add a column", "fix the model", "the number is wrong", "this measure is wrong", "add a relationship", "set up RLS", "add a calculation group", "add a date table", "rename a field", "the model won't open", or any request that ends with a .tmdl file changing. Sequences connect-pbid, power-query, date-table, semantic-model, dax-standard, tmdl, dax-optimisation and refresh-semantic-model, and carries the Desktop-breaking gotchas that a single-skill route misses.
+description: The end-to-end pipeline for changing a semantic model in a local PBIP, from confirming the field exists to proving the result against real data. Invoke on "change the model", "add a measure", "add a column", "the number is wrong", "add a relationship", "set up RLS", "add a calculation group", or any request that ends with a .tmdl file changing. Carries the Desktop-breaking gotchas.
 ---
 
 # Model change pipeline

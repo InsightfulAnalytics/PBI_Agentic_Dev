@@ -1,7 +1,7 @@
 ---
 name: performant-matrix
 version: 26.40.3
-description: 'Diagnose a slow financial matrix before fixing it: separate row-dispatch cost from the per-cell format-string and conditional-formatting tax, then choose with the user between a bridge-table model fix, a native restructure, or a Deneb grid. Use whenever a P&L or financial matrix is slow or unrenderable ("the matrix takes 10 seconds", "slow P&L visual", "my SWITCH dispatch measure is slow", "calculation group on rows is slow", "Performance Analyzer is much higher than the DAX time", "the matrix errors in the Service"). Deneb is one of three outcomes, never the assumed one. Vega spec authoring lives in custom-visuals:deneb-visuals and spec round-tripping in custom-visuals:deneb-pbir.'
+description: 'Diagnose a slow financial matrix before fixing it: separate row-dispatch cost from the per-cell format-string and conditional-formatting tax, then choose with the user between a bridge table, a native restructure or a Deneb grid. Use when a P&L or financial matrix is slow or will not render (SWITCH dispatch, a calculation group on rows, Performance Analyzer far above the DAX time).'
 ---
 
 # Performant Matrix: diagnosing and fixing a slow financial matrix (PBIR)
@@ -84,35 +84,11 @@ Rows 1 and 6 are not exclusive. The diagnosed matrix was both at once: roughly 5
 
 **Pre-check 2 (present two options, not three):** if the bridge gate below fails, drop option 1 and name the clause that failed.
 
-**The consultation block:**
-
-> Here is what your matrix is paying for, from the pinned-context measurements:
->
-> - **Row dispatch**: `<dispatch query>` minus `<flat query>` = **`<X>` ms**
-> - **Per-cell tax** (format strings + CF colour measures, invisible to `EVALUATE`): Performance Analyzer `<PA>` ms against a `<dispatch>` ms query leaves roughly **`<Y>` ms** unaccounted for
-> - **Measure floor**: `<flat query>` ms. Nothing below this is reachable.
->
-> Three ways forward. They are not equivalent, and the fastest one is not the one I would recommend by default.
->
-> **1. Bridge the model, keep the native visual.**
-> Add a physical line-to-account bridge table and a bidirectional relationship; the row measures stop asking "which row am I on" and start asking "which accounts does this row cover". Removes row dispatch at the source.
-> *Buys:* on the lab's account-shaped P&L, 4,815 ms to 348 ms cold (13.8x) and 4,594 ms to 319 ms warm.
-> *Costs:* a model change, and a bidirectional relationship on a shared dimension can create ambiguous filter paths. I check the blast radius before committing, and RLS needs `securityFilteringBehavior` set separately.
-> *Keeps:* native sorting, drill, export to Excel, the conditional-formatting UI, and every future visual inherits it.
->
-> **2. Restructure natively, no new tables.**
-> Static format strings where the column shares an order of magnitude; kill any `formatStringDefinition` that references its own measure; collapse CF colour measures to a colour column or a static rule; fewer measures on screen.
-> *Buys:* the per-cell tax only. Measured: 182 cells went from 622 ms static to 1,270 ms with a self-referencing dynamic format string, so that half is real money.
-> *Costs:* row dispatch stays. And a warning: replacing a `SWITCH` with a calculation group on rows made the same 182 cells **4.5x slower** (1,680 ms to 7,530 ms), so "modernising" the dispatch is not a fix.
-> *Keeps:* everything. Zero model risk.
->
-> **3. Rebuild the grid in Deneb.**
-> One flat query, all cells derived client-side. Removes dispatch *and* the per-cell tax at once.
-> *Buys:* on rows that are **not** an account set, 12,412 ms to 332 ms (37.4x cold, 69.5x warm), and 419 ms where every native alternative sat between 1,680 ms and 7,530 ms.
-> *Costs:* you rebuild the grid chrome by hand. Column widths, headers, indentation, totals and colours are all spec. No native sort, no export, no drill, no CF pane. A Vega spec to maintain.
-> *Note:* where the rows **are** an account set, Deneb only beats the bridge 294 ms to 348 ms. **The bridge wins on effort, not on time.**
->
-> Which do you want? If you are unsure: **1** if your rows are an account set and you can change the model; **3** if they are not, or you specifically want client-side formatting and colour; **2** if the model is frozen.
+**The consultation block** is in [`references/consultation-block.md`](references/consultation-block.md):
+present it filled in with the pinned-context numbers (row dispatch, per-cell tax, measure floor) and
+the three ways forward. In short: **1** bridge the model when the rows are an account set and the
+model can change; **3** a Deneb grid when they are not; **2** a native restructure when the model is
+frozen.
 
 Then ask only what the block above has not already answered:
 
@@ -164,13 +140,10 @@ Applied in order. The grep target for cost (b) is a `formatStringDefinition` tha
 
 ## Gotchas (hard-won)
 
-- **Removing `SWITCH` made it slower.** Replacing a 13-branch `SWITCH` with a second calculation group on rows took the same 182 cells from 1,680 ms to 7,530 ms, 4.5x *worse*. Cost is instantiation count, not branch count. "Calculation groups are the modern replacement for `SWITCH`" is not true for performance on this shape.
-- **`IFERROR` on every branch more than doubled the cost:** 2,757 ms to 5,997 ms cold in the lab. If a branch can error, fix the branch.
-- **Only calendar-registered columns are safe to group in a flat rebuild.** `DATEADD` shifts filters only on registered columns; an unregistered helper column of the same table sitting in the `GROUP BY` survives the shift, and every `*LY` measure returns `BLANK`. Symptom: current-period values perfect, prior-period all blank, no error anywhere. The fix costs no DAX: bind the column as an `Aggregation` field with `Function: 3` (Min). **Scope limit:** a classic marked date table (`dataCategory: Time`) does not have this problem, because `DATEADD` removes filters from every column of that table. The trap belongs to the modern `calendar` object, where registration is explicit and partial.
-- **`null` coerces to `0` in JavaScript.** Guard derived thresholds in a Deneb spec with `isValid` and let them stay `null`, so dependent columns fail closed to blank. A visibly empty column gets reported; a plausible one ships.
-- **The format-string A/B, the number to quote:** 182 cells warm, 622 ms with a static format string, 1,270 ms with a dynamic one that references its own measure. Same measure, same query, same cells.
-- **With two calculation groups the higher-precedence group's format string wins outright**, and `SELECTEDMEASUREFORMATSTRING()` inside it returns the *base measure's* format string. The lower group's format strings are never consulted at all.
-- **A clean `pbir validate` and a clean DAX profile are not evidence the visual is fast.** Neither one looks at formatting. The canvas is the referee.
+Read [`references/gotchas.md`](references/gotchas.md) before rebuilding. The two that cost most:
+replacing a `SWITCH` with a calculation group on rows made the same cells **4.5x slower**, and
+`IFERROR` on every branch more than doubled the cost. A clean `pbir validate` and a clean DAX
+profile are not evidence the visual is fast: the canvas is the referee.
 
 ## Limitations
 
@@ -201,6 +174,8 @@ Applied in order. The grep target for cost (b) is a `formatStringDefinition` tha
 - **`references/deneb-grid-template.md`** -- the grid implementation spec: dataset contract, transforms, client-side formatting, PBIR embedding
 - **`references/measured-results.md`** -- all nine lab pages under one protocol, the table to quote
 - **`references/pbir-build-safety.md`** -- safe edit mechanics on a live report
+- **`references/consultation-block.md`** -- the Step 5 block to present: the three costs measured and the three remedies with what each buys, costs and keeps
+- **`references/gotchas.md`** -- hard-won traps: calculation groups on rows, `IFERROR`, calendar-registered columns, `null` in Deneb, format-string precedence
 - **`examples/flat-query.dax`** -- the flat base-measure probe that establishes the measure floor
 - **`examples/tie-out.dax`** -- old against new in one query, with the `+ 0` blank guard
 - **`examples/bridge-table.tmdl`** -- bridge table, relationship and one bridge measure

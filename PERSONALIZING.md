@@ -211,7 +211,15 @@ reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FO
 - `plugins/pbi-desktop/hooks/hooks.json` stays `"hooks": {}` and `config.yaml` stays
   `all_hooks_enabled: false` (see FORK-CHANGES.md).
 - `custom-visuals/skills/powerbi-custom-visuals/SKILL.md` keeps `disable-model-invocation: true`
-  (see FORK-CHANGES.md).
+  (see FORK-CHANGES.md), and so do `python-visuals`, `r-visuals` and
+  `fabric-cli/commands/migrating-fabric-trial-capacities.md`.
+- `fabric-cli/SKILL.md` keeps the fork's 240-char `description` ("Expert guidance for using the
+  Fabric CLI ..."); upstream's is 607 chars and every session pays for it in the listing.
+- `fabric-cli`, `connect-pbid` and `pbir-cli` keep a one-line pointer to their
+  `references/where-learnings-go.md` instead of an inline learnings block.
+- `python scripts/check-skill-hygiene.py` after the import: a `SKILL_OVER_BUDGET`,
+  `INDEX_PAST_BUDGET` or `DESCRIPTION_OVER_BUDGET` warning that was not there before means the
+  harvest grew a skill back.
 
 **Deliberate exclusions; do not harvest:**
 

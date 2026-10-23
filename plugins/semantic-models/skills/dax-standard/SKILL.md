@@ -1,7 +1,7 @@
 ---
 name: dax-standard
 version: 26.40.3
-description: The house style for authoring DAX measures — build the rows the calculation needs into a table variable, then aggregate over it with an X-function, composing the steps with VARs so every measure reads top-to-bottom and can be debugged step by step. Covers measure formatting (dynamic format strings + user-defined functions), the time-intelligence exception, and worked recipes. Invoke when asked to "write a measure", "how do I write DAX for…", "rewrite this measure", "review this measure", "make this DAX readable/easier to debug", "the DAX pattern", "format a measure", "dynamic format string", "number formatting", or for a recipe (time intelligence, customer/HR/finance/operations KPIs, geospatial, streaks, fuzzy matching, SVG). For tuning a measure that is measurably slow, or reading server timings, use `semantic-models:dax-optimisation` instead.
+description: House style for writing DAX measures. Build the rows a calculation needs into a table VAR, then aggregate, so each step can be debugged. Covers measure formatting (dynamic format strings, UDFs), the time-intelligence exception and recipes. Use to write, rewrite, review or format a measure, or for a DAX recipe. For a measurably slow measure, use `semantic-models:dax-optimisation`.
 ---
 # Standard DAX
 
@@ -60,24 +60,6 @@ too, the calendar's own period columns included, rather than by the fact's date 
 dimension filter runs over the dimension's few rows and reaches the fact through the relationship,
 and it is the same column the slicers use.
 
-```DAX
-Sales Excl East =
-    // Every region except East, from the store dimension ...
-    VAR __Regions =
-        FILTER (
-            ALL ( Store[Region] ),
-            Store[Region] <> "East"
-        )
-    // ... and the sales under them, intersected with the slicers
-    VAR __Result =
-        CALCULATE (
-            [Total Sales],
-            KEEPFILTERS ( __Regions )
-        )
-    RETURN
-        __Result
-```
-
 Before filtering a fact column, find what it relates to:
 `grep -n -A1 "fromColumn: Sales\." definition/relationships.tmdl`. One of three things holds:
 
@@ -87,12 +69,9 @@ Before filtering a fact column, find what it relates to:
 | No relationship, and the column is dimension-like (text or a code people slice by, repeated across many rows) | Propose a dimension and wait for the user. Meanwhile, a column filter on the fact with a comment naming the proposed dimension |
 | A numeric or degenerate condition, a dimension over about 131K rows, or an inactive relationship | The fact column, as the reference's exceptions say |
 
-**Assume referential integrity.** A dimension related to a fact holds every key the fact uses, so
-filtering the dimension reaches every fact row it should. Write measures on that premise, with no
-fallback for keys the dimension might lack. A missing key is proven, never assumed: suspect one only
-on evidence, test it with the query in the reference, and report a proven gap so it is fixed
-upstream. This governs how measures are written; it is not the DirectQuery relationship property
-`relyOnReferentialIntegrity`, which stays the modeller's call.
+**Assume referential integrity.** Write measures with no fallback for keys a dimension might lack.
+A missing key is proven by the reference's test query, never assumed, and a proven gap is reported
+so it is fixed upstream.
 
 **Always discuss it.** Every reply that writes or reviews a measure filtering or grouping by an
 attribute says which column carries the filter and why: the dimension it moved to and how it meets
@@ -127,16 +106,8 @@ a margin), and for a `DISTINCTCOUNT` double-counts whatever two rows share.
 what was meant — and usually faster, because the filter and the scan fuse into one storage-engine
 query instead of materialising `__Table` for the formula engine to walk.
 
-Two things cannot move into `CALCULATE`, so there the X-aggregator stays:
-
-- **Computed columns.** Extension columns carry no data lineage, so they filter nothing *and*
-  cannot be referenced: `CALCULATE( [@Revenue], __Table )` fails with *"The value for '@Revenue'
-  cannot be determined."* Materialise-then-aggregate — weighted averages, per-row currency
-  conversion, per-customer thresholds — is X-function territory.
-- **Row-level expressions.** `CALCULATE`'s first argument has no row context, so
-  `CALCULATE( Sales[Qty] * Sales[Price], __Table )` fails with *"A single value for column 'Qty'
-  … cannot be determined."* The working rewrite is `CALCULATE( SUMX( Sales, … ), __Table )` — the
-  `SUMX` did not disappear, it moved inside and now iterates `Sales`.
+Computed columns and row-level expressions cannot move into `CALCULATE`, so there the X-aggregator
+stays: [what cannot move, and the errors it raises](references/calculate-and-performance.md#what-cannot-move-into-calculate).
 
 **The guard.** A table filter argument *replaces* the filter context on every column it carries
 lineage to. When step 3 is `CALCULATE`, decide `KEEPFILTERS` explicitly and say why in the
@@ -167,129 +138,10 @@ so a nested block hides its steps. A table VAR nested inside `CALCULATE` cannot 
 because `CALCULATE` must return a single value. A nested block also reads as one measure inside
 another.
 
-Three nested shapes turn up. Each has a flat form that returns the same number.
-
-**1. A block passed to a wrapper that sets the filter context.** A UDF such as
-`ProductSet.Focus ( valueExpr : EXPR ) => CALCULATE ( valueExpr, <set filter> )` invites passing it
-a whole calculation:
-
-```DAX
--- nested: none of the steps can be returned
-Margin per Litre =
-    VAR __Result =
-        ProductSet.Focus (
-            VAR __Rows   = FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
-            VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
-            VAR __Litres = SUMX ( __Rows, Sales[Litres] )
-            RETURN
-                DIVIDE ( __Margin, __Litres )
-        )
-    RETURN
-        __Result
-```
-
-Give the wrapper a table twin that applies the same filters with `CALCULATETABLE`. Build the table
-VAR through the twin, and the steps after it stand at the top level:
-
-```DAX
--- functions.tmdl: the twin, next to the wrapper
-ProductSet.FocusTable = ( tableExpr : EXPR ) =>
-    CALCULATETABLE ( tableExpr, <same set filter> )
-
--- flat
-Margin per Litre =
-    VAR __Rows =
-        ProductSet.FocusTable (
-            FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
-        )
-    VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
-    VAR __Litres = SUMX ( __Rows, Sales[Litres] )
-    VAR __Result = DIVIDE ( __Margin, __Litres )
-    RETURN
-        __Result
-```
-
-The number is the same because nothing after `__Rows` reads the filter context. An X-aggregator
-over a table VAR, with a row expression of columns only, depends on the rows alone. A step that does
-read the context (a measure reference, a plain `SUM`, `CALCULATE`, `ALLSELECTED`) would see the outer
-context once it leaves the wrapper. Give that step the scalar wrapper of its own, still at the top
-level: `VAR __Total = ProductSet.Focus ( [Total Sales] )`. A bare
-`CALCULATE ( <VAR block>, <filters> )` flattens the same way: build the table with
-`CALCULATETABLE ( …, <filters> )` and aggregate it outside.
-
-Call the twin only from measures. A function that calls a newly added function can fail to load
-(see the UDF note under [The UDF](#the-udf-write-the-formatting-convention-once)).
-
-**2. A block inside an iterator's row expression.**
-
-```DAX
--- nested: __Text and __Cut cannot be inspected
-VAR __Chips =
-    ADDCOLUMNS (
-        __Picks,
-        "@Label",
-            VAR __Text = CONVERT ( Product[Name], STRING )
-            VAR __Cut  = IF ( LEN ( __Text ) > 20, LEFT ( __Text, 19 ) & "…", __Text )
-            RETURN
-                SUBSTITUTE ( __Cut, "&", "&amp;" )
-    )
-```
-
-Make each step a computed column in a table VAR of its own. Returning any of them shows that step
-for every row:
-
-```DAX
-VAR __Texts = ADDCOLUMNS ( __Picks, "@Text", CONVERT ( Product[Name], STRING ) )
-VAR __Cuts  = ADDCOLUMNS ( __Texts, "@Cut", IF ( LEN ( [@Text] ) > 20, LEFT ( [@Text], 19 ) & "…", [@Text] ) )
-VAR __Chips = ADDCOLUMNS ( __Cuts, "@Label", SUBSTITUTE ( [@Cut], "&", "&amp;" ) )
-```
-
-**3. A VAR that captures a row value only to put a filter back.**
-
-```DAX
--- nested: removes every Customer filter, then puts the row's region back
-"@Region Sales",
-    VAR __Region = Customer[Region]
-    RETURN
-        CALCULATE ( [Sales], REMOVEFILTERS ( Customer ), Customer[Region] = __Region )
-```
-
-Context transition already filters the row's region. Remove only the filters you mean to drop, and
-the region stays:
-
-```DAX
-"@Region Sales",
-    CALCULATE ( [Sales], ALLEXCEPT ( Customer, Customer[Region] ) )
-```
-
-**The nested VAR that stays.** When the inner expression iterates a table that has the same column
-as the outer row, the inner row context hides the outer value. Capturing it first is the job
-`EARLIER` used to do, and a VAR does it more clearly. Keep the block to that one capture:
-
-```DAX
-"@Sales To Date",
-    VAR __Date = [Date]
-    RETURN
-        SUMX ( FILTER ( __Days, [Date] <= __Date ), [@Sales] )
-```
-
-**Prove a flattened measure.** When you flatten an existing measure, compare the old body with the
-new measure in DAX query view, over the cells the report shows. No rows back means no cell changed:
-
-```DAX
-DEFINE
-    MEASURE Sales[Old Margin per Litre] = <the old, nested body>
-EVALUATE
-    FILTER (
-        ADDCOLUMNS (
-            CROSSJOIN ( VALUES ( Store[Region] ), VALUES ( Product[Category] ) ),
-            "@New", [Margin per Litre],
-            "@Old", [Old Margin per Litre]
-        ),
-        ISBLANK ( [@New] ) <> ISBLANK ( [@Old] )
-            || ABS ( [@New] - [@Old] ) > 1E-9 * MAX ( 1, ABS ( [@Old] ) )
-    )
-```
+The three nested shapes that turn up (a block passed to a UDF wrapper that sets the filter context,
+a block inside an iterator's row expression, a VAR that captures a row value only to put a filter
+back), their flat forms, the one nested VAR that stays, and the query that proves a flattened
+measure returns the same numbers are in [`references/flat-vars.md`](references/flat-vars.md).
 
 ## Standing exception: time intelligence uses CALCULATE + DATEADD
 
@@ -329,17 +181,6 @@ Author every measure so it reads top-to-bottom like prose. Three rules:
    		[Total Income] - [Total Spend]
    ```
 
-   **Verified safe (2026-07-22):** a blank line *immediately after* `=`, before the body, does NOT
-   trigger the `InvalidLineType: Empty` that the `pbip:tmdl` skill's `references/authoring-gotchas.md`
-   warns about. Power BI Desktop opens it cleanly. That warning is about a blank line *breaking the middle* of a
-   multi-line expression (between two body lines), which is a different thing. Do not blank-line
-   inside the body; do blank-line right after `=`.
-
-   **Durability caveat:** Power BI Desktop's own serializer writes *single-line* expressions inline
-   (`measure X = expr`) when it re-saves a model. So one-liners you format as body-on-line-2 can
-   revert to inline after a Desktop save. Multi-line measures keep the blank-line/body-on-line-2 form
-   (it is Desktop's own canonical form for them). Author on disk in the line-2 form regardless; just
-   know a Desktop round-trip may re-inline the trivial one-liners.
 2. **One thing per line (short lines).** Each `VAR`, each function, and each argument on its
    own line — break `FILTER`, `DIVIDE`, `GROUPBY`, etc. across lines instead of packing a call
    onto one line. Short lines diff cleanly and read like discrete steps.
@@ -356,162 +197,25 @@ Author every measure so it reads top-to-bottom like prose. Three rules:
    `references/authoring-gotchas.md` covers the parse-level traps; this is about the semantic level,
    where the file parses and the measure still returns an error.
 
-Worked example in this house style:
 
-```DAX
-Net Sales % =
-    // Keep every order status except Cancelled ...
-    VAR __Statuses =
-        FILTER (
-            ALL ( 'Order Status'[Status] ),
-            'Order Status'[Status] <> "Cancelled"
-        )
-    // ... take the sales of those orders ...
-    VAR __NetSales =
-        CALCULATE (
-            [Total Sales],
-            KEEPFILTERS ( __Statuses )
-        )
-    // ... and express them as a share of all sales
-    VAR __Result =
-        DIVIDE (
-            __NetSales,
-            [Total Sales]
-        )
-    RETURN
-        __Result
-```
-
-The same measure in a **TMDL** file — note the **blank line right after `=`**, and the body indented
-two levels deeper than the `measure` declaration. The blank line is what makes the editor show the
-body on line 2:
-
-```tmdl
-/// Cancelled-adjusted sales as a share of all sales.
-measure 'Net Sales %' =
-
-		// keep every order status except Cancelled ...
-		VAR __Statuses =
-		    FILTER (
-		        ALL ( 'Order Status'[Status] ),
-		        'Order Status'[Status] <> "Cancelled"
-		    )
-		// ... take the sales of those orders ...
-		VAR __NetSales =
-		    CALCULATE (
-		        [Total Sales],
-		        KEEPFILTERS ( __Statuses )
-		    )
-		// ... and express them as a share of all sales
-		VAR __Result =
-		    DIVIDE (
-		        __NetSales,
-		        [Total Sales]
-		    )
-		RETURN
-		    __Result
-	formatString: 0.0%
-```
-
-Single-expression measures get the same treatment — `=`, a blank line, then the call:
-
-```tmdl
-/// One row per order; count them.
-measure 'Total Orders' =
-
-		COUNTROWS ( Sales )
-	formatString: #,##0
-```
+Do not blank-line inside the body. A blank line after `=` is verified safe, and a Desktop save may
+re-inline the one-liners; both, and a worked measure in DAX and in TMDL, are in
+[`references/house-style.md`](references/house-style.md).
 
 ## Number formatting: dynamic format strings + UDFs
 
-**Do not `FORMAT()` a measure to make it look right.** `FORMAT` returns *text*, so the
-measure stops being a number — charts, sorting and aggregation all break. Format the
-**number** instead, with a **dynamic format string** on the measure, and put the repeated
-formatting logic in a **user-defined function** so it is written once.
+**Do not `FORMAT()` a measure to make it look right.** `FORMAT` returns text, so charts, sorting
+and aggregation break. Give the measure a dynamic format string (`formatStringDefinition`, over
+`SELECTEDMEASURE()`) and keep its logic in one user-defined function per formatting convention
+(scaled, currency, percent, duration); check [daxlib.org](https://daxlib.org) first.
 
-### Rule: a measure has `formatString` OR `formatStringDefinition` — never both
+- **A measure has `formatString` OR `formatStringDefinition`, never both.** Desktop refuses to open
+  a project with both: delete the `formatString:` line.
+- **Before one UDF calls another, read the load traps.** After any `functions.tmdl` change, run
+  `EVALUATE INFO.USERDEFINEDFUNCTIONS()` and read `ErrorMessage`.
 
-They are mutually exclusive. A measure carrying both makes Power BI Desktop refuse to open
-the whole project ("not supported scenario"). **To use a dynamic format string the static
-format string must be absent** — delete the `formatString:` line.
-
-In TMDL, `formatStringDefinition` is a **child object, not a property**: it goes *after* the
-scalar properties, separated by a blank line, expression inline on the same line.
-
-```tmdl
-/// Revenue, auto-scaled to K / M / B for the value on screen.
-measure 'Total Revenue' =
-
-		SUM ( Sales[Amount] )
-	displayFolder: Sales
-	lineageTag: <guid>
-
-	formatStringDefinition = Fmt.Scaled ( SELECTEDMEASURE (), 1 )
-```
-
-`SELECTEDMEASURE()` is the value being rendered; referencing the measure by name
-(`[Total Revenue]`) also works, but breaks once a calculation group is in the model (every
-measure becomes *variant*). Prefer `SELECTEDMEASURE()`.
-
-### The UDF: write the formatting convention once
-
-[DAX user-defined functions](https://www.sqlbi.com/articles/introducing-user-defined-functions-in-dax/)
-(Power BI Desktop September 2025+, compatibility level 1702+) hold the scaling/currency rules
-in one place instead of a copy-pasted format expression per measure — this is what Microsoft's
-own dynamic-format-string docs recommend. Syntax is `name = ( params ) => body`; each
-parameter is typed (`NUMERIC`, `INT64`, `STRING`, `TABLE`, …) and takes a passing mode:
-`VAL` (evaluated once, in the caller's context) or `EXPR` (lazy, re-evaluated inside the
-body — needed for measure references and anything context-sensitive).
-
-Functions live in `functions.tmdl` in the model definition:
-
-```tmdl
-/// Scale-aware format string: K / M / B, with `decimals` decimal places.
-function 'Fmt.Scaled' =
-		(
-			value: NUMERIC VAL,
-			decimals: INT64 VAL
-		) =>
-
-		// The unit comes from the magnitude of the value being displayed.
-		VAR __Abs = ABS ( value )
-		// "0" repeated = the decimal placeholders.
-		VAR __Dp = REPT ( "0", decimals )
-		VAR __Result =
-			SWITCH (
-				TRUE (),
-				__Abs >= 1E9, "#,0." & __Dp & ",,,""B""",
-				__Abs >= 1E6, "#,0." & __Dp & ",,""M""",
-				__Abs >= 1E3, "#,0." & __Dp & ",""K""",
-				"#,0." & __Dp
-			)
-		RETURN
-			__Result
-```
-
-Every measure that needs it then gets a one-line `formatStringDefinition`. One function per
-formatting *convention* (scaled, currency, percent, duration) — not one per measure. Check
-[daxlib.org](https://daxlib.org) before writing one; installing packages is covered by
-`pbi-desktop:connect-pbid` (`references/daxlib.md`).
-
-**Before one function calls another**, read the UDF load traps in `pbip:tmdl`
-`references/authoring-gotchas.md`. A function that called a helper added below it in
-`functions.tmdl` failed to load in Desktop, the error named the caller rather than the helper, and
-`te validate` passed it. Until that is isolated, write new helper logic inline in the existing
-caller. After any `functions.tmdl` change, run `EVALUATE INFO.USERDEFINEDFUNCTIONS()` and read
-`ErrorMessage` before calling the change done. A red underline under `TABLE EXPR` in Tabular
-Editor 3 is not proof of an error either (`tabular-editor:te-docs`).
-
-### Gotchas
-
-- The expression must return **text**, and it is evaluated per cell in that cell's filter
-  context — which is what lets it react to a currency slicer or to the magnitude of the value.
-- **Visual display units override it.** If a scaled format "does nothing", set the visual's
-  *Display units* from **Auto** to **None** (or turn them off report-wide in the theme).
-- A calculation group's format-string expression wins over the measure's own.
-- Dynamic format strings only work on **model** measures — not report-level measures in a
-  live-connect report.
+The TMDL syntax, the `Fmt.Scaled` UDF, those traps and the display-unit gotchas are in
+[`references/number-formatting.md`](references/number-formatting.md).
 
 ## The killer feature: debug by swapping the RETURN
 
@@ -522,20 +226,10 @@ Because every step is a `VAR`, you inspect any intermediate by temporarily retur
     RETURN TOCSV( __Table )       -- dump the table's rows as text into a card/table visual
 ```
 
-In DAX query view the same swap shows a table VAR as a result grid. Paste the measure's body after
-`EVALUATE` and return the table VAR instead of `__Result`:
-
-```DAX
-EVALUATE
-    VAR __Rows   = FILTER ( Sales, NOT ISBLANK ( Sales[Margin per Unit] ) )
-    VAR __Margin = SUMX ( __Rows, Sales[Units] * Sales[Margin per Unit] )
-    RETURN
-        __Rows   -- was __Result
-```
-
-To see one cell of a visual, wrap it in `CALCULATETABLE` with that cell's filters:
-`EVALUATE CALCULATETABLE ( VAR … RETURN __Rows, Store[Region] = "West" )`. Both swaps reach only
-top-level VARs, which is why the VARs stay [flat](#keep-the-vars-flat).
+In DAX query view, paste the body after `EVALUATE` and return a table VAR to get it as a result
+grid; wrap it in `CALCULATETABLE` with a cell's filters to see that cell
+([`references/method.md`](references/method.md), section 6). Both swaps reach only top-level
+VARs, which is why the VARs stay [flat](#keep-the-vars-flat).
 
 `EVALUATEANDLOG( __Table )` (DAX query view / SQL Profiler) does the same at scale. A
 CALCULATE expression cannot be peeled apart this way: splitting nested CALCULATEs changes
@@ -548,110 +242,50 @@ This skill writes measures, not tables. Build every table in the source (a view,
 table) or in Power Query. A DAX calculated table is the last resort: write one only when no
 upstream layer can produce the table, and say why in a comment on its partition.
 
-Why:
-
-- **Refresh cost.** A calculated table is rebuilt every time a table it reads is refreshed, in
-  the calculate phase after the data load. Every refresh pays for it, it cannot be refreshed
-  incrementally, and nothing in it folds to the source.
-- **Dependencies.** A table that reads the model (`ALL ( 'Calendar' )`, `MIN ( Sales[Date] )`,
-  a UDF) joins the model's dependency graph, a common source of circular dependency errors once
-  it gets a relationship or a calculated column.
-- **Storage modes.** Direct Lake on SQL endpoints supports no calculated tables apart from the
-  ones Desktop generates for calculation groups, what-if parameters and field parameters, and
-  Direct Lake on OneLake supports them only in preview. A table built in the source works in
-  every storage mode.
-- **One home for table logic.** Shaping lives upstream, where other models and tools can read
-  it, and the model keeps DAX for what only DAX can do: measures, UDFs and calculation groups.
-
-The three calculated tables that turn up, and their Power Query form:
-
-| DAX calculated table | Power Query partition |
-| --- | --- |
-| A static list: `DATATABLE ( "Metric", STRING, "Metric Sort", INTEGER, { { "Frequency", 1 }, … } )` | `#table(type table [Metric = text, #"Metric Sort" = Int64.Type], {{"Frequency", 1}, …})` |
-| A what-if series: `GENERATESERIES ( 2, 10, 1 )`, scaled | `Table.FromColumns({List.Transform({2..10}, each _ * 0.005)}, type table [Value = number])` |
-| A slicer table derived from another table: `DISTINCT ( SELECTCOLUMNS ( FILTER ( ALL ( 'Calendar' ), … ), … ) )` | Reference the other table's query by name, then `Table.SelectRows`, `Table.SelectColumns`, `Table.Distinct` |
-
-A disconnected parameter or selector table works the same from Power Query: the slicer filters
-it, and the measure reads the pick with `SELECTEDVALUE ( Param[Value], <default> )`. Integer
-steps scaled by a constant, as in the series row, give the same doubles in M as in DAX, so a
-slicer's saved literal (`0.02D`) still matches.
-
-When you convert one in TMDL, change `partition … = calculated` to `= m` with a `let … in`
-source, drop the brackets from each `sourceColumn` (`[Value]` becomes `Value`), add
-`annotation PBI_ResultType = Table`, and add the table to the model's `PBI_QueryOrder`. Keep the
-table and column names, which the report binds to, and the lineage tags.
-
-Then close Power BI Desktop and delete the project's `.pbi/cache.abf` before you open it again.
-With a cache, Desktop loads the cached model and applies the TMDL over it, and the engine will not
-change a partition between calculated and M in place: *Changing the partition type from or to
-PartitionType.Calculated is not allowed*. Applying the edit from Desktop's external-changes banner
-fails the same way. Without the cache, Desktop opens the whole definition with no data; refresh
-to load it.
-
-**When a calculated table is the right call:**
-
-- **Field parameters.** Their rows hold `NAMEOF ( … )` references to model fields, which only
-  DAX can write.
-- **A table that needs the model's own DAX logic** (a measure, a UDF or a calculation item
-  evaluated over the model) and cannot be rebuilt from the source.
-
-Calculation groups are not calculated tables, and this rule does not touch them.
+The reasons (refresh cost, dependencies, storage modes), the Power Query form of the three
+calculated tables that turn up, the TMDL conversion with its `.pbi/cache.abf` step, and the two
+cases where a calculated table is right (field parameters, a table that needs the model's own
+DAX logic) are in [`references/tables-from-power-query.md`](references/tables-from-power-query.md).
 
 ## When to use this skill vs. the performance skill
 
-| Situation                                                                              | Use                                                       |
-| -------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Writing a**new** measure; learning DAX; wanting readable/debuggable code         | **this skill**                                      |
-| "Rewrite this measure", "make this easier to follow"                                   | **this skill**                                      |
-| A measure is**measurably slow**; reading FE/SE server timings; query-plan tuning | `semantic-models:dax-optimisation`                      |
-| Model-level perf (relationships, cardinality, Direct Lake)                             | `semantic-models:dax-optimisation` / `semantic-model` |
-
-**Reconciling the CALCULATE tension (important):** this skill defaults to explicit
-`FILTER` + X-aggregators; the `semantic-models:dax-optimisation` skill has
-CALCULATE/CALCULATETABLE-based optimization patterns (DAX001, DAX005, DAX008, DAX010, …).
-These do **not** conflict — they have different jobs. **Author table-first**; reach for the
-optimisation skill's CALCULATE-based patterns only when profiling proves a specific measure
-is too slow and a rewrite helps. See
-[`references/calculate-and-performance.md`](references/calculate-and-performance.md) for the
-full reconciliation.
+A measure that is **measurably slow**, server timings, query-plan tuning and model-level
+performance go to `semantic-models:dax-optimisation` (or `semantic-model` for the model). The
+two do not conflict: **author table-first**, and reach for the optimisation skill's
+CALCULATE-based patterns (DAX001, DAX005, DAX008, DAX010, …) only when profiling proves a
+specific measure too slow and a rewrite helps. The full reconciliation is in
+[`references/calculate-and-performance.md`](references/calculate-and-performance.md).
 
 ## References (progressive disclosure — read as needed)
 
-- [`references/method.md`](references/method.md) — Think in DAX; FILTER; X-aggregators;
-  variables; the core pattern; debugging; the explicit form vs the CALCULATE form.
-  **Read this first.**
-- [`references/core-functions.md`](references/core-functions.md) — Lookups, ALL/ALLSELECTED,
-  running totals, previous-row, grouping (SUMMARIZE/GROUPBY/SUMMARIZECOLUMNS),
-  ADDCOLUMNS, IF/SWITCH, HASONEVALUE/ISINSCOPE, SELECTCOLUMNS, IN, set
-  functions, and the **Measure Totals** fix.
-- [`references/dates-and-time.md`](references/dates-and-time.md) — The **fallback** for what
-  the standing exception above does not cover: non-standard calendars, boundaries the
-  built-ins will not express, models with no date table. DimDate's **offset columns**,
-  period-to-date, rolling windows, and duration maths.
-- [`references/text-and-numbers.md`](references/text-and-numbers.md) — Text extraction,
-  dynamic text, conditional formatting; safe division, rounding family, ranking, mode,
-  weighted average, interpolation, regression, number formatting.
-- [`references/business-recipes.md`](references/business-recipes.md) — Which table to build
-  for each metric: finance and P&L, budget/target variance, rates and shares, sales and
-  customers, delivery and operations, workforce, plus the **report-support measures**
-  (titles, colours, labels, indicators, SVG) that outnumber all of them.
-- [`references/advanced-patterns.md`](references/advanced-patterns.md) — Disconnected and
-  what-if tables, field parameters, NOT/AND slicers, complex selectors, custom matrix
-  hierarchies, dynamic granularity, SVG; row index, streaks, moving averages and trend,
-  fuzzy matching, geospatial distance.
-- [`references/calculate-and-performance.md`](references/calculate-and-performance.md) —
-  What CALCULATE really is, why it is hard to debug, when it *is* worth writing, when it is the
-  wrong call (a filter argument that constrains the column being aggregated), the FE/SE
-  optimization model, the debugging toolbox, and how this skill coexists with the
-  `semantic-models:dax-optimisation` performance skill.
-- [`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md): filter
-  and group by the dimension column, referential integrity (assumed, and a gap proven by test),
-  the slicer check before moving an existing filter off the fact,
-  proposing a dimension for a dimension-like fact column, the exceptions, and a review checklist.
-- [`references/filter-context-traps.md`](references/filter-context-traps.md): measures that are
-  right in a clean context and wrong in the report's. A second calendar's relationship, calculation
-  items that block time intelligence, report-page tooltips inheriting every projected column, a
-  breakdown that must ignore its own slicer, a variable named after a keyword.
+- [`references/method.md`](references/method.md): think in DAX, FILTER, X-aggregators,
+  variables, the core pattern, debugging, the explicit form vs the CALCULATE form. **Read first.**
+- [`references/core-functions.md`](references/core-functions.md): lookups, ALL/ALLSELECTED,
+  running totals, previous-row, grouping, IF/SWITCH, ISINSCOPE, set functions, the Measure Totals fix.
+- [`references/dates-and-time.md`](references/dates-and-time.md): the fallback to the time
+  exception: non-standard calendars, no date table, DimDate offset columns, rolling windows, durations.
+- [`references/text-and-numbers.md`](references/text-and-numbers.md): text, dynamic text,
+  conditional formatting, safe division, rounding, ranking, weighted average, regression.
+- [`references/business-recipes.md`](references/business-recipes.md): the table to build per
+  metric (finance, variance, rates, sales, operations, workforce) and the report-support measures.
+- [`references/advanced-patterns.md`](references/advanced-patterns.md): disconnected and what-if
+  tables, field parameters, selectors, custom hierarchies, streaks, fuzzy matching, geospatial.
+- [`references/calculate-and-performance.md`](references/calculate-and-performance.md): what
+  CALCULATE is, when it is right or wrong, what cannot move into it, FE/SE, the debugging toolbox.
+- [`references/filter-dimensions-not-facts.md`](references/filter-dimensions-not-facts.md): the
+  dimension filter, the referential-integrity test, the slicer check, proposing a dimension, the
+  exceptions, a review checklist.
+- [`references/filter-context-traps.md`](references/filter-context-traps.md): measures right in
+  a clean context and wrong in the report's (second calendars, calculation items, tooltips).
+- [`references/flat-vars.md`](references/flat-vars.md): the nested `VAR … RETURN` shapes, their
+  flat forms, the one nested VAR that stays, and the query that proves a flattened measure.
+- [`references/house-style.md`](references/house-style.md): the blank line after `=` in TMDL,
+  how a Desktop save re-inlines one-liners, and a worked measure in DAX and TMDL.
+- [`references/number-formatting.md`](references/number-formatting.md): dynamic format strings
+  in TMDL, the `Fmt.Scaled` UDF, UDF load traps, and the display-unit gotchas.
+- [`references/tables-from-power-query.md`](references/tables-from-power-query.md): why tables
+  come from the source or Power Query, the M form of each common calculated table, and the
+  TMDL conversion.
 
 ## Related skills
 

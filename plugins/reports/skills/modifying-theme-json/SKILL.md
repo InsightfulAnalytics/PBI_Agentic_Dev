@@ -1,7 +1,7 @@
 ---
 name: modifying-theme-json
 version: 26.40.3
-description: Design, enforce, audit, and validate Power BI report themes. This skill MUST be invoked when a report uses the default or built-in theme, has a minimal custom theme (few or no visualStyles), or has accumulated many visual-level formatting overrides (objects/visualContainerObjects in visual.json); these are signs the theme needs attention. Also automatically invoke when the user asks to "create a theme", "design a theme", "enforce theme compliance", "audit theme adherence", "push formatting to theme", "clear visual overrides", "standardize report formatting", "update theme colors", "change theme typography", "set theme text classes", "validate a theme", "add visual-type overrides to the theme", "define style presets", "copy a theme", "download a theme", "apply a template", or mentions theme design, enforcement, compliance, or visual formatting inconsistency.
+description: Design, enforce, audit and validate Power BI report themes. Invoke when a report uses the default or a minimal theme or its visuals carry many local formatting overrides, or the user asks to create, copy, apply, audit, standardize or validate a theme, push formatting to it, clear visual overrides, or set theme colors, typography, text classes, visual-type overrides or style presets.
 ---
 
 # Power BI Report Themes
@@ -246,15 +246,8 @@ After validation, deploy and visually verify:
 
 ## Schema and Documentation
 
-| Resource | URL |
-|----------|-----|
-| Official report theme JSON schema (versioned, Draft 7) | [microsoft/powerbi-desktop-samples — Report Theme JSON Schema](https://github.com/microsoft/powerbi-desktop-samples/tree/main/Report%20Theme%20JSON%20Schema) |
-| Latest schema (resolve the newest version at author time, see below) | [Report Theme JSON Schema folder](https://github.com/microsoft/powerbi-desktop-samples/tree/main/Report%20Theme%20JSON%20Schema) |
-| Raw schema URL (for `$schema` IDE integration) — update version to match consumers' Desktop | `https://raw.githubusercontent.com/microsoft/powerbi-desktop-samples/main/Report%20Theme%20JSON%20Schema/reportThemeSchema-2.154.json` |
-| Microsoft Learn — Use report themes in Power BI Desktop | https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-report-themes |
-| Microsoft Learn — Report theme JSON file format | https://learn.microsoft.com/en-us/power-bi/create-reports/desktop-report-themes#report-theme-json-file-format |
-| Community theme templates | [deldersveld/PowerBI-ThemeTemplates](https://github.com/deldersveld/PowerBI-ThemeTemplates) |
-| PBIR item schemas | [microsoft/powerbi-desktop-samples — item-schemas](https://github.com/microsoft/powerbi-desktop-samples/tree/main/item-schemas) |
+The official theme JSON schema, the Microsoft Learn pages on report themes, the community theme
+templates and the PBIR item schemas are linked in [`references/schema-and-docs.md`](references/schema-and-docs.md).
 
 Resolve the current schema version at author time rather than hardcoding a number:
 
@@ -323,6 +316,7 @@ For `visualStyles`: named style presets are a second key alongside `"*"` inside 
 - **`references/promoting-formatting.md`** — Promoting bespoke visual.json formatting to theme: push-visual CLI, objects vs visualContainerObjects, wildcard vs visual-type, property mapping tables
 - **`references/theme-compliance.md`** — Systematic audit workflow, stale override classification, severity levels, fix decision tree
 - **`references/visual-type-overrides.md`** — Override patterns for textbox, image, shape, card, kpi, slicer, lineChart, barChart, tableEx, and matrix
+- **`references/schema-and-docs.md`**: links to the official theme schema, the Microsoft Learn theme pages, community templates and the PBIR item schemas
 
 ## Related Skills
 

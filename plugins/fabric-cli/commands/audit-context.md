@@ -2,6 +2,7 @@
 description: Review project context and agent configuration files (CLAUDE.md, agents.md, memory files, and others) to provide feedback and identify opportunities for improvement.
 argument-hint: "[additional instructions]"
 model: sonnet
+disable-model-invocation: true
 ---
 
 # Audit context

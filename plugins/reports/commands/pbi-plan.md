@@ -3,6 +3,7 @@ name: pbi-plan
 description: Plan or resume a multi-session Power BI report or model build as a numbered ticket map with an HTML plan board.
 argument-hint: "[what you are building, or a path to an existing PLAN.md]"
 model: opus
+disable-model-invocation: true
 ---
 
 # Plan a Power BI build

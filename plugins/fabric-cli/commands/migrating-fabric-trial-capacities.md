@@ -1,6 +1,7 @@
 ---
 description: Migrate workspaces from trial capacity to production capacity
 argument-hint: "[target-capacity]"
+disable-model-invocation: true
 ---
 
 # Migrate Trial Capacity Workspaces
