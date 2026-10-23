@@ -208,6 +208,8 @@ reduce to exactly the re-apply files below and the files in [FORK-CHANGES.md](FO
 - `useful-stuff/themes/*.json`: every font line is `Consolas` (see FORK-CHANGES.md).
 - `plugins/*/.claude-plugin/plugin.json`: keep the fork's `version`, `repository` and short
   `description`; take upstream's `types`, `userConfig` and keyword changes (the mod options).
+- `plugins/pbi-desktop/hooks/hooks.json` stays `"hooks": {}` and `config.yaml` stays
+  `all_hooks_enabled: false` (see FORK-CHANGES.md).
 
 **Deliberate exclusions; do not harvest:**
 

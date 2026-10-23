@@ -116,6 +116,11 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   reply says which column carries the filter. The skill's examples that filtered a fact attribute
   (`method.md`, `core-functions.md`, `business-recipes.md`, `advanced-patterns.md`, the `Net Sales %`
   worked example) now filter the dimension.
+- Switched off the `pbi-desktop` validation hooks (2026-10-23): `hooks/hooks.json` registers none
+  and `hooks/config.yaml` sets `all_hooks_enabled: false`. Their `Bash` matchers never saw the
+  PowerShell that runs TOM work on Windows, and they needed `jq` and a `tom_nuget` folder this
+  machine never had, so they validated nothing while spawning bash on every matching Bash call.
+  `connect-pbid/SKILL.md` and `hooks/README.md` say so.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -149,6 +154,8 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   version and re-run `python scripts/sync-boundary-rule.py`.
 - `plugins/pbip/hooks/{hooks.json,config.yaml,README.md}`: the `SessionStart` entry, the
   `session_context` toggle and its table row. Keep them when taking upstream hook changes.
+- `plugins/pbi-desktop/hooks/{hooks.json,config.yaml,README.md}` and the *Validation hooks* line in
+  `connect-pbid/SKILL.md`: the hooks are off. Keep `"hooks": {}` when taking upstream hook changes.
 - One-line links to the fork-owned references above, added to upstream-authored files:
   `pbir-format/SKILL.md` and its `references/{validation,page,bookmarks}.md`, `pbip/SKILL.md`
   (one project per folder, fork step 6), `deneb-visuals/SKILL.md` (also the native-versus-Deneb

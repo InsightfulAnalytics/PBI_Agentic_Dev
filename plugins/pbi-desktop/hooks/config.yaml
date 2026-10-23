@@ -8,7 +8,7 @@
 # Set to false if you see noisy "PreToolUse/PostToolUse hook error" messages
 # on Windows, or while troubleshooting unrelated issues. Leaves individual
 # checks below intact; flip this back to true to re-enable everything.
-all_hooks_enabled: true
+all_hooks_enabled: false
 
 # DAX reference validation (tables, columns, measures checked against model metadata)
 dax_validation: true
