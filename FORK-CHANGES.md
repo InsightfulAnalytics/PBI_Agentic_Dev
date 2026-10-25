@@ -205,7 +205,9 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   `create-pbi-report` (+51/-11), `fabric-cli` (+49/-20) and `svg-visuals` (+32/-6). Harvest these
   hunk by hunk.
 - `plugins/pbip/hooks/{hooks.json,config.yaml,README.md}`: the `SessionStart` entry, the
-  `session_context` toggle and its table row. Keep them when taking upstream hook changes.
+  `session_context` toggle and its table row, and README's trigger column, which says Write and
+  Edit only (upstream's says Bash too, but its `hooks.json` registers no Bash matcher). Keep them
+  when taking upstream hook changes.
 - `plugins/pbi-desktop/hooks/{hooks.json,config.yaml,README.md}` and the *Validation hooks* line in
   `connect-pbid/SKILL.md`: the hooks are off. Keep `"hooks": {}` when taking upstream hook changes.
 - The `disable-model-invocation: true` line in `custom-visuals/skills/powerbi-custom-visuals/SKILL.md`.
