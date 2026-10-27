@@ -34,7 +34,7 @@ pbir validate "Sales Flash Report.Report" --fields
 pbir desktop refresh "Sales Flash Report.Report"
 ```
 
-The `pbir` rewrite covers visual projections, selector metadata, filters, conditional formatting, and sort definitions. Re-test bookmarks after field renames because captured data states can require manual recreation through bookmark commands.
+The `pbir` rewrite covers visual projections, selector metadata, filters, conditional formatting, and sort definitions. Since 0.9.33, a whole-report `fields replace` also rewrites the fields captured in bookmarks, and `pbir validate --fields` names any bookmark that still uses a field the model no longer has. Run it after a rename; older releases left bookmarks for manual recreation.
 
 ## Rename a table
 

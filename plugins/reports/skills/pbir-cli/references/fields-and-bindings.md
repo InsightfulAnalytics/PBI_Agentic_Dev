@@ -212,13 +212,13 @@ pbir visuals bind "Report.Report/Page.Page/Visual.Visual" --list-roles
 # Add a field to a role
 pbir visuals bind "Visual.Visual" -a "Category:Date.Month"
 pbir visuals bind "Visual.Visual" -a "Y:Sales.Revenue" -t Measure
-pbir visuals bind "Visual.Visual" -a "Legend:Products.Category" -t Column
+pbir visuals bind "Visual.Visual" -a "Series:Products.Category" -t Column
 
 # Remove a field from a role
 pbir visuals bind "Visual.Visual" -r "Y:Sales.Revenue"
 
 # Clear all bindings from a role
-pbir visuals bind "Visual.Visual" -c "Legend"
+pbir visuals bind "Visual.Visual" -c "Series"
 ```
 
 ### Flags
@@ -234,22 +234,10 @@ pbir visuals bind "Visual.Visual" -c "Legend"
 
 ### Data Roles by Visual Type
 
-Key types and their primary data roles:
-
-- **card**: Values
-- **cardVisual**: Data
-- **lineChart / barChart / columnChart**: Category, Y (Legend, SmallMultiples)
-- **clusteredBarChart / clusteredColumnChart**: Category, Y (Legend, SmallMultiples)
-- **lineClusteredColumnComboChart**: Category, ColumnY, LineY (Legend)
-- **tableEx**: Values
-- **pivotTable** (matrix): Values (Rows, Columns)
-- **slicer / advancedSlicerVisual**: Values
-- **donutChart / pieChart**: Category, Values (Legend)
-- **scatterChart**: X, Y (Category, Size, Legend)
-- **treemap**: Category, Values (Details)
-- **gauge**: Value (TargetValue, MinValue, MaxValue)
-
-Use `pbir visuals bind "Visual.Visual" --list-roles` to discover roles for any visual type.
+Roles take their PBIR names, not Desktop's UI labels: a chart's legend is `Series` and its small
+multiples are `Rows`. The list is in [add-new-visual.md](./add-new-visual.md), "Visual Types and Data
+Roles"; `pbir schema roles <visualType>` or `pbir visuals bind "Visual.Visual" --list-roles` gives the
+roles for any visual type.
 
 ## Swapping Fields in Visuals
 

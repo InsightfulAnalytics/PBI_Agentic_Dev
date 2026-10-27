@@ -2,7 +2,7 @@
 
 This guidance applies equally to `areaChart` (line + shaded area beneath). All data roles, rules, and CLI commands are identical; the only difference is `areaChart` enables area shading by default.
 
-`stackedAreaChart` and `hundredPercentStackedAreaChart` are part-of-whole variants; they stack multiple series to show composition over time. They share the same data roles but Legend becomes essential for distinguishing segments.
+`stackedAreaChart` and `hundredPercentStackedAreaChart` are part-of-whole variants; they stack multiple series to show composition over time. They share the same data roles but the legend (`Series`) becomes essential for distinguishing segments.
 
 ## Data roles
 
@@ -10,8 +10,12 @@ This guidance applies equally to `areaChart` (line + shaded area beneath). All d
 |------|----------|-------|-------|
 | Category | Yes | Column | Time/period field; always sort ascending |
 | Y | Yes | Measure | One or more measures |
-| Legend | No | Column | Series grouping |
-| SmallMultiples | No | Column | Use when > 3-4 series |
+| Y2 | No | Measure | Secondary y-axis |
+| Series | No | Column | The legend: series grouping |
+| Rows | No | Column | Small multiples; use when > 3-4 series |
+| Tooltips | No | Column, Measure | |
+
+Role names are PBIR's; pbir refuses the UI labels `Legend` and `SmallMultiples`.
 
 ```bash
 pbir add visual lineChart "Report.Report/Page.Page" --title "Revenue Trend" \
