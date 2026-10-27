@@ -86,7 +86,7 @@ Six patterns for referencing fields in queries and expressions:
 | slicer | Values |
 | advancedSlicerVisual | Values |
 | listSlicer | Values (rendered in Desktop 26.10, 2026-10-19) |
-| ganttChart (preview) | Category, Task, StartDate, EndDate, Progress, Columns, Tooltips (see Gantt Chart) |
+| ganttChart (preview) | Category, Task, StartDate, EndDate, Progress, Columns, Tooltips (see Gantt Chart; no `TaskId` in Desktop 26.10) |
 | pieChart / donutChart | Category, Y |
 | lineChart | Category, Y (also Y2 for combo) |
 | areaChart / stackedAreaChart / hundredPercentStackedAreaChart | Category, Y (also Series) |
@@ -368,7 +368,9 @@ bundle for `level:task` and `isCategory` to see whether the selectors or the tas
 
 - **Roles** (`queryState` keys): `Category` (grouping, up to 3 levels, outermost first), `Task`
   (grouping, exactly 1), `StartDate` and `EndDate` (measures, dateTime), `Progress` (measure, 0-1),
-  `Columns` (measures, up to 20), `Tooltips`. Groupings carry `active: true`. A blank `EndDate`, or
+  `Columns` (measures, up to 20), `Tooltips`. Microsoft's core visual catalog and pbir 0.9.33 also
+  list a `TaskId` role, which Desktop 26.10's Gantt does not declare; leave it unbound. Groupings
+  carry `active: true`. A blank `EndDate`, or
   one equal to the start, draws a milestone. The data view is a matrix, Category then Task, top
   1,000 rows.
 - **Every measure in the query decides which rows exist.** A task value appears as a row whenever any
@@ -826,14 +828,14 @@ Can also include `dataBars` and `fontColor` per column. Each entry targets one c
 
 ## Small Multiples
 
-Many chart types support small multiples -- a grid of the same chart broken out by a dimension. True small multiples use the dedicated `SmallMultiples` query role (not `Series`). `Series`/`Legend` overlays series in a single frame; `SmallMultiples` partitions into a grid. The `smallMultiplesLayout` object in `objects` only takes effect when the `SmallMultiples` role is populated.
+Many chart types support small multiples -- a grid of the same chart broken out by a dimension. The query role is `Rows`, which Desktop labels "Small multiples"; there is no `SmallMultiples` role. `Series` (the legend) overlays series in a single frame; `Rows` partitions into a grid. The `smallMultiplesLayout` object in `objects` only takes effect when the `Rows` role is populated. (Role name from Desktop 26.10's chart capabilities and Microsoft's core visual catalog 0.1.1. Verified 2026-10-27.)
 
 ```json
 "query": {
   "queryState": {
     "Category": {"projections": [...]},
     "Y": {"projections": [...]},
-    "SmallMultiples": {"projections": [{"field": {"Column": {"Expression": {"SourceRef": {"Entity": "Products"}}, "Property": "Category"}}}]}
+    "Rows": {"projections": [{"field": {"Column": {"Expression": {"SourceRef": {"Entity": "Products"}}, "Property": "Category"}}}]}
   }
 }
 ```

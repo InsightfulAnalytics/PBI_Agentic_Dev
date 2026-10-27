@@ -2,7 +2,7 @@
 
 This guidance applies equally to `columnChart` (vertical bars). The only difference is axis orientation; all data roles, rules, and CLI commands are identical. Use `barChart` (horizontal) when category labels are long or when ranking is the primary message; use `columnChart` (vertical) when categories represent time periods.
 
-`clusteredBarChart` / `clusteredColumnChart` place multiple measures side-by-side per category. `stackedBarChart` / `stackedColumnChart` and `hundredPercentStackedBarChart` / `hundredPercentStackedColumnChart` are part-of-whole variants; Legend becomes essential for distinguishing segments.
+`clusteredBarChart` / `clusteredColumnChart` place multiple measures side-by-side per category. `stackedBarChart` / `stackedColumnChart` and `hundredPercentStackedBarChart` / `hundredPercentStackedColumnChart` are part-of-whole variants; the legend (`Series`) becomes essential for distinguishing segments.
 
 ## Data roles
 
@@ -10,8 +10,11 @@ This guidance applies equally to `columnChart` (vertical bars). The only differe
 |------|----------|-------|-------|
 | Category | Yes | Column | Dimension for grouping |
 | Y | Yes | Measure | One or more measures |
-| Legend | No | Column | Series grouping (clustered/stacked) |
-| SmallMultiples | No | Column | Available on barChart, clusteredBarChart, columnChart, clusteredColumnChart only; not on stacked/100% variants |
+| Series | No | Column | The legend: series grouping (clustered/stacked) |
+| Rows | No | Column | Small multiples; on every bar and column variant, stacked and 100% included |
+| Tooltips | No | Column, Measure | |
+
+Role names are PBIR's; pbir refuses the UI labels `Legend` and `SmallMultiples`.
 
 ```bash
 pbir add visual barChart "Report.Report/Page.Page" --title "Revenue by Region" \

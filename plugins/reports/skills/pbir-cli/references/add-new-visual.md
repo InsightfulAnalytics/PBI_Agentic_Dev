@@ -83,7 +83,7 @@ pbir visuals bind "Report.Report/Page.Page/Visual.Visual" --list-roles
 # Add fields
 pbir visuals bind "Visual.Visual" -a "Category:Date.Month"
 pbir visuals bind "Visual.Visual" -a "Y:Sales.Revenue" -t Measure
-pbir visuals bind "Visual.Visual" -a "Legend:Products.Category" -t Column
+pbir visuals bind "Visual.Visual" -a "Series:Products.Category" -t Column
 
 # Verify bindings
 pbir visuals bind "Visual.Visual" --show
@@ -116,21 +116,23 @@ pbir tree "Report.Report" -v                     # Verify structure and field bi
 
 ## Visual Types and Data Roles
 
-Key types and their primary data roles:
+Key types and their primary data roles. These are PBIR role names, which pbir requires: a Desktop
+UI label such as `Legend` or `SmallMultiples` is refused with `Role 'Legend' not valid`.
 - **card**: Values
-- **cardVisual**: Data
+- **cardVisual**: Data (Rows = small multiples)
 - **kpi**: Indicator (TrendLine, Goal)
-- **lineChart / barChart / columnChart**: Category, Y (Legend, SmallMultiples)
-- **clusteredBarChart / clusteredColumnChart**: Category, Y (Legend, SmallMultiples)
-- **lineClusteredColumnComboChart**: Category, ColumnY, LineY (Legend)
+- **lineChart / areaChart**: Category, Y (Y2, Series = legend, Rows = small multiples)
+- **barChart / columnChart / clusteredBarChart / clusteredColumnChart**: Category, Y (Series = legend, Rows = small multiples)
+- **lineClusteredColumnComboChart**: Category, Y = columns, Y2 = lines (Series = column legend, Rows)
 - **tableEx**: Values
 - **pivotTable** (matrix): Values (Rows, Columns)
-- **slicer / advancedSlicerVisual**: Values
-- **donutChart / pieChart**: Category, Values (Legend)
-- **scatterChart**: X, Y (Category, Size, Legend)
-- **treemap**: Category, Values (Details)
-- **gauge**: Value (TargetValue, MinValue, MaxValue)
-- **map / filledMap**: Location (Size/Values, Legend)
+- **slicer / advancedSlicerVisual / listSlicer**: Values; **textSlicer** (Input Slicer): Values, a column
+- **donutChart / pieChart**: Category = legend, Y = values (Series = details)
+- **scatterChart**: Category = values, X, Y (Size, Series = legend, Play)
+- **treemap**: Group, Values (Details)
+- **gauge**: Y (TargetValue, MinValue, MaxValue)
+- **map / filledMap**: Category = location, or X = longitude and Y = latitude (Series = legend; map also Size)
+- **ganttChart**: Task, StartDate, EndDate (Category, Progress, Columns); see `cli-traps.md` before binding
 - **textbox / image**: no data roles
 
 ## Bulk Creation from JSON (CI/Pipeline Use)

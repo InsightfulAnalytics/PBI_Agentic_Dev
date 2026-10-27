@@ -694,7 +694,7 @@ pbir usage "Sales.Workspace" --no-datahub        # Skip the last-visited lookup
 pbir usage "Sales.Workspace" -o json             # JSON for piping
 ```
 
-A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry (internal WABI usage-metrics APIs, not part of the public REST API), so they can change or break without notice. Treat failures as expected breakage rather than bugs.
+A local report resolves its published identity from a saved link (`pbir report link`), the model's workspace, or a prompt. Since 0.9.33 an identity guessed from the model's workspace is used for that run only; to keep it, run the `pbir report link` command `usage` prints. By default the output shows views, viewers, pages, load times, and last-visited. `--model` (`-m`) opts into the workspace usage metrics model for richer detail; it needs Contributor+ and generating it creates a hidden model in the workspace, so it prompts unless `-y/--yes` (or `--no-input` to refuse). `--region` is a fallback only when auto-detection fails. These endpoints are undocumented Power BI service telemetry (internal WABI usage-metrics APIs, not part of the public REST API), so they can change or break without notice. Treat failures as expected breakage rather than bugs.
 
 ## Batch Automation
 
@@ -709,6 +709,8 @@ pbir batch plan batch.json --root "Report.Report" --json      # Resolved target 
 pbir batch run batch.json --root "Report.Report" --dry-run --json
 pbir batch run batch.json --root "Report.Report" --plan-digest <hash>   # Refuses to run if the plan drifted
 ```
+
+A `cf` step takes `state` (`default`, `hover`, `press` or `selected`) for state-aware conditional formatting (0.9.33+).
 
 Targets resolve per step as `defaults` then `select`, minus `exclude`, filtered by `where` (a boolean tree of `{field, op, value}` leaves over `path_type`, `visual_type`, `page_name`, position, `has_bindings`, ...), then `max_targets` and `expect`. `root` may be absolute or relative to the working directory; `create_visual` bindings are checked against the model; a later step can target a visual created earlier in the same run (also in `--dry-run`); unresolved `${steps.x}` references are refused before anything runs; a mid-run failure reports what it already wrote. Prefer `batch` over shell loops when the same change must be re-applied or audited.
 
@@ -741,7 +743,7 @@ pbir schema roles "lineChart"                    # Canonical PBIR data roles (re
 ## Visual Types Reference
 
 ### Charts
-`areaChart`, `barChart`, `clusteredBarChart`, `clusteredColumnChart`, `columnChart`, `donutChart`, `funnel`, `gauge`, `hundredPercentStackedAreaChart`, `hundredPercentStackedBarChart`, `hundredPercentStackedColumnChart`, `lineChart`, `lineClusteredColumnComboChart`, `lineStackedColumnComboChart`, `pieChart`, `ribbonChart`, `scatterChart`, `stackedAreaChart`, `stackedBarChart`, `stackedColumnChart`, `treemap`, `waterfallChart`, `decompositionTreeVisual`, `keyDriversVisual`
+`areaChart`, `barChart`, `clusteredBarChart`, `clusteredColumnChart`, `columnChart`, `donutChart`, `funnel`, `gauge`, `hundredPercentStackedAreaChart`, `hundredPercentStackedBarChart`, `hundredPercentStackedColumnChart`, `lineChart`, `lineClusteredColumnComboChart`, `lineStackedColumnComboChart`, `pieChart`, `ribbonChart`, `scatterChart`, `stackedAreaChart`, `stackedBarChart`, `stackedColumnChart`, `treemap`, `waterfallChart`, `decompositionTreeVisual`, `keyDriversVisual`, `ganttChart` (`pbir add visual gantt`, 0.9.33+)
 
 ### Cards and KPIs
 `card`, `cardVisual`, `kpi`, `multiRowCard`, `scorecard`
@@ -765,14 +767,16 @@ pbir schema roles "lineChart"                    # Canonical PBIR data roles (re
 `aiNarratives`, `chicletSlicer`, `hierarchySlicer`, `pythonVisual`, `scriptVisual` (R), `qnaVisual`, `rdlVisual`, `timeline`
 
 ### Common Data Roles
-- **Charts**: Category, Y (Legend, SmallMultiples)
-- **Combo charts**: Category, ColumnY, LineY (Legend)
-- **Cards**: Values
+PBIR role names, which pbir requires; Desktop's UI labels (`Legend`, `SmallMultiples`) are refused.
+Per-type list: [add-new-visual.md](./add-new-visual.md), "Visual Types and Data Roles".
+- **Charts**: Category, Y (Series = legend, Rows = small multiples)
+- **Combo charts**: Category, Y = columns, Y2 = lines (Series)
+- **Cards**: Values; new card (`cardVisual`): Data
 - **KPI**: Indicator (TrendLine, Goal)
 - **Tables**: Values (Rows, Columns for matrix)
 - **Slicers**: Values
-- **Scatter**: X, Y (Category, Size, Legend)
-- **Maps**: Location (Size, Color/Values)
+- **Scatter**: Category, X, Y (Size, Series = legend, Play)
+- **Maps**: Category = location, or X and Y = longitude and latitude (Series = legend, Size)
 
 ## Global Flags
 

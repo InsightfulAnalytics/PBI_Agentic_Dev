@@ -135,9 +135,9 @@ Choose small multiples over a legend when the question is "does this pattern hol
 
 Supported only on bar, column, line, and area charts. The grid synchronizes axes and fills left-to-right then top-to-bottom in sort order, with overflow scrolling beyond the visible grid.
 
-### The Series vs SmallMultiples role distinction
+### The Series vs small multiples role distinction
 
-`Series`/`Legend` overlays series in a single frame; true small multiples use the dedicated `SmallMultiples` role that partitions into the grid. The `smallMultiplesLayout` object only takes effect when the `SmallMultiples` role is populated. Confirm before editing:
+`Series` (the legend) overlays series in a single frame; true small multiples use the `Rows` role (Desktop's "Small multiples" well), which partitions into the grid. There is no `SmallMultiples` role. The `smallMultiplesLayout` object only takes effect when `Rows` is populated. Confirm before editing:
 
 ```bash
 pbir visuals bind "Page/MyVisual.Visual" --list-roles
@@ -155,7 +155,7 @@ Do not waste edits on these; they silently have no effect in a small-multiples c
 - Scroll-to-load-more
 - Small-multiple cell title display units/decimals/format (the model's format string controls them, per "Precision belongs to the model" above)
 
-Check for the `SmallMultiples` role before adding any analytics overlays.
+Check for a populated `Rows` role before adding any analytics overlays.
 
 ### Pitfalls
 

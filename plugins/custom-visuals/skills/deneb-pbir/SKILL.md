@@ -41,7 +41,7 @@ python "$S" embed "<...>/visuals/myDeneb/visual.json" --spec spec.json
 
 `provider` in the same properties block says which grammar (`vega` / `vegaLite`); don't mix schema URLs.
 
-Embed with `embed`, not `pbir visuals deneb`: pbir 0.9.32 writes the literal without doubling the spec's `'` characters, and Desktop then draws nothing at all for the visual while `pbir validate` passes (`reports:pbir-cli` `references/cli-traps.md`). `embed` leaves `visual.json.bak` inside the visual's folder; move it out of the `.Report` tree once the visual renders.
+Embed with `embed`, not `pbir visuals deneb`: pbir 0.9.32 and 0.9.33 write the literal without doubling the spec's `'` characters, and Desktop then draws nothing at all for the visual while `pbir validate` passes (`reports:pbir-cli` `references/cli-traps.md`). `embed` leaves `visual.json.bak` inside the visual's folder; move it out of the `.Report` tree once the visual renders.
 
 `$schema` never goes inside `jsonSpec`: Deneb 2.0 flags a root `$schema` in the Specification editor with a warning and a Quick Fix (the certified visual cannot fetch it and it disables autocomplete), and it does nothing for rendering. `extract` adds `https://vega.github.io/schema/vega/v6.json` or `.../vega-lite/v6.json` (matching `provider`) to the standalone file so editors and the renderer can use it; `embed` strips a root `$schema` again unless you pass `--keep-schema`.
 
