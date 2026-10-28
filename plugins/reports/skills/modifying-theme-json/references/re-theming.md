@@ -130,4 +130,4 @@ pbir desktop screenshot "Report.Report/Page.Page" -o verify.png
 # read verify.png; confirm text is legible, no white holes, slicer headers are quiet surfaces
 ```
 
-One caveat for theme swaps: a canvas refresh re-reads pages and visuals from disk but **not** `StaticResources`, so theme edits only render after the file is closed and reopened in Desktop. Reopen before trusting the screenshot. See `pbir-cli` -> `references/desktop-integration.md` for the refresh / screenshot loop. The rendered acceptance gate, not the validator, is what signs off a swap.
+One caveat for theme swaps: close and reopen the file in Desktop before trusting the screenshot. Desktop 26.10 reloads edits to the active theme file on a canvas refresh, but a swap to a different theme file is untested there, and older builds reload no theme change at all. See `pbir-cli` -> `references/desktop-integration.md` for the refresh / screenshot loop. The rendered acceptance gate, not the validator, is what signs off a swap.

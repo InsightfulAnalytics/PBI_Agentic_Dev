@@ -47,6 +47,15 @@ pbir desktop screenshot "C:\Reports\Flash.pbix"      # Absolute path to an open 
 
 Default screenshot file name derives from the page display name (forbidden characters replaced); default scale is 2, clamped to 1-3 (values outside the range are pinned, not rejected). `--all` captures every page; pages land in `./screenshots` unless `--output-dir` overrides it, and `--settle <ms>` delays the first capture so the canvas finishes rendering before shooting. Captures follow Desktop's current canvas zoom, which reloads can change; for pixel-level checks, capture at `--scale 3` and crop, or move the visual under test to the page's top-left first. `refresh -m` (`--model`) re-applies the model definition alongside the report, useful after editing TMDL in a thick report. Use `pbir desktop list` to confirm bridge availability and inspect the target instance.
 
+`--scale` is not image pixels per page pixel. With the page at Actual size on a 96 DPI window,
+`--scale 1` drew a 1280-px page 1444 px wide (1.128 per page pixel), so measure from the page's edges
+in each image. For a 1:1 render, as a reader at 100% zoom sees it, set View > Page view > Actual size
+and capture the Desktop window instead (`pbi-desktop:connect-pbid`
+`references/desktop-ui-automation.md`, "Page view"). (Observed on pbir 0.9.33, Desktop 26.10.
+Verified 2026-10-29.)
+Retest: at Actual size, `pbir desktop screenshot "<Report>.Report/<Page>.Page" -o a.png --scale 1`,
+then measure the page's width in `a.png`.
+
 Two flag names in that list are traps: there is no `--out` (the single-page flag is `-o/--output`),
 and `--settle` is inert without `--all`. Both are stated in full in `cli-reference.md` under Desktop
 Operations, which is the canonical flag list.
@@ -104,7 +113,8 @@ Each open report is a separate Desktop process with its own bridge endpoint and 
 
 ## Caveats and Troubleshooting
 
-- **Refresh reloads the definition, not themes.** `file.reload` re-reads pages and visuals from disk but not StaticResources: theme changes made through `pbir` only render after closing and reopening the file in Desktop. Desktop also resolves base themes by name from its internal store; the materialized `BaseThemes/*.json` is a snapshot it writes, not a file it reads (verified empirically; custom themes in `RegisteredResources` are read at open).
+- **Refresh reloads edits to the active custom theme; reopen after a theme swap.** `pbir theme set-formatting` and `pbir theme set-fonts` edits to the custom theme in `RegisteredResources` (a wildcard background color, a text class size) rendered after `pbir desktop refresh`, and after the **Apply external changes** banner, with no reopen. pbir still prints "Theme changes aren't applied by reload; close and reopen": trust the screenshot over that line. Swapping in a different theme file, or the base theme, is untested, so close and reopen after a swap. Desktop resolves base themes by name from its internal store; the materialized `BaseThemes/*.json` is a snapshot it writes, not a file it reads. (Edit reload observed on pbir 0.9.33, Desktop 2.159.883.0, 26.10. Verified 2026-10-29. Earlier builds needed a reopen for any theme change.)
+  Retest: `pbir theme set-formatting "<Report>.Report" "*.*.background.color" --value "#ffe8cc"`, then `pbir desktop refresh` and `pbir desktop screenshot`.
 - **Refresh on a dirty instance saves first.** If the report has unsaved changes in Desktop, `file.reload` makes Desktop save before reloading; the whole definition is rewritten (re-indented, schema versions bumped, active page recorded). Expect git churn; commit or stash before iterating on a report a user has open with edits. That save is also how a user's canvas edits reach disk, which is the subject of the next section.
 - **"Report view is not active"**: switch the Desktop window to the Report view and retry the screenshot.
 - **Transient errors right after a refresh** (HostNotReady): handled automatically; the CLI honors the bridge's retry protocol.

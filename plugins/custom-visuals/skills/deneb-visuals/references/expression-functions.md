@@ -7,6 +7,11 @@ Moved out of [SKILL.md](../SKILL.md) so the skill body stays under the compactio
 Those eight names (`min`, `middle`, `max`, `negative`, `bad`, `positive`, `good`, `neutral`) are the whole set; an unknown name falls through to an index lookup and lands on theme color 1 (Verified 2026-09-08 from `getNamedColors` in `packages/vega-runtime/src/lib/extensibility/scheme/powerbi.ts` on Deneb main at cd23465, three commits past tag `2.0.0.0`; read from source, not from a running theme).
 Retest: in a Deneb visual, fill four marks with `pbiColor('neutral')`, `pbiColor('middle')`, `pbiColor('good')` and `pbiColor('nonsense')` under a theme whose sentiment and divergent colors differ, and compare.
 
+## pbiColorDivergent misses the middle color
+
+The `pbiColorDivergent` scheme is a basis spline through the theme's minimum, center and maximum divergent colors (`pbiColor` names `min`, `middle`, `max`), not a ramp through them: at its midpoint each RGB channel is (min + 4 x middle + max) / 6, which is what d3's `interpolateRgbBasis` gives, so no value ever gets the center color. Under `domainMid: 0`, with min `#b95115`, center `#f2f4f7` and max `#184f90`, a cell at 0 rendered `#c4bdc0` instead of the near-white center; the ends were exact. When the center color matters (a neutral zero, a diverging heatmap), give the scale an explicit three-color `range` with `domainMid`, which interpolates through each stop. `pbiColorNominal` returned the theme's `dataColors` exactly. (Observed with Deneb 2.0.1.0 on Desktop 26.10, from rendered pixels, not from the source. Verified 2026-10-29.)
+Retest: a heatmap with `"scale": {"scheme": "pbiColorDivergent", "domainMid": 0}` and one cell at 0; sample that cell's pixel and compare it with the theme's center color.
+
 ## The six functions
 
 Deneb registers exactly six Vega expression functions: `pbiColor`, `pbiFormat`, `pbiFormatAutoUnit`, `pbiPatternSVG`, `pbiCrossFilterApply` and `pbiCrossFilterClear`. None is new in 2.0. The formatting and pattern ones:

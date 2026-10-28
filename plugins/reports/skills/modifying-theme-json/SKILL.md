@@ -64,7 +64,8 @@ When a visual renders unexpectedly, walk up the cascade:
 1. Check `visual.json` → `objects` and `visualContainerObjects` (level 4 always wins)
 2. Check the named style preset the visual selects (`visualContainerObjects.stylePreset`), then theme `visualStyles["<type>"]["*"]` for that visual type (level 3)
 3. Check theme `visualStyles["*"]["*"]` wildcard (level 2)
-4. If absent everywhere, Power BI is applying a built-in default
+4. If absent everywhere, check the base theme's `visualStyles`: a size or hex set there beats your text classes and color slots (`references/advanced-theme-features.md`)
+5. Only then is Power BI applying a built-in default
 
 ## Workflow: Audit Theme Compliance
 

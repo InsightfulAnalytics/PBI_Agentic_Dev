@@ -72,9 +72,10 @@ to refresh a template from an edited source file.
 
 ## Why a Desktop reload (not just refresh) is required
 
-Power BI Desktop reads custom themes from `RegisteredResources` **only when the file is
-opened**. A canvas/definition refresh re-reads pages and visuals but not StaticResources,
-so theme changes will not appear until you **close and reopen** the report in Desktop.
+Applying a theme swaps the file in `RegisteredResources`, and only a reopen is known to load a
+swapped file: **close and reopen** the report in Desktop. Desktop 26.10 does reload later edits to
+the same theme file on a canvas refresh (`pbir-cli` -> `references/desktop-integration.md`); older
+builds read custom themes only when the file is opened.
 
 ## After applying
 

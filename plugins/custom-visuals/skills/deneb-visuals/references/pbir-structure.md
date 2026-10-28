@@ -304,6 +304,25 @@ Retest: open a visual.json carrying all three `stateManagement` stamps in a Desk
 
 The full matrix and the audit and migrate commands are in [`references/deneb-2-migration.md`](deneb-2-migration.md#compatibility-matrix).
 
+## Creating one with pbir
+
+`pbir add visual` has no Deneb type: `pbir add visual deneb7E15AEF80B9E4D4F8E12924291ECE89A ...`
+fails with `Unknown visual type`. Copy an existing Deneb visual from any report instead; the copy
+also adds Deneb to the target's `publicCustomVisuals`.
+
+1. `pbir --skip fields cp "<Source>.Report/<Page>.Page/<Deneb>.Visual" "<Target>.Report/<Page>.Page/<name>.Visual"`
+   (`--skip fields` because the source's fields are not in the target's model).
+2. Clear the copied binding with `pbir --skip fields visuals bind "<Visual>" -c dataset --rawdog`, then
+   bind with `pbir visuals bind "<Visual>" -a "dataset:Table.Field"` once per field. pbir warns that
+   Deneb has no data roles defined; the binding still lands.
+3. Remove the visual-level filters the copy brought from the source:
+   `pbir rm "<Visual>/filter:<name>" -f` for each name in the visual's `filterConfig`.
+4. Embed the spec with `deneb_spec.py embed` (`custom-visuals:deneb-pbir`). Title it in the spec:
+   pbir's container commands reject a custom visual (`reports:pbir-cli` `references/cli-traps.md`).
+
+(Observed on pbir 0.9.33. Verified 2026-10-29.)
+Retest: `pbir add visual --list | grep -i deneb`.
+
 ## Complete PBIR Interactivity Example
 
 Cross-filtering and tooltips with full PBIR literal encoding:

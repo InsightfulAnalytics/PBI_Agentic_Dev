@@ -86,6 +86,9 @@ Rules:
 "dataColors": ["#1971c2", "#f08c00", "#2f9e44", "#ae3ec9", "#e03131", "#0c8599"]
 ```
 
+A series past the last authored color does not cycle back to the first. Desktop's **Import theme** pads `dataColors` to 480 entries, filling each position with the classic default palette's color at that index (index 6 is `#FE9666`, then `#A66999`, `#3599B8`), so a seventh series gets a color the theme never chose. Author at least as many colors as the largest series count the report shows. (Observed on Desktop 2.159.883.0, 26.10. Verified 2026-10-29.)
+Retest: import a theme with six `dataColors` through Design > Import theme, save, and count `dataColors` in the theme file under `StaticResources/RegisteredResources/`.
+
 ### 2. Semantic Colors
 
 Flat top-level hex string keys used by conditional formatting measures that return color name strings (`"good"`, `"bad"`, `"neutral"`). These are NOT nested under a `sentimentColors` object; they are individual keys at the root level of the theme JSON.
@@ -168,7 +171,7 @@ Extended palette for container surfaces, canvas backgrounds, and foreground text
 
 ## Typography (`textClasses`)
 
-Text classes define font properties by semantic role. Every defined class overrides Power BI's defaults for that role across all visuals.
+Text classes define font properties by semantic role. A defined class sets its role's default wherever no `visualStyles` entry sets the same property, and the base theme's `visualStyles` count: Fluent2's base sizes axis labels, visual titles and card labels itself, so a text class never reaches them until the custom theme restates those sizes (`advanced-theme-features.md`, "Base Theme and the Layering Model").
 
 Power BI has 12 text classes: 4 primary ones you set explicitly, and 8 secondary ones that derive automatically from a primary (lighter shade or size delta). Over-specifying all 12 is wasted effort and a drift trap; set the four primaries, then override a secondary only when you need to break an inheritance.
 
@@ -217,6 +220,8 @@ Use a plain hex string for `color` in `textClasses` (NOT the `{"solid":{"color":
 
 - Use `"Segoe UI"` for regular weight, `"Segoe UI Semibold"` for emphasis — short name form only
 - In `visualStyles` and `textClasses`: use the short name (`"Segoe UI Semibold"`). The long CSS font stack format (`"'Segoe UI Semibold', wf_segoe-ui_semibold, ..."`) is for `outspacePane`/`filterCard` only.
+- Bold is the exception: give it Desktop's stack, `Segoe UI Bold, wf_segoe-ui_bold, helvetica, arial, sans-serif`, in a `textClasses` `fontFace` (such as `boldLabel`) and in any `fontFamily`. A bare `"Segoe UI Bold"` renders in a serif fallback, because on Windows Bold is a weight of the Segoe UI family rather than a family of its own, while Semibold has a family name of its own. (Observed on Desktop 2.159.883.0, 26.10. Verified 2026-10-29.)
+  Retest: set `textClasses.boldLabel.fontFace` to `"Segoe UI Bold"` and screenshot a table's total row.
 - Do not use custom fonts — Power BI only supports its built-in font list. Supported options include: Arial, Calibri, Candara, Consolas, Courier New, DIN, DIN Light, Georgia, Segoe UI, Segoe UI Light, Segoe UI Semibold, Segoe UI Bold, Tahoma, Times New Roman, Trebuchet MS, Verdana (confirmed from pbir object model)
 - Mixing more than two font weights in a report creates visual noise
 
@@ -342,7 +347,7 @@ A single `filterCard` container styled without a `$id` applies identically to bo
 
 ### Design Guidelines
 
-- `dropShadow.show: false` globally is strongly recommended — drop shadows create visual noise and cause vestibular issues for some users. Only enable on specific visual types that genuinely benefit.
+- `dropShadow.show: false` globally is strongly recommended — drop shadows create visual noise and cause vestibular issues for some users. Only enable on specific visual types that genuinely benefit. Where one is on, `dropShadow.angle` runs clockwise from the right: 0 casts right, 90 down, 180 left, 270 up.
 - `background.show: false` by default keeps the canvas clean. Individual visuals can opt in.
 - `border.show: false` by default — borders are clutter. Use spacing instead.
 - Title should be enabled by default so visuals have useful labels. Suppress per visual type as needed (e.g., textboxes).

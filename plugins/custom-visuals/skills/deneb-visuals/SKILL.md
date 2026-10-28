@@ -50,7 +50,7 @@ For more information, use the `pbir-format` skill and check the `report.md` refe
 
 ### Step 1: Add the Visual
 
-Create the visual.json file manually (see `pbir-format` skill in the pbip plugin for JSON structure) with `visualType: deneb7E15AEF80B9E4D4F8E12924291ECE89A`, field bindings for the columns and measures you need, and position/size as required.
+With pbir, copy an existing Deneb visual ([`references/pbir-structure.md`](references/pbir-structure.md#creating-one-with-pbir)). Otherwise create the visual.json file manually (see `pbir-format` skill in the pbip plugin for JSON structure) with `visualType: deneb7E15AEF80B9E4D4F8E12924291ECE89A`, field bindings for the columns and measures you need, and position/size as required.
 
 All fields bind to the single `dataset` role. Use `Table.Column` for columns and `Table.Measure` for measures. Field names in bindings must match those used in the Vega/Vega-Lite spec.
 
@@ -167,7 +167,7 @@ Use Power BI theme colors instead of hardcoded hex values:
 | `pbiColorLinear` | Continuous gradient | `"range": {"scheme": "pbiColorLinear"}` |
 | `pbiColorDivergent` | Divergent gradient | `"range": {"scheme": "pbiColorDivergent"}` |
 
-Those eight names are the whole set; an unknown name lands on theme color 1 ([`references/expression-functions.md`](references/expression-functions.md#pbicolor-names)).
+Those eight names are the whole set; an unknown name lands on theme color 1 ([`references/expression-functions.md`](references/expression-functions.md#pbicolor-names)). `pbiColorDivergent` never reaches the center color ([why](references/expression-functions.md#pbicolordivergent-misses-the-middle-color)).
 
 ### Expression functions
 
