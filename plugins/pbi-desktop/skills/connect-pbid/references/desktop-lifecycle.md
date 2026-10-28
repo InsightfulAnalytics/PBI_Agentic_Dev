@@ -73,9 +73,11 @@ Feature symbols in `Microsoft.PowerBI.Client.Windows.dll`: `ExternalChangesTrack
 Limits: it is **PBIP/PBIR only** ("Reload is only supported for PBIP/PBIR files"), and Desktop warns
 that applying "may overwrite your unsaved edits in Power BI Desktop", so land the canvas work first.
 
-Search for the button from Desktop's **main window** element, not from the desktop root: the banner,
-like the "Do you want to save your changes?" prompt, is drawn as a child inside the main window
-rather than as a top-level window. On one build (2026-09-12) no invokable button was found at all,
+Search for the button from Desktop's **main window** element, not from the desktop root: the banner
+is drawn as a child inside the main window rather than as a top-level window (the save prompt on
+close is the exception; see "CloseMainWindow() is not reliable on Desktop" below). When Desktop
+holds unsaved edits, Apply first asks to overwrite them; that dialog's OK button has AutomationId
+`okButton`. On 26.10 a report counted as unsaved straight after opening, so expect the dialog. On one build (2026-09-12) no invokable button was found at all,
 and the banner had to be clicked by position, with coordinates read off a scaled screenshot. The
 apply keeps the loaded data; measure edits show at once because measures evaluate at query time,
 while a Power Query change still needs a refresh (see "A Power Query change empties its table" below).
@@ -87,6 +89,14 @@ reopening, or to live TOM `SaveChanges()` for model changes. This is a *differen
 (Observed on Desktop 2.157.879.0, 26.08. Verified 2026-08-28.)
 Retest: edit a `.tmdl` file of an open PBIP on disk and watch for the banner, or
 `Get-Process PBIDesktop | Select-Object -ExpandProperty MainModule | Select-Object FileVersion`.
+
+**Theme edits reload too, on 26.10.** An edit to the active custom theme file in
+`StaticResources/RegisteredResources` (a wildcard background color, a text class size) rendered after
+Apply external changes and after `pbir desktop refresh`, with no reopen. Swapping in a different
+theme file, or changing the base theme, is untested: close and reopen after a swap, and on a build
+older than 26.10 after any theme change. (Observed on Desktop 2.159.883.0, 26.10. Verified 2026-10-29.)
+Retest: change one color in the active theme with `pbir theme set-formatting`, click Apply external
+changes, and screenshot.
 
 ## Desktop silently reverts on-disk edits it had in memory
 
@@ -129,6 +139,11 @@ port-scan loop that keeps the last port to answer can query the stale one and re
 measure as broken. Run `pbir desktop list` first (one row per instance); without `pbir`, match each
 port to its parent `PBIDesktop` PID (SKILL.md section 2a), or pick the port whose model has the most
 measures. Then ask the user to close the extra instance. (Verified 2026-09-11.)
+
+Desktop's own **Recent** list reaches the same state: invoking a project's entry there started a new
+`PBIDesktop` process while the current one still held that project. To reopen a project, close the
+instance first, then `Start-Process` the `.pbip`. (Observed on Desktop 26.10. Verified 2026-10-29.)
+Retest: with a project open, invoke its entry in Desktop's Recent list, then run `pbir desktop list`.
 
 ## A Power Query change empties its table until refreshed
 
@@ -197,3 +212,22 @@ answer, while Desktop sat behind another window. On a scratch file of your own, 
 invoking the quick-access **Save** through UI Automation, waiting for `cache.abf` to settle (above),
 then ending the process. Never do that to the user's own file without asking. The UI Automation
 routes are in [desktop-ui-automation.md](./desktop-ui-automation.md).
+
+**On 26.10 the close works, and its save prompt is what hides.** `WindowPattern.Close()` (or a
+posted `SC_CLOSE`) raised the "save your changes" prompt as a separate top-level window of the same
+process, titled `Microsoft Power BI Desktop` and about 462x174, and disabled the main window
+meanwhile. The prompt's content is an `Internet Explorer_Server` control that exposes nothing to UI
+Automation, so no UIA search finds it, and it can open behind other windows. Posted mouse messages
+answer it with Desktop in the background:
+
+1. `EnumWindows` for a visible window of Desktop's PID titled `Microsoft Power BI Desktop`, then
+   `EnumChildWindows` for its `Internet Explorer_Server` child.
+2. `PostMessage` `WM_MOUSEMOVE`, `WM_LBUTTONDOWN` and `WM_LBUTTONUP` to that child at the button's
+   client point: **Save** at (219, 132), **Don't save** at (312, 132) on a 96 DPI display (scale both
+   with the DPI).
+3. Poll `HasExited`, then reopen with `Start-Process` on the `.pbip`.
+
+Don't save discards Desktop's unsaved edits; on the user's own file, ask before answering either way.
+(Observed on Desktop 2.159.883.0, 26.10. Verified 2026-10-29.)
+Retest: on a scratch report with an unsaved change, call `WindowPattern.Close()`, then list the
+process's visible top-level windows and their child window classes.

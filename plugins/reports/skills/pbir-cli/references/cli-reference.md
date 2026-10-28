@@ -169,6 +169,14 @@ created in the wrong tree keeps working, and every later relative path compounds
 Verified 2026-09-23.]
 Retest: where `pbir connect` has set another report, `pbir validate "sub/Name.Report"`, then read the `Validating` line.
 
+`pbir new report --thick` ignores even an absolute path. With a profile active in the config,
+`pbir new report "<absolute dir>\Probe.Report" --thick --no-title`, run from that directory, wrote
+`Probe.pbip` and `Probe.Report` beside the connected report, and its output names only the
+relative `Probe.pbip`, so it does not show where they went. After a thick create, check the target
+directory for the `.pbip` and, if it is missing, move the new files from the connected report's
+folder. [Observed on pbir 0.9.33 on Windows. Verified 2026-10-29.]
+Retest: with a profile active, run that command in an empty directory, then list both directories.
+
 `report link` records the published identity locally (never in the report definition); `pbir usage` and other remote commands read it to skip re-resolving. It differs from `report rebind`, which re-points a report at a different model.
 
 ## Page Operations

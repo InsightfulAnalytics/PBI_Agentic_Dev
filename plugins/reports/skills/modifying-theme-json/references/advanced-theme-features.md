@@ -62,6 +62,17 @@ This explains three behaviors:
 
 The defense is completeness: set the wildcard and structural keys explicitly so the base is effectively displaced. A theme that fully specifies its intended defaults is portable across base versions.
 
+Completeness has to reach the base's own `visualStyles`, because two of a custom theme's levers sit below them:
+
+- **Text classes lose to the base theme's visualStyles sizes.** A text class sets a role's size only where no `visualStyles` entry, the base's included, sets that property. Fluent2-CY26SU10 sets 44 font sizes (axis labels and axis titles 10.5, visual title 15, `cardVisual` label 12, button slicer values 10.5, button and navigator text 10.5, among them), and a custom theme whose text classes asked for other sizes left every one of them unchanged. Table and matrix text, legends, data labels, card values and the classic slicer, which the base does not size, followed the text classes. Restate each base size in the custom theme's `visualStyles`.
+- **Literal colors in the base's visualStyles beat the custom color slots.** Gridlines stayed `#F0F0F0` under a custom theme that set `thirdLevelElements`, which is how a dark custom theme ends up with light gridlines and light card outlines. Restate every literal hex the base holds (23 in Fluent2-CY26SU10).
+- **Across layers, a custom wildcard beats a base visual-type entry.** Wildcard `background`, `border` and `padding` in a custom theme reached the page navigator, which the base switches off for its own type. Add a visual-type entry to the custom theme to switch them back.
+
+Desktop writes the base as a readable snapshot in `StaticResources/SharedResources/BaseThemes/`, so list what to restate from it: every `fontSize` and every `#rrggbb` under `visualStyles`.
+
+(Observed with base Fluent2-CY26SU10 on Desktop 2.159.883.0, 26.10, sizes measured from rendered text. Verified 2026-10-29.)
+Retest: in a custom theme that sets no `visualStyles` sizes, set `textClasses.label.fontSize` to 14, then compare an axis label with a table cell in a `pbir desktop screenshot`.
+
 Side effect of "reset to default": clearing `objects`/`visualContainerObjects` via `pbir visuals clear-formatting` strips data-bound items, CF rules, button/image actions, and URL/field-bound images along with chrome overrides. The CLI's `--keep-cf` guards conditional formatting but a blanket clear removes more than chrome. Audit before batch-clearing on reports with rich interactive content.
 
 ---

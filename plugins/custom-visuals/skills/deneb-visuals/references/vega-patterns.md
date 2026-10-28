@@ -983,3 +983,10 @@ Recommended config for all Vega and Vega-Lite specs in Power BI:
   }
 }
 ```
+
+This config sets no text colors, so Vega's dark defaults apply whatever the report theme: on a dark
+theme, axis labels, legends and titles render near-black on the dark background. For a dark theme
+add `axis.labelColor`, `axis.titleColor`, `legend.labelColor`, `legend.titleColor` and `title.color`
+from the theme's foreground, and swap the light `gridColor` for one from its dark structural colors.
+(Observed with Deneb 2.0.1.0 on Desktop 26.10. Verified 2026-10-29.)
+Retest: apply a dark custom theme to a report with a Deneb visual on this config, then screenshot it.
