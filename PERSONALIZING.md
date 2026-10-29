@@ -127,10 +127,11 @@ every skill carry one version, which tracks the upstream release last harvested.
    claude plugin update <plugin>@power-bi-agentic-dev
    ```
 
-The 11 plugins you can personalize:
+The 12 plugins you can personalize:
 `semantic-models`, `reports`, `pbip`, `custom-visuals`, `tabular-editor`, `pbi-desktop`, `fabric-cli`,
-`fabric-admin`, `paginated-reports`, `etl`, and `fabric-data-app` (harvested 2026-10-05; it holds
-only the `/fabric-app-pane` mod, no skills).
+`fabric-admin`, `paginated-reports`, `etl`, `fabric-data-app` (harvested 2026-10-05; it holds
+only the `/fabric-app-pane` mod, no skills), and `fabric-apps` (fork-owned since 2026-10-29: the
+Fabric App authoring skills, with no upstream counterpart to harvest).
 
 Upstream 26.40 added Claude Code mods: sidebar panes that follow a CLI (`/fabric-pane` in
 `fabric-cli`, `/report-pane` in `reports`, `/fabric-app-pane` in `fabric-data-app`). They live in each

@@ -1,0 +1,20 @@
+{
+  "name": "fabric-apps",
+  "version": "26.40.3",
+  "description": "Build Microsoft Fabric Apps (the Rayfin scaffold) over a published semantic model: the authoring workflow, rayfin and fabric-app-data CLI traps, and Vega-Lite fixes for charts in a React app.",
+  "author": {
+    "name": "Tim Osborn",
+    "url": "https://binexus.net"
+  },
+  "homepage": "https://binexus.net/power-bi-agentic-dev/",
+  "repository": "https://github.com/InsightfulAnalytics/PBI_Agentic_Dev",
+  "license": "GPL-3.0",
+  "keywords": [
+    "microsoft-fabric",
+    "fabric-apps",
+    "rayfin",
+    "data-app",
+    "vega-lite",
+    "react"
+  ]
+}
