@@ -212,12 +212,13 @@ Run the usage script for quantitative data. Export or inspect the report definit
 
 ### Step 3: Evaluate
 
-Walk through each relevant dimension using the checklists above. Score each finding by severity:
+Walk through each relevant dimension using the checklists above. Score each finding on four levels,
+which map to NN/g's severity ratings 4 to 1 and which `pbi-report-design` and the reviewer agents also use:
 
-- **Critical**: Broken functionality, security risk, or completely unused report consuming capacity
-- **High**: Performance issues impacting users, major design violations, missing data bindings
-- **Medium**: Design inconsistencies, moderate performance concerns, partial accessibility gaps
-- **Low**: Minor polish items, style preferences, optimization opportunities
+- **Blocker**: Broken functionality, security risk, or completely unused report consuming capacity
+- **Major**: Performance issues impacting users, major design violations, missing data bindings
+- **Minor**: Design inconsistencies, moderate performance concerns, partial accessibility gaps
+- **Polish**: Minor polish items, style preferences, optimization opportunities
 
 ### Step 4: Report Findings
 
@@ -234,18 +235,18 @@ USAGE SIGNAL
   Top pages: Overview (60%), Detail (30%), Trends (10%)
   Load time P50: 3.2s  |  P90: 7.1s
 
-CRITICAL
+BLOCKER
   - [Performance] P90 load time exceeds 7s due to 14 visuals on Overview page
 
-HIGH
+MAJOR
   - [Design] No page titles on 2 of 3 pages
   - [Binding] 3 visuals have broken field references
 
-MEDIUM
+MINOR
   - [Design] Inconsistent margins (24px left, 32px right)
   - [Accessibility] Missing alt text on 5 data visuals
 
-LOW
+POLISH
   - [Design] Default theme applied; consider custom theme
   - [Standards] Report name uses spaces instead of hyphens
 ```
