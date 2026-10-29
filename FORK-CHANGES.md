@@ -171,6 +171,12 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `pbir-cli` and `pbir-format` set series labels' `seriesMatchColor` false, since a label in a light
   series colour can fall under 4.5:1. The `deneb-reviewer` agent checks display-only interaction
   and alt text (checks 17 and 18), and reads Deneb font sizes as px.
+- One severity scale for graded findings (2026-10-30): Blocker, Major, Minor and Polish, which map
+  to NN/g's severity ratings 4 to 1. `review-report` renames Critical, High, Medium and Low one for
+  one (its `SKILL.md` and its `distribution.md` and `accessibility-audit.md` references), the four
+  reviewer agents (`deneb`, `svg`, `python`, `r`) give each failure a level, and
+  `pbi-report-design`'s Evaluation Output uses the same four in place of critical, warning and
+  suggestion.
 
 ### Fork-owned files, for upstream harvest resolution
 

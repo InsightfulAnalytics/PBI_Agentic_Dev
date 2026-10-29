@@ -295,7 +295,7 @@ When asked to evaluate or audit a report, focus on objective criteria. Subjectiv
 When evaluating, provide:
 
 - Issues found with specific locations
-- Severity (critical, warning, suggestion)
+- Level: Blocker, Major, Minor or Polish (the levels `review-report` uses)
 - Recommended fixes with commands or patterns
 
 ### The design gate

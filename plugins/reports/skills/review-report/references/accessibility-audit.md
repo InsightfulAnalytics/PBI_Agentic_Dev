@@ -92,7 +92,7 @@ A page can be flawless on web and unusable in portrait. These are entirely file-
 - **Orphan records:** a `mobile.json` whose sibling `visual.json` is gone (a blocking state; `pbir validate` catches it)
 - **Mobile-only override sprawl:** large `objects` blocks in `mobile.json` that duplicate rather than delta desktop formatting
 
-Tie severity to intent: a back-of-house detail page with no phone layout is fine; a headline KPI page visible in an org app is high severity. Mobile-optimized views render only in the native iOS/Android apps; a browser always shows the landscape layout, so you cannot verify portrait by browser screenshot.
+Tie severity to intent: a back-of-house detail page with no phone layout is fine; a headline KPI page visible in an org app is a Major finding. Mobile-optimized views render only in the native iOS/Android apps; a browser always shows the landscape layout, so you cannot verify portrait by browser screenshot.
 
 ## Must-Render Residue
 

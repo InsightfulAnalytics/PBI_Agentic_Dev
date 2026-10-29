@@ -138,7 +138,7 @@ fab api -A powerbi "admin/widelySharedArtifacts/publishedToWeb" \
   -q "ArtifactAccessEntities[?artifactId=='<report-id>']"
 ```
 
-If the result is non-empty, the report is publicly accessible. Flag this as a critical finding in any review unless the report is intentionally public-facing.
+If the result is non-empty, the report is publicly accessible. Flag this as a Blocker finding in any review unless the report is intentionally public-facing.
 
 **Revoking publish-to-web:** Cannot be done via API. Direct the workspace admin or Fabric admin to revoke via the Power BI admin portal under "Embed codes".
 

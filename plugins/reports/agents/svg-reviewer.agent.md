@@ -40,6 +40,6 @@ Review SVG DAX measures for correctness and design quality.
 **Output Format:**
 
 Return a concise review with:
-- PASS/FAIL for each checklist item (only list failures)
-- Design suggestions (max 3)
+- Each failing checklist item (passes are not listed), with its level: **Blocker** (it fails to render, shows wrong data or fails WCAG 2.2 AA), **Major** (a reader can misread or miss a value), **Minor** (it slows reading or breaks a convention) or **Polish** (cosmetic)
+- Design suggestions (max 3), each with its level
 - Overall verdict: READY or NEEDS CHANGES
