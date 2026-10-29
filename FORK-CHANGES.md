@@ -161,6 +161,16 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `vega-lite-app-gotchas` (eight fixes for Vega-Lite specs rendered in a React app). They were
   personal skills until then. `vega-lite-app-gotchas`' description held an unquoted `: `, which fails
   YAML parsing (`check-skill-hygiene.py` job 5); it now reads `"Duplicate signal name" on hover_tuple`.
+- Corrected facts a design review found in the report skills (2026-10-30). `ThemeDataColor`'s
+  `ColorId` is the theme colour slot, not a 0-based `dataColors` index: 0 is the background, 1 the
+  foreground and `dataColors[n]` is n + 2 (`pbir-format` `enumerations.md`, `measures-vs-literals.md`,
+  `schema-patterns/expressions.md` and `theme.md`; `pbi-report-design` `anti-patterns.md`, whose
+  one-hue pair was written in the foreground). `modifying-theme-json` `theme-authoring.md` says
+  what `smallLabel` styles and that it derives to 9pt. `pbir-cli` `visualTypes/cardVisual.md` lists
+  the new card's Rows and Tooltips roles beside Data. The formatted `lineChart.json` examples in
+  `pbir-cli` and `pbir-format` set series labels' `seriesMatchColor` false, since a label in a light
+  series colour can fall under 4.5:1. The `deneb-reviewer` agent checks display-only interaction
+  and alt text (checks 17 and 18), and reads Deneb font sizes as px.
 
 ### Fork-owned files, for upstream harvest resolution
 

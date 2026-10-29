@@ -163,7 +163,7 @@ Reference colors from report theme.
 ```
 
 **Parameters:**
-- `ColorId`: Index into theme's dataColors array (0-based)
+- `ColorId`: the theme colour slot: 0 is the background, 1 the foreground, and `dataColors[n]` is n + 2
 - `Percent`: Tint/shade adjustment (-1.0 to 1.0; negative = darker, positive = lighter, 0 = exact)
 
 **Examples from actual visuals:**

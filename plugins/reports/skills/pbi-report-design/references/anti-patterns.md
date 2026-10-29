@@ -96,8 +96,8 @@ pbir visuals bind "Page/Visual.Visual" --list-roles       # again after the edit
 Each series carries one of these as the `expr` under its `dataPoint.fill.solid.color`:
 
 ```json
-{"ThemeDataColor": {"ColorId": 1, "Percent": 0}}
-{"ThemeDataColor": {"ColorId": 1, "Percent": -0.35}}
+{"ThemeDataColor": {"ColorId": 2, "Percent": 0}}
+{"ThemeDataColor": {"ColorId": 2, "Percent": -0.35}}
 ```
 
 `Percent` is a tint/shade adjustment on the theme color (-1.0 to 1.0; negative darker, positive lighter, 0 exact), so the pair stays one hue and still re-themes. State the cost out loud before swapping: stacking makes the total comparable and the upper segment not, because only the bottom segment sits on a common baseline. Stack when the question is composition; keep the clustered form when the second series is the thing being compared.

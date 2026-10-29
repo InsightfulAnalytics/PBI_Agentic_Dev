@@ -246,9 +246,10 @@ Properties available in theme root:
 - visitedHyperlink
 
 ### ThemeDataColor.ColorId
-Range: 0 to (dataColors.length - 1)
+Range: 0 to (dataColors.length + 1). ColorId 0 is the theme's background and 1 its foreground,
+so `dataColors[n]` is ColorId n + 2 and the first data colour is ColorId 2.
 
-In CY24SU10 theme: 0-44 (45 colors)
+In CY24SU10 theme: 2-46 for its 45 data colours
 
 ### ThemeDataColor.Percent
 Range: -1.0 to 1.0

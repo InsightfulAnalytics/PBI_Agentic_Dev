@@ -42,13 +42,15 @@ Review Deneb visual specs for correctness and design quality.
 14. **Field parameters**: a spec that reads a consolidated field parameter applies a `flatten` transform (Vega-Lite `"flatten": [...]`, Vega `{"type": "flatten", ...}`) on the parameter and its companions before any encoding uses them
 15. **Context menu**: `enableContextMenu: false` in visual.json only when hiding the Power BI menu is the intent (2.0 semantics); "menu shown, no data-point resolution" is `enableContextMenu: true` plus `enableContextMenuSelector: false`
 16. **Templates**: a template under review follows usermeta v2 (`deneb.metaVersion` 2, `usermeta.datasets.dataset[]`, keys `__dataset.N__`); a v1 shape (`usermeta.dataset` array, custom `__key__` names) is a failure
+17. **Display-only interaction**: unless the user asked for this visual to filter or highlight others, visual.json sets `enableSelection` and `enableHighlight` off and `enableContextMenuSelector: false` (the menu stays; no mark resolves a drillthrough), so any filter a reader needs starts from a native visual, slicer or button, whose selection works by keyboard as well as pointer. A copied example with selection on is a failure
+18. **Alt text**: the visual container has a non-empty `general.altText` that says what the chart shows, not its type (`pbir visuals general --altText`); a Deneb visual gives a screen reader nothing else, so a missing or placeholder alt text is a failure
 
 **Design Feedback:**
 
 - Chart type appropriate for the data relationship being shown?
 - Color usage intentional (not decorative)?
 - Axes/legends minimal and readable?
-- Text sizes sufficient (12pt+ for labels)?
+- Text sizes sufficient? Deneb font sizes are px and native text is pt (px = pt x 4/3), so 12pt labels need `fontSize` 16
 - Sort order sensible (value descending unless time-based)?
 
 **Output Format:**

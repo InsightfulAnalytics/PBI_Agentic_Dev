@@ -57,14 +57,14 @@ References colors from the Power BI theme.
 ```json
 "expr": {
   "ThemeDataColor": {
-    "ColorId": 1,   // Theme color index (0-based)
+    "ColorId": 2,   // dataColors index + 2: 0 is the background, 1 the foreground
     "Percent": 0
   }
 }
 ```
 
 **Parameters:**
-- `ColorId`: Index into theme's dataColors array (0-based)
+- `ColorId`: the theme colour slot: 0 is the background, 1 the foreground, and `dataColors[n]` is n + 2
 - `Percent`: Tint/shade (-1.0 to 1.0; negative = darker, positive = lighter, 0 = exact)
 
 **Use when:**
