@@ -177,6 +177,22 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   reviewer agents (`deneb`, `svg`, `python`, `r`) give each failure a level, and
   `pbi-report-design`'s Evaluation Output uses the same four in place of critical, warning and
   suggestion.
+- Scaled back `pbi-report-design` (2026-10-30): it no longer sets accessibility, color, type or
+  spacing standards or runs a closing design gate, and says so in a new *Standards this skill does
+  not set* section; the fork maintainer keeps those in a separate design system. `SKILL.md` loses
+  core rule 3's equal-spacing rule, rule 9's muted-color line and rule 11's font list, the Visual
+  Spacing, Color Contrast, Font Sizes and Shadows sections, the color, readability, accessibility and
+  font items of its checklist, and two Common Design Issues; *The design gate* becomes *Before
+  declaring a design done*, which keeps the render-and-look rule. `references/quality-gate.md` is
+  deleted. `references/visual-colors.md` keeps the Power BI mechanics (theme color expressions,
+  semantic tokens, emphasis selectors, other emphasis channels, the CF basis) and loses the contrast
+  table, palette and background examples, sentiment hexes, gradient and traffic-light colors, Color
+  Don'ts and the color-blindness figures. `references/layout-guidelines.md` keeps placement
+  arithmetic and loses its margin, gap and grid values and font sizes; its zone and sample-layout
+  coordinates, which were 1080px values beside a 720px default, are gone, and the column-alignment
+  example now closes on a 1280px page. `ThemeDataColor` examples use ColorId 2 for the first data
+  color. `cards-and-kpis.md`, `design-identity.md`, `modifying-theme-json` (`SKILL.md`,
+  `theme-authoring.md`, `re-theming.md`) and `codex/AGENTS-pbi.md` follow.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -241,8 +257,8 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   (one project per folder, fork step 6), `deneb-visuals/SKILL.md` (also the native-versus-Deneb
   split, the apostrophe rule and best practice 11 on titles), `pbir-cli/SKILL.md`, `connect-pbid/SKILL.md`, `fabric-cli/SKILL.md`, `semantic-model/SKILL.md`,
   `pbi-report-design/SKILL.md` (two habits after the insight test, the visual-title clause in core
-  rule 2, the subtitle floor and the script line), `pbi-report-design/references/{page-titles,quality-gate}.md`
-  (the rewritten visual title section and one gate bullet), `pbir-format/references/{textbox,visual-container-formatting}.md`,
+  rule 2, the subtitle floor and the script line), `pbi-report-design/references/page-titles.md`
+  (the rewritten visual title section), `pbir-format/references/{textbox,visual-container-formatting}.md`,
   `pbir-cli/references/add-new-visual.md`, `tmdl/SKILL.md` (two pointers to the UDF load trap),
   `te-docs/SKILL.md` (the TE3 diagnostics section and two trigger phrases), and the appended sections in
   `power-query/references/best-practices.md`, `fabric-cli/references/dataflows.md`,

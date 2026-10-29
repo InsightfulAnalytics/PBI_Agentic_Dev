@@ -324,4 +324,4 @@ For `visualStyles`: named style presets are a second key alongside `"*"` inside 
 - **`pbir-cli`** → `references/modifying-theme.md` — Full CLI command reference for theme operations (serialize/build, set-colors, set-text-classes, set-formatting, push-visual, fonts, background, icons, diff)
 - **`pbir-cli`** → `references/apply-theme.md` — Applying templates, copying themes between reports, clearing visual overrides
 - **`pbir-format`** (pbip plugin) — Full theme mechanics: ThemeDataColor syntax, filter pane selectors, jq modification patterns, clearing overrides
-- **`pbi-report-design`** — Report design principles: 3-30-300 rule, layout, spacing, color usage, accessibility
+- **`pbi-report-design`** — Report design principles: 3-30-300 rule, layout, chart selection, how Power BI applies color

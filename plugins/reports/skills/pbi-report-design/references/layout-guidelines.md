@@ -21,48 +21,12 @@ Height: 720px
 | 4:3 | 1280 | 960 | Legacy displays |
 | Custom | Variable | Variable | Specific requirements |
 
-## Margins and Spacing
+## Margins and Gaps
 
-On a fixed PBIR canvas, white space is a finite budget spent explicitly through gaps between `position` rectangles. Two failure modes both come from treating gaps as residual: cramming (proximity collapses, groups stop reading) or scattering (page feels empty).
+Margin, gap and grid values come from the design system in use; this skill does not set them (`SKILL.md`, *Standards this skill does not set*). On a fixed PBIR canvas, white space is spent explicitly through the gaps between `position` rectangles, so place by arithmetic, not by eye:
 
-Spend at three tiers, all multiples of the grid unit:
-
-```yaml
-intra-group:  ~8-16px   # within a group (a KPI row)
-inter-group:  ~24-32px  # between groups; this gap creates visual proximity grouping
-margin:       ~24-32px  # canvas edge to first/last visual, all four sides
-```
-
-The inter-group gap must be strictly larger than the intra-group gap; that inequality is what turns spacing into hierarchy.
-
-Reserve the margin first (usable area = `canvas - 2*margin`). Avoid double-spending a gap and a box border for the same separation; prefer the gap.
-
-Padding (inside a visual container) and gaps (between visual containers) are different budgets controlled in different places; tightening one does not buy the other.
-
-### Page Margins
-
-```
-Top:    24-32px
-Bottom: 24-32px
-Left:   24-32px
-Right:  24-32px
-```
-
-### Visual Spacing
-
-```
-Intra-group (within a visual group):   8-16px
-Inter-group (between logical groups): 24-32px
-```
-
-### Grid System
-
-Use 8px or 16px grid for consistent alignment:
-
-```
-Positions: 0, 16, 32, 48, 64, 80...
-Sizes: 200, 300, 400, 500...
-```
+- Reserve the margin first: usable area = `canvas - 2*margin`, on all four sides
+- Padding (inside a visual container) and gaps (between visual containers) are different budgets controlled in different places; tightening one does not buy the other
 
 ## Visual Zones
 
@@ -70,16 +34,16 @@ Sizes: 200, 300, 400, 500...
 
 ```
 +------------------+------------------+
-|       ZONE 1     |      ZONE 1      |  y: 24 - 200
+|       ZONE 1     |      ZONE 1      |
 |   KPIs / Cards   |   KPIs / Cards   |  (Important, summary)
 +------------------+------------------+
 |                                     |
-|              ZONE 2                 |  y: 216 - 600
+|              ZONE 2                 |
 |        Charts / Analysis            |  (Context, trends)
 |                                     |
 +------------------+------------------+
 |                                     |
-|              ZONE 3                 |  y: 616 - 1056
+|              ZONE 3                 |
 |        Tables / Details             |  (Drill-down, detail)
 |                                     |
 +------------------+------------------+
@@ -87,11 +51,13 @@ Sizes: 200, 300, 400, 500...
 
 ### Zone Specifications
 
-| Zone | Purpose | Height | Visual Types |
-|------|---------|--------|--------------|
-| 1 | Summary | 150-200px | Cards, KPIs, Slicers |
-| 2 | Analysis | 350-450px | Charts, Maps, Gauges |
-| 3 | Detail | 350-450px | Tables, Matrix, Lists |
+| Zone | Purpose | Visual Types |
+|------|---------|--------------|
+| 1 | Summary | Cards, KPIs, Slicers |
+| 2 | Analysis | Charts, Maps |
+| 3 | Detail | Tables, Matrix, Lists |
+
+Zone heights split the page's real height inside its margins: read `page.height` first (*Check Page Size Before Modifying* in `SKILL.md`), since a 720px page cannot hold heights sized for 1080.
 
 ## Common Visual Sizes
 
@@ -108,7 +74,7 @@ Height: 100-150px
 Small:  Width: 400px,  Height: 300px
 Medium: Width: 600px,  Height: 400px
 Large:  Width: 900px,  Height: 500px
-Full:   Width: 1872px, Height: 500px
+Full:   Width: page width minus both margins, Height: 500px
 ```
 
 ### Tables
@@ -130,19 +96,17 @@ Vertical:   Width: 150-200px, Height: 200-400px
 ### Page Title Specifications
 
 ```
-Position: x: 24, y: 24
+Position: top-left, at the page margin
 Width:    400-600px
 Height:   48-64px
-Font:     24pt bold
 ```
 
 ### Subtitle (Optional)
 
 ```
-Position: x: 24, y: 72
+Position: below the title
 Width:    400-600px
 Height:   32-48px
-Font:     14pt regular
 ```
 
 ## Sample Layouts
@@ -151,16 +115,16 @@ Font:     14pt regular
 
 ```
 +--------------------------------------------------+
-|  Title                            [Slicer]       |  y: 24
+|  Title                            [Slicer]       |
 +--------+--------+--------+--------+--------------+
-|  KPI   |  KPI   |  KPI   |  KPI   |              |  y: 96
+|  KPI   |  KPI   |  KPI   |  KPI   |              |
 +--------+--------+--------+--------+              +
 |                         |                        |
-|     Line Chart          |     Bar Chart          |  y: 232
+|     Line Chart          |     Bar Chart          |
 |                         |                        |
 +-------------------------+------------------------+
 |                                                  |
-|                    Table                         |  y: 616
+|                    Table                         |
 |                                                  |
 +--------------------------------------------------+
 ```
@@ -169,15 +133,15 @@ Font:     14pt regular
 
 ```
 +--------------------------------------------------+
-|  Title                                           |  y: 24
+|  Title                                           |
 +-------------------------+------------------------+
-|                         |  Slicer                |  y: 96
+|                         |  Slicer                |
 |                         +------------------------+
-|     Main Chart          |  Supporting Chart 1    |  y: 180
+|     Main Chart          |  Supporting Chart 1    |
 |                         +------------------------+
-|                         |  Supporting Chart 2    |  y: 440
+|                         |  Supporting Chart 2    |
 +-------------------------+------------------------+
-|  Detail Table or Additional Analysis             |  y: 700
+|  Detail Table or Additional Analysis             |
 +--------------------------------------------------+
 ```
 
@@ -185,17 +149,17 @@ Font:     14pt regular
 
 ```
 +--------------------------------------------------+
-|  Title                            [Date Slicer]  |  y: 24
+|  Title                            [Date Slicer]  |
 +--------+--------+--------+--------+--------------+
-| Big    | Big    | Big    | Big    |              |  y: 96
+| Big    | Big    | Big    | Big    |              |
 | KPI    | KPI    | KPI    | KPI    |              |
 +--------+--------+--------+--------+--------------+
 |                                                  |
-|           Trend Chart (Sparklines)               |  y: 280
+|           Trend Chart (Sparklines)               |
 |                                                  |
 +--------------------------------------------------+
 |                                                  |
-|           Comparison Table                       |  y: 540
+|           Comparison Table                       |
 |                                                  |
 +--------------------------------------------------+
 ```
@@ -206,15 +170,14 @@ Font:     14pt regular
 
 1. **Vertical alignment:** Left edges of visuals in same column should align
 2. **Horizontal alignment:** Top edges of visuals in same row should align
-3. **Consistent spacing:** Equal gaps between all visuals -- this is critical
 
-### Symmetrical Spacing (Critical)
+### Placing a Row
 
-**All gaps between visuals must be equal.** Uneven spacing creates visual tension and signals misalignment, even when visuals are technically positioned correctly. This is one of the most common layout mistakes.
+Gaps that are meant to be the same and differ by a few pixels read as misalignment, even when visuals are technically positioned correctly. Calculate positions rather than nudging them.
 
 When calculating positions for a row of visuals:
 
-1. Decide the page margin (e.g., 24px) and the gap between visuals (e.g., 16px)
+1. Take the page margin and the gap between visuals from the design system
 2. Calculate available content width: `page_width - (2 * margin)`
 3. Calculate total gap space: `gap * (num_visuals - 1)`
 4. Distribute remaining width proportionally: `(content_width - total_gaps) / num_visuals`
@@ -228,9 +191,9 @@ visual_width = (1232 - 48) / 4 = 296
 x positions: 24, 336, 648, 960
 ```
 
-For visuals of different widths (e.g., a KPI + a chart sharing a row), the gap between them must still match the gap between other visual pairs on the page. Verify by checking: `visual_B.x - (visual_A.x + visual_A.width)` is the same for all adjacent pairs.
+For visuals of different widths (e.g., a KPI + a chart sharing a row), each gap is the value the design system sets for that relation (within a group or between groups). Verify by checking `visual_B.x - (visual_A.x + visual_A.width)` for every adjacent pair.
 
-**Anti-pattern**: Visuals that are close but not quite aligned, or where the gap between the left pair is 16px but the gap between the right pair is 24px. This is visually jarring even at small differences (4-8px).
+**Anti-pattern**: Visuals that are close but not quite aligned, or two gaps meant to be the same that differ (16px against 24px). This is visually jarring even at small differences (4-8px).
 
 ### Vertical Column Alignment Across Rows (Critical)
 
@@ -238,19 +201,19 @@ When visuals in different rows share a vertical split (e.g., two charts side-by-
 
 ```
 WRONG (misaligned vertical split):
-+------ 648px ------+--16--+---- 584px ----+   Row 1
-+------- 632px ------+--16--+--- 600px ----+   Row 2
++------ 600px ------+--16--+---- 600px ----+   Row 1
++------- 616px ------+--16--+--- 584px ----+   Row 2
                      ^       ^
                      These don't align -- looks sloppy
 
 RIGHT (aligned vertical split):
-+------ 648px ------+--16--+---- 584px ----+   Row 1
-+------ 648px ------+--16--+---- 584px ----+   Row 2
++------ 600px ------+--16--+---- 600px ----+   Row 1
++------ 600px ------+--16--+---- 600px ----+   Row 2
                      ^
                      Same column edge in both rows
 ```
 
-When calculating: if row 1 has visual A ending at x=648 and visual B starting at x=664 (16px gap), row 2 must use the same split: visual C ends at x=648, visual D starts at x=664. The widths of C and D will differ from A and B, but the gap position is identical.
+When calculating (a 1280px page with 32px margins): if row 1 has visual A ending at x=632 and visual B starting at x=648 (16px gap), row 2 must use the same split: visual C ends at x=632, visual D starts at x=648. The widths of C and D will differ from A and B, but the gap position is identical.
 
 This applies to any multi-row layout where visuals share implicit column boundaries. Even if the visuals are different types and sizes, the vertical gutters must form continuous lines from top to bottom of the page.
 

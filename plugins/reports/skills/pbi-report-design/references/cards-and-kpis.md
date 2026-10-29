@@ -121,12 +121,10 @@ pbir visuals cf "Report.Report/Page.Page/Card.Visual" \
   --measure "labels.color _Formatting.Revenue vs Target Color"
 ```
 
-**Accessible palettes**: Some users struggle distinguishing green from red. Blue/orange is a more accessible alternative. Always pair color with a secondary cue (arrow, icon). Configure accessible colors in the theme:
-
-Set accessible sentiment colors through the theme command:
+Always pair color with a secondary cue (arrow, icon). Sentiment colors come from the theme's `good` and `bad`, set from the design system's status colors through the theme command:
 
 ```bash
-pbir theme set-colors "Report.Report" --good "#2B7A78" --bad "#D4602E"
+pbir theme set-colors "Report.Report" --good "<hex>" --bad "<hex>"
 ```
 
 ### Display Units and Number Formatting

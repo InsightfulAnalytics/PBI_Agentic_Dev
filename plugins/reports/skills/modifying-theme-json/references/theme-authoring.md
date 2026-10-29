@@ -163,7 +163,7 @@ Extended palette for container surfaces, canvas backgrounds, and foreground text
 
 ### Color Principles
 
-- Refer to `pbi-report-design` skill → `references/visual-colors.md` for WCAG contrast requirements and accessibility guidance
+- Contrast and color standards come from the design system in use; where none is loaded, WCAG 2.2 AA: 4.5:1 for text (3:1 for large text, about 18pt, or 14pt bold) and 3:1 for chart marks and control boundaries against what they touch
 - Use `ThemeDataColor` references (ColorId + Percent) in theme JSON rather than hardcoded hex wherever possible; this keeps the theme internally consistent if the palette changes
 - Keep `dataColors[0]` as the "primary" color that appears most frequently across the report
 

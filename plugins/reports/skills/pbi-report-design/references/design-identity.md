@@ -6,7 +6,7 @@ Lock these first, then make every later formatting choice cite them rather than 
 
 - If the brief does not name a tone or signature, infer them from the audience and purpose, state the pick, and confirm with the user before locking; this is the same "ask when it is not given" stance the KPI guidance takes for targets.
 - Record the locked identity where later work will read it: the design brief (the `create-pbi-report` skill) when one exists, otherwise a note in the scratchpad and a comment in the theme. Identity that lives only in one agent's head does not survive a fresh context or a second page.
-- Every later page inherits the locked identity. Do not re-decide tone or signature per page; re-deciding is the drift the design gate exists to catch.
+- Every later page inherits the locked identity. Do not re-decide tone or signature per page; re-deciding is the drift a closing review exists to catch.
 
 ## Tone: the ink budget
 
@@ -64,7 +64,7 @@ callout style:       one annotation treatment (same font, weight, leader-line st
 target-line rule:    targets always rendered the same way (e.g. dashed grey reference line)
 ```
 
-The signature is a contract: once chosen, every page honors it. A header band on three pages and absent on the fourth is a broken signature, and the design gate will flag it.
+The signature is a contract: once chosen, every page honors it. A header band on three pages and absent on the fourth is a broken signature, and a closing review will flag it.
 
 ## Serialize the identity into the theme
 

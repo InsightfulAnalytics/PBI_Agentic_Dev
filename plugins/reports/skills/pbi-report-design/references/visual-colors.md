@@ -1,16 +1,16 @@
 # Visual Colors
 
-Guidelines for effective color usage in Power BI reports.
+How Power BI applies color: theme color expressions, the theme's semantic color names, the selectors that give one series the emphasis, other emphasis channels, and the conditional-formatting basis. Color standards (palettes, status colors, contrast, how many hues, color vision deficiency) are not set here: take them from the design system in use, and where none is loaded, hold to WCAG 2.2 AA (`SKILL.md`, *Standards this skill does not set*).
 
-## Color Principles
+## Theme Colors
 
 ### Use Theme Colors
 
 Prefer theme colors over hex codes:
 
 ```json
-// Good - uses theme color
-"expr": {"ThemeDataColor": {"ColorId": 1, "Percent": 0}}
+// Good - uses theme color: ColorId is the dataColors index + 2 (0 is the background, 1 the foreground)
+"expr": {"ThemeDataColor": {"ColorId": 2, "Percent": 0}}
 
 // Avoid in visuals - use only in extension measures
 "expr": {"Literal": {"Value": "'#118DFF'"}}
@@ -20,14 +20,16 @@ Prefer theme colors over hex codes:
 
 Use these theme color names in extension measures:
 
-| Color Name | Meaning | Typical Color |
-|------------|---------|---------------|
-| `"good"` | Positive, on-target | Green |
-| `"bad"` | Negative, off-target | Red |
-| `"neutral"` | Unchanged, baseline | Gray/Yellow |
-| `"minColor"` | Gradient minimum | Red/Orange |
-| `"midColor"` | Gradient midpoint | Yellow/White |
-| `"maxColor"` | Gradient maximum | Green/Blue |
+| Color Name | Meaning |
+|------------|---------|
+| `"good"` | Positive, on-target |
+| `"bad"` | Negative, off-target |
+| `"neutral"` | Unchanged, baseline |
+| `"minColor"` | Gradient minimum |
+| `"midColor"` | Gradient midpoint |
+| `"maxColor"` | Gradient maximum |
+
+A conditional-formatting rule or measure that returns one of these for a font color paints text with it, so the theme's values must work as text as well as fills.
 
 ### Extension Measure Pattern
 
@@ -37,58 +39,6 @@ Color Measure =
 IF([Value] >= [Target], "good",
 IF([Value] >= [Target] * 0.9, "neutral", "bad"))
 ```
-
-## Color Contrast
-
-### WCAG 2.1 Requirements
-
-| Element | Minimum Ratio |
-|---------|---------------|
-| Normal text | 4.5:1 |
-| Large text (18pt+) | 3:1 |
-| UI components | 3:1 |
-
-### Common Contrast Issues
-
-| Background | Text | Ratio | Status |
-|------------|------|-------|--------|
-| White (#FFF) | Dark gray (#333) | 12.6:1 | Pass |
-| White (#FFF) | Medium gray (#777) | 4.5:1 | Pass (barely) |
-| White (#FFF) | Light gray (#AAA) | 2.9:1 | Fail |
-| Light blue (#E3F2FD) | Blue (#1976D2) | 4.8:1 | Pass |
-
-## Color Categories
-
-### Data Colors (dataColors)
-
-Primary series colors in theme:
-
-```json
-"dataColors": [
-  "#118DFF",  // Blue (primary)
-  "#12239E",  // Dark blue
-  "#E66C37",  // Orange
-  "#6B007B",  // Purple
-  "#E044A7",  // Pink
-  "#744EC2"   // Violet
-]
-```
-
-### Background Colors
-
-Use muted, light colors:
-
-- White: `#FFFFFF`
-- Light gray: `#F5F5F5`, `#FAFAFA`
-- Light blue: `#F0F8FF`, `#E3F2FD`
-
-### Accent Colors
-
-For highlights and emphasis:
-
-- Use sparingly
-- Reserve bright colors for important data
-- Don't use red/orange unless indicating problems
 
 ## Emphasis: One Focal Series, Everything Else Neutral
 
@@ -156,8 +106,7 @@ Prefer theme tokens over hex in every basis (`pbir visuals cf ... --theme-colors
 1. **Theme tokens over hex** -- use `--theme-colors` to convert existing hex CF assignments to tokens; changing the theme then cascades everywhere
 2. **Measure-driven conversion** -- use `--to-measure` to promote built-in gradient/rules CF to a measure expression; logic becomes testable and versionable
 3. **Sparingly applied** -- CF should highlight exceptions; formatting every column means nothing stands out
-4. **Accessible** -- use blue/orange instead of red/green; always pair color with a secondary cue (icon, text, shape)
-5. **Theme-first** -- check that `good`, `bad`, and `neutral` sentiment colors exist in the theme before applying CF; add them if missing (e.g., `good="#00B050"`, `bad="#FF0000"`, `neutral="#FFC000"`)
+4. **Theme-first** -- check that `good`, `bad`, and `neutral` sentiment colors exist in the theme before applying CF; add them if missing, from the design system's status colors
 
 ### Positive/Negative Pattern
 
@@ -166,74 +115,8 @@ Prefer theme tokens over hex in every basis (`pbir visuals cf ... --theme-colors
 "expression": "IF([Value] >= 0, \"good\", \"bad\")"
 ```
 
-Theme defines actual colors:
-
-```json
-"good": "#00B050",   // Green
-"bad": "#FF0000",    // Red
-"neutral": "#FFC000" // Yellow/Orange
-```
-
-### Gradient Pattern
-
-For continuous scales, use theme tokens not hex:
-
-```
-minColor -> bad end of scale (e.g., "minColor" or "bad")
-midColor -> neutral midpoint (e.g., "midColor" or "neutral")
-maxColor -> good end of scale (e.g., "maxColor" or "good")
-```
-
-### Traffic Light Pattern
-
-| Range | Color Name | Meaning |
-|-------|------------|---------|
-| < 50% | `"bad"` | Critical |
-| 50-80% | `"neutral"` | Warning |
-| > 80% | `"good"` | On track |
+The theme's `good`, `bad` and `neutral` keys hold the actual colors.
 
 ### Data Bars
 
-Data bars provide magnitude scanning in tables/matrices. Apply to primary measure columns. Use muted colors that don't overwhelm the text values.
-
-## Color Don'ts
-
-### Avoid
-
-1. **Too many colors** - Maximum 6-8 distinct colors per visual
-2. **Pure black** - Use dark gray (#333) instead
-3. **Neon/bright colors** - Cause eye strain
-4. **Red for positive** - Confuses users
-5. **Color-only meaning** - Always pair with text/icons
-
-### Never Use
-
-- Rainbow gradients
-- Clashing color combinations
-- Low contrast combinations
-- Brand colors on data points (unless intentional)
-
-## Accessibility Tips
-
-### Color Blindness
-
-Test with color blindness simulators:
-
-- Protanopia (red-blind): ~1% of males
-- Deuteranopia (green-blind): ~1% of males
-- Tritanopia (blue-blind): rare
-
-**Safe combinations:**
-
-- Blue + Orange (instead of Red + Green)
-- Blue + Yellow
-- Dark + Light variants of same hue
-
-### Alternative Indicators
-
-Pair colors with:
-
-- Icons (up/down arrows)
-- Patterns (solid/hatched)
-- Text labels
-- Shapes (markers)
+Data bars provide magnitude scanning in tables/matrices. Apply to primary measure columns.

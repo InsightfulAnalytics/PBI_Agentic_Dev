@@ -30,7 +30,7 @@ SessionStart hook; Codex has no hooks, so read it yourself.
 | PBIP | `pbir-format` | PBIR JSON reference: visual.json, report.json, themes, filters, extension measures, bookmarks |
 | Report | `pbir-cli` | Create/explore/format/validate/publish reports via the `pbir` CLI; Desktop canvas refresh + screenshots |
 | Report | `create-pbi-report` | End-to-end new-report build workflow (discovery → pages → visuals → publish) |
-| Report | `pbi-report-design` | Design decisions: hierarchy, layout, color, chart selection, accessibility |
+| Report | `pbi-report-design` | Design decisions: hierarchy, layout, chart selection, how Power BI applies color |
 | Report | `pbi-verify-loop` | Visually verify report edits: refresh → settle → screenshot (→ mockup diff) |
 | Report | `power-bi-theme` | Browse/compare/apply preset themes from the bundled gallery |
 | Report | `modifying-theme-json` | Design, edit, enforce, audit report theme JSON |
