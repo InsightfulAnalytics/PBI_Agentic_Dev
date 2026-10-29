@@ -553,7 +553,7 @@ ThemeDataColor allows referencing theme palette colors with lightness adjustment
   "solid": {
     "color": {
       "ThemeDataColor": {
-        "ColorId": 5,      // Index into theme dataColors array (0-based)
+        "ColorId": 5,      // dataColors[3]: ColorId is the dataColors index + 2
         "Percent": 0.4     // Lightness: 0 = no change, 0.4 = 40% lighter, -0.5 = 50% darker
       }
     }

@@ -11,6 +11,8 @@ The `kpi` visual is a specialized indicator that shows a value against a goal wi
 | Role | Required | Types | Notes |
 |------|----------|-------|-------|
 | Data | Yes | Column, Measure | One or more values; each becomes a separate card |
+| Rows | No | Column | One category field |
+| Tooltips | No | Column, Measure | Extra fields shown in the card's tooltip; several allowed |
 
 ### card (legacy)
 

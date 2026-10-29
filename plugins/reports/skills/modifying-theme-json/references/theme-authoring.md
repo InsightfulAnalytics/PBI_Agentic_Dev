@@ -190,7 +190,9 @@ label:   "table/matrix headers, grid values, column headers"
 largeTitle:       # derived from title, larger
 semiboldLabel:    # derived from label, semibold weight
 largeLabel:       # derived from label, larger
-smallLabel:       # derived from label, smaller
+smallLabel:       # derived from label, smaller: 9pt by default, for reference-line labels, slicer
+                  # date-range labels, numeric inputs and search boxes; set it when the
+                  # report keeps a text floor above 9pt
 lightLabel:       # derived from label, lighter color (from structural colors)
 boldLabel:        # derived from label, bold (used for table totals)
 largeLightLabel:  # derived from label, large + light
