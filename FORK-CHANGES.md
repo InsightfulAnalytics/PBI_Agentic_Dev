@@ -154,12 +154,20 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   - `scripts/check-skill-hygiene.py` job 6 warns on a SKILL.md over 19,000 chars, a reference
     index that starts past char 19,000, and a description plus `when_to_use` over 400 chars
     (skipped for a `disable-model-invocation` skill), so a harvest cannot quietly undo this.
+- Added a `fabric-apps` plugin (2026-10-29), authored by the fork maintainer, with no upstream
+  counterpart: `fabric-app-workflow` (how a Rayfin Fabric App's DAX, Vega-Lite spec and factory
+  files are laid out, and the mockup to production pipeline), `rayfin-fabric-cli` (`rayfin` and
+  `fabric-app-data` CLI traps, and the five edits that turn on writeback) and
+  `vega-lite-app-gotchas` (eight fixes for Vega-Lite specs rendered in a React app). They were
+  personal skills until then. `vega-lite-app-gotchas`' description held an unquoted `: `, which fails
+  YAML parsing (`check-skill-hygiene.py` job 5); it now reads `"Duplicate signal name" on hover_tuple`.
 
 ### Fork-owned files, for upstream harvest resolution
 
 New files, so they merge at file granularity even though upstream owns the containing directory:
 
 - `LEARNINGS.md`, `CHANGELOG.md`, `.devcontainer/**`
+- `plugins/fabric-apps/**` (the whole plugin)
 - `plugins/tabular-editor/.mcp.json`
 - `plugins/pbip/skills/tmdl/references/authoring-gotchas.md`
 - `plugins/pbi-desktop/skills/connect-pbid/references/desktop-lifecycle.md`

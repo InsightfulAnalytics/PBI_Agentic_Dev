@@ -52,6 +52,7 @@ claude plugin install fabric-admin@power-bi-agentic-dev
 claude plugin install paginated-reports@power-bi-agentic-dev
 claude plugin install etl@power-bi-agentic-dev
 claude plugin install fabric-data-app@power-bi-agentic-dev
+claude plugin install fabric-apps@power-bi-agentic-dev
 ```
 
 Verify what's installed with `claude plugin list`, and inspect a plugin's contents and token cost with `claude plugin details <plugin>`.
@@ -361,6 +362,19 @@ Hook checks can be individually toggled via config files. Set any check to `fals
 |------|------|-------------|
 | Skill | [`executing-spark`](plugins/etl/skills/executing-spark/) | Run Python/PySpark on Fabric Spark compute via ephemeral Livy sessions (no notebook artifact) |
 | Skill | [`using-duckdb`](plugins/etl/skills/using-duckdb/) | Query Fabric lakehouse/warehouse Delta data with DuckDB, locally or in a Fabric notebook |
+
+</details>
+
+<details>
+<summary>📱 <strong>fabric-apps</strong> &ensp; Build Fabric Apps (Rayfin) over a published semantic model</summary>
+
+| Type | Name | Description |
+|------|------|-------------|
+| Skill | [`fabric-app-workflow`](plugins/fabric-apps/skills/fabric-app-workflow/) | Where an app's DAX queries, Vega-Lite specs and factories live, and the mockup to production pipeline |
+| Skill | [`rayfin-fabric-cli`](plugins/fabric-apps/skills/rayfin-fabric-cli/) | `rayfin` and `fabric-app-data` CLI traps: safe scaffolding, TLS errors, query syntax, turning on writeback |
+| Skill | [`vega-lite-app-gotchas`](plugins/fabric-apps/skills/vega-lite-app-gotchas/) | Fixes for Vega-Lite charts in a React app: month sorting, multi-series tooltips, theming, clipped axes |
+
+Pairs with `fabric-data-app`, whose `/fabric-app-pane` shows every app under your working directory in a sidebar.
 
 </details>
 

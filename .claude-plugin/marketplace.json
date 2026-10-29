@@ -54,6 +54,11 @@
       "source": "./plugins/fabric-data-app"
     },
     {
+      "name": "fabric-apps",
+      "description": "Build Fabric Apps (Rayfin) over a published semantic model.",
+      "source": "./plugins/fabric-apps"
+    },
+    {
       "name": "custom-visuals",
       "description": "Deneb, Python, R, SVG, and pbiviz custom visuals.",
       "source": "./plugins/custom-visuals"
