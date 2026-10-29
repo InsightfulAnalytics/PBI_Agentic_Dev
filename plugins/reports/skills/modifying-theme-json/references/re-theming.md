@@ -100,7 +100,7 @@ A go / no-go list specific to swapping *onto* dark. It extends the structural-co
 - [ ] per-visual backgrounds that were transparent over white now set to an explicit dark surface, or they **punch through** as white holes
 - [ ] image and logo assets with baked-in white backgrounds flagged for replacement
 - [ ] page wallpaper / canvas background set, not just visual backgrounds
-- [ ] contrast verified against WCAG (`pbi-report-design` -> visual-colors reference)
+- [ ] contrast verified for the new surface: 4.5:1 for text, 3:1 for large text, marks and control boundaries (WCAG 2.2 AA), or the design system's own standard
 
 **Punch-through** is the surface analog of invisible text: a container background left transparent reads as "white" because nothing was behind it but the old light canvas. On dark, that transparency exposes nothing, so the visual sits in a bright rectangle. Give those containers an explicit dark surface from the palette.
 

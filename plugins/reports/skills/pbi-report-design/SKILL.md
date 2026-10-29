@@ -1,7 +1,7 @@
 ---
 name: pbi-report-design
 version: 26.40.3
-description: The Power BI report design canon covering design identity, visual hierarchy and the 3-30-300 rule, layout/spacing/alignment, color discipline, chart selection, KPI and card design, tables and matrices, accessibility, and the closing design gate. The shared reference home for report design judgment, routed to by the create-pbi-report, pbir-cli, review-report, modifying-theme-json, and custom-visual skills. Load when committing a design identity or making a design, layout, color, chart-selection, or accessibility decision for a report.
+description: The Power BI report design canon covering design identity, visual hierarchy and the 3-30-300 rule, page shapes, layout and alignment, chart selection, KPI and card design, tables and matrices, and how Power BI applies color and alt text. The shared reference home for report design judgment, routed to by the create-pbi-report, pbir-cli, review-report, modifying-theme-json, and custom-visual skills. Load when committing a design identity or making a layout, chart-selection, KPI or conditional-formatting decision for a report.
 ---
 
 # Power BI Report Design
@@ -29,16 +29,20 @@ Recording tone and signature once is what turns "use muted colors" into a propag
 
 1. **3-30-300 Rule:** The most important and least detailed information should be in the top-left (KPIs, cards, etc.) while the least important and most detailed information should be in the bottom-right
 2. **Titles:** All report pages should have a title using a `textBox` visualType or a title in a background image added to the report page canvas. A visual's own title and subtitle go in its container `title` and `subTitle` slots, never in a separate textbox placed above or over it. Textboxes are for the page title, a header over several visuals, a callout, a line that mixes formatting inside it, and text that belongs to no single visual (`references/page-titles.md`)
-3. **Visual positioning, alignment, and spacing:** All visuals must have equal spacing between them and equal spacing between the edge of the page (the margin). If visuals are unaligned or this spacing is unequal, fix it to ensure alignment and equal spacing
+3. **Visual positioning and alignment:** Visuals sit inside the page and align to shared edges and column lines. Margin and gap values come from the design system in use (see *Standards this skill does not set*); `references/layout-guidelines.md` has the arithmetic that places a row exactly
 4. **Themes:** Reports should use a theme that differs from the default Power BI themes; a suggested theme is the `sqlbi` theme (see the `modifying-theme-json` skill for applying templates). Themes are preferred because they provide a set of default styles for all charts that can adhere to good design practices and brand or style guidelines
 5. **Semantic Models:** Reports in Power BI are complex. They are dependant on an underlying semantic model (either in the .SemanticModel folder, called a "thick report" or a published model in Power BI/Fabric, called a "thin report"). Much of the functionality from a Power BI report comes from its semantic model design or DAX code
 6. **Report extensions, or thin report measures:** It is possible to create calculation logic in Power BI report, called "thin report measures" or "visual calculations". These should be used sparingly and only for "report-specific" scenarios
 7. **Visual fields:** All data visuals should have field bindings, and all field bindings should be for fields that actually exist in the model; there is no reason for visuals to exist that have no fields bound
 8. **Chart selection:** Build from the default vocabulary. The routing block in `references/chart-selection.md` maps each analytical task to the core visual type that answers it, and a familiar form costs the reader nothing to decode. A form outside that block is built only when it clears the two-condition gate in the same file ("Leaving the default vocabulary"), and the condition is stated before the build rather than defended after it.
-9. **Use of color:** Color and formatting decisions must cite the locked identity (the chosen tone and signature), not be picked per visual. Colors come from the theme (themedataColor) rather than inline hex, so the identity propagates and re-themes cleanly. Colors should be muted and soft; colors that implicitly encode meaning (like red=bad, green=good) should be avoided unless using them for that encoding.
+9. **Use of color:** Color and formatting decisions must cite the locked identity (the chosen tone and signature), not be picked per visual. Colors come from the theme (ThemeDataColor) rather than inline hex, so the identity propagates and re-themes cleanly.
 10. **Pre-attentive attributes:** Styles and colors should be used to steer and direct attention, and not to decorate charts. Formatting of visuals should be intentional and not purely aesthetic. Styles should where possible be stored in the theme and not in bespoke visual configuration.
-11. **Fonts:** Prefer *Segoe UI* and *Segoe UI Semibold*. Do not use custom fonts, since they aren't guaranteed to render on user computers. Evaluate whether fonts are sufficiently large to be readable given the visual and page size.
+11. **Fonts:** Use a face Power BI ships; a custom font renders only on machines that have it installed. Faces and sizes otherwise come from the design system in use.
 12. **Page intent:** Route each page to exactly one shape by the question it answers (see `references/page-shapes.md`). A page trying to answer two questions is two pages.
+
+## Standards this skill does not set
+
+Accessibility, color, type and spacing standards (contrast ratios, palettes and status colors, faces and sizes, margins and gaps) and the closing review of a finished design are not set here. Take them from the design system or house rules the session has loaded; where none is loaded, hold to WCAG 2.2 AA. This skill covers how Power BI builds them: theme colors, selectors and conditional formatting (`references/visual-colors.md`), positions and alignment (`references/layout-guidelines.md`), alt text (below), and text classes and theme sizes (the `modifying-theme-json` skill).
 
 ## The insight test (run before building a chart)
 
@@ -57,7 +61,7 @@ Test 1 produces a claim, and in Power BI a claim goes stale the moment the reade
 - **Measure-driven:** the title recomputes with the filters, so it cannot go stale, and it is valid on any shape. Bind it through title conditional formatting, clearing the literal title first, with the `SELECTEDVALUE` fallback mandatory; the **`create-pbi-report`** skill carries the pattern
 - **Literal:** the words are fixed, so they survive only where the filters cannot move them, which is a `narrative` page with the filter cards that could move it locked (`references/page-shapes.md`, `references/filter-pane.md`)
 
-On the other four shapes a literal title names the subject and the finding moves into a callout, which the closing gate then checks against the model (`references/tooltips-and-annotations.md`, `references/page-titles.md`).
+On the other four shapes a literal title names the subject and the finding moves into a callout, which the closing review then checks against the model (`references/tooltips-and-annotations.md`, `references/page-titles.md`).
 
 **When a chart fails:** simplify it to a single comparison, or cut it. Do not repair it in place through successive renders; that is how one bad panel consumes an evening. Record which you chose, and why, in the plan's fog list (see the **`pbi-plan`** skill) so the decision is not rediscovered next session.
 
@@ -76,13 +80,6 @@ Two habits that catch what the five tests miss. A panel that explains the **meth
 - **Width:** 1280px (default)
 - **Height:** 720px (16:9 aspect ratio)
 - Alternative: 1920x1080 for high-resolution displays
-
-### Visual Spacing
-
-- **Minimum gap between visuals:** 16px
-- **Edge margins:** 24-32px from page edges
-- **Consistent alignment:** Use grid-based positioning
-- **Equal spacing is mandatory:** Every gap between adjacent visuals (horizontal and vertical) must be the same value. Every margin from the page edge must be the same value. Calculate positions arithmetically from (margin, gap, page_width, page_height) to guarantee alignment. If visuals are misaligned or gaps are unequal, fix immediately -- this is one of the most visible quality signals in a report.
 
 ### Detail Gradient
 
@@ -149,8 +146,8 @@ Before modifying visual formatting:
 **Prefer theme colors over hex codes:**
 
 ```json
-// Good - uses theme color
-"expr": {"ThemeDataColor": {"ColorId": 1, "Percent": 0}}
+// Good - uses theme color: ColorId is the dataColors index + 2 (0 is the background, 1 the foreground)
+"expr": {"ThemeDataColor": {"ColorId": 2, "Percent": 0}}
 
 // Avoid in visuals - use only in extension measures
 "expr": {"Literal": {"Value": "'#118DFF'"}}
@@ -158,15 +155,13 @@ Before modifying visual formatting:
 
 **Semantic colors (return from extension measures):**
 
-- `"good"` - Positive values (green)
-- `"bad"` - Negative values (red)
-- `"neutral"` - Neutral/unchanged (gray/yellow)
+- `"good"` - Positive values
+- `"bad"` - Negative values
+- `"neutral"` - Neutral/unchanged
 - `"minColor"` - Gradient minimum
 - `"maxColor"` - Gradient maximum
 
-## Accessibility (WCAG 2.1)
-
-### Alt Text
+## Alt Text
 
 All visuals should include descriptive alt text:
 
@@ -181,25 +176,6 @@ All visuals should include descriptive alt text:
   }]
 }
 ```
-
-### Color Contrast
-
-- Text on background: minimum 4.5:1 contrast ratio
-- Large text (18pt+): minimum 3:1 contrast ratio
-- Don't rely solely on color to convey meaning
-
-### Font Sizes
-
-- **Minimum readable:** 12pt, subtitles included: they are usually the smallest text on the page
-- **Recommended for charts:** 14pt
-- **Titles:** 16-24pt
-- **KPI values:** 24-48pt
-
-### Shadows and Motion
-
-- Minimize drop shadows (vestibular issues)
-- Avoid animations where possible
-- Use `dropShadow.show: false` in theme wildcards
 
 ## Visual Best Practices
 
@@ -274,21 +250,16 @@ When asked to evaluate or audit a report, focus on objective criteria. Subjectiv
 2. **Visuals per page:** Count is a proxy; query cost per visual is the driver (see `references/layout-guidelines.md` performance section). Textboxes, images, shapes, and buttons do not emit queries.
 3. **Theme usage:** Reports should use a custom theme for consistent formatting
 4. **Layout consistency:**
-   - Equal spacing between visuals?
    - Page has a title?
    - Follows detail gradient (important top-left, detailed bottom-right)?
    - Cards/KPIs at top or left, fewer than 4-6?
    - Fewer than 3 slicers (use filter pane instead)?
    - Helpful elements (refresh date, links, context)?
-5. **Color effectiveness:**
-   - Conditional formatting used sparingly (not causing overload)?
-   - Colors muted and passive (not loud and bright)?
-   - Negative-sentiment colors (red, orange) only for negative values?
+5. **Conditional formatting:** Used sparingly, on the secondary signal (not causing overload)?
 6. **Information:ink ratio:** Non-essential elements reduced (lighter gridlines, disabled unnecessary axes/labels)?
-7. **Readability:** Font sizes sufficient for all elements?
-8. **Accessibility:** Minimal shadows to avoid vestibular issues?
-9. **Font consistency:** Limited font sizes, simple readable fonts that work on all devices?
-10. **Sorting:** Visuals sorted descending unless there's a reason otherwise (time-based, etc.)?
+7. **Sorting:** Visuals sorted descending unless there's a reason otherwise (time-based, etc.)?
+
+Accessibility, color, type and spacing are judged against the design system in use (*Standards this skill does not set*).
 
 ### Evaluation Output
 
@@ -298,9 +269,9 @@ When evaluating, provide:
 - Level: Blocker, Major, Minor or Polish (the levels `review-report` uses)
 - Recommended fixes with commands or patterns
 
-### The design gate
+### Before declaring a design done
 
-Before declaring a design done, run the closing gate in **`references/quality-gate.md`**. It is not the planning-stage checklist that runs before the build; it runs against the finished artifact and decides whether it ships. It verifies the identity propagated, every page has one intent, spacing and margins are equal and on-grid, callouts are backed by model evidence, accessibility is met, and each visual spent its emphasis once on the thing its title names. Because an agent cannot see the canvas, pair the gate with the screenshot-review loop in the **`pbir-cli`** skill: render the pages, look, and confirm what the JSON inferred.
+The closing review of a finished design is set by the design system in use, not here. Whichever review runs, render the pages and look (the screenshot-review loop in the **`pbir-cli`** skill): an agent cannot see the canvas, so a check passed on JSON alone is provisional until the screenshots agree.
 
 ## Implementing an approved design
 
@@ -321,41 +292,19 @@ any design source.
 **Fix:**
 
 - Reduce visual count
-- Use muted color palette
 - Apply detail gradient
 - Hide non-essential elements
 - Then spend what the hiding freed: one accent, one reference line with its label on, or one endpoint label per visual. A page that has only had things taken away is empty, not finished
-
-### Issue: Inconsistent Spacing
-
-**Symptoms:** Uneven gaps, misaligned visuals
-
-**Fix:**
-
-- Use grid-based positioning
-- Standardize visual sizes
-- Apply consistent margins
-
-### Issue: Poor Readability
-
-**Symptoms:** Small fonts, low contrast
-
-**Fix:**
-
-- Increase font sizes (minimum 12pt)
-- Check color contrast ratios
-- Use appropriate font weights
 
 ## References
 
 - **`references/design-identity.md`** -- Commit-first identity: tone budgets (restrained/corporate/editorial/technical), the signature catalog, and serializing identity into the theme
 - **`references/page-shapes.md`** -- Routing each page to one shape by intent (summary/monitoring/exploration/comparison/narrative): what belongs, what stays off, layout lean, and the narrative shape's headline and next step
 - **`references/anti-patterns.md`** -- Cross-cutting defaults to refuse (gauge-as-KPI, monochrome bars, missing sort, card walls, raw titles, inline hex, off-grid, dual-axis, 3D, oversized pie, two hues for one quantity, an exotic build path for a core form) with the repair
-- **`references/quality-gate.md`** -- The design gate: six closing checks (identity propagated, one intent per page, equal spacing, evidence-backed callouts, accessibility, emphasis spent) in issue/location/severity/fix form
 - **`references/cards-and-kpis.md`** -- KPI card design: binding the measure the audience acts on, targets, gaps, trends, formatting hierarchy, icons, accessible palettes, anti-patterns, review checklist
 - **`references/tables-and-matrices.md`** -- Table and matrix design: decision-making framework, subtract-don't-add philosophy, conditional formatting, sorting, sparklines, matrix hierarchies, row-label indentation (U+00A0), anti-patterns
-- **`references/layout-guidelines.md`** -- Canvas dimensions, spacing tiers (intra-group/inter-group/margin), alignment rules, performance cost model
-- **`references/visual-colors.md`** -- Color principles, the neutral-base-plus-one-accent emphasis moves and which selector picks the focal series, contrast channels beyond hue, CF basis decision (gradient vs rules vs field-value vs icons), semantic tokens, accessibility
+- **`references/layout-guidelines.md`** -- Canvas dimensions, zones and sample layouts, the arithmetic for placing a row and aligning columns, z-order, performance cost model
+- **`references/visual-colors.md`** -- How Power BI applies color: theme color expressions and semantic tokens, the neutral-base-plus-one-accent emphasis moves and which selector picks the focal series, contrast channels beyond hue, CF basis decision (gradient vs rules vs field-value vs icons)
 - **`references/page-titles.md`** -- Title implementation, a visual's own title and subtitle slots (never a textbox above it) and moving an existing title textbox into them, the narrative-page exception to the subject-title rule, accessible title wording, hidden-title/alt-text rule
 - **`references/chart-selection.md`** -- Encoding hierarchy (Cleveland-McGill ranking), chart type routing, the gate for leaving the default vocabulary, repair before retyping, the axis and data-label pairing, legend versus direct labelling, small multiples
 - **`references/tooltips-and-annotations.md`** -- Report-page tooltip design, when not to use one, annotation primitives for guided analytics, recommendation callouts and the page shapes that allow them
