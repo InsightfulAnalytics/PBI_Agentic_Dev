@@ -15,6 +15,8 @@
 
 > [!NOTE]
 > This is **Tim's personalized fork** of [`data-goblin/power-bi-agentic-development`](https://github.com/data-goblin/power-bi-agentic-development), renamed to `power-bi-agentic-dev` so it can coexist with the original. It carries the upstream plugins plus additional personal skills, and tracks Kurt's releases selectively rather than following his weekly cadence. Full credit for the original work goes to Kurt Buhler — see [Attribution](#attribution).
+>
+> A guided tour of the plugins and how to install them: [binexus.net/power-bi-agentic-dev](https://binexus.net/power-bi-agentic-dev/).
 
 ---
 
