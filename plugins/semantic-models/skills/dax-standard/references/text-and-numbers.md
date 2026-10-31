@@ -16,6 +16,18 @@ guards divide-by-zero. For the integer part:
 - `TRUNC( DIVIDE( num, den, BLANK() ) )` when negatives are possible — because `INT(-2.1) = -3`
   but `TRUNC(-2.1) = -2`. Prefer `TRUNC` over `QUOTIENT` (which lacks the error parameter).
 
+**A share whose numerator is a filtered `CALCULATE` returns blank, not 0%,** when no row in
+context meets the filter, because `DIVIDE ( BLANK (), 40 )` is blank. A card then shows (Blank), a
+comparison loses its baseline and a trend line skips the month. Add zero to the numerator:
+
+```dax
+VAR __Late = CALCULATE ( [Handoff Tickets], Handoff[Handoff Band] = "Over 12 min" )
+VAR __Result = DIVIDE ( __Late + 0, [Handoff Tickets] )
+```
+
+The share is 0% wherever there are handoffs and still blank where there are none, so
+`SUMMARIZECOLUMNS` adds no rows for empty combinations.
+
 **`=` vs `==` and BLANK:** `0 = BLANK()` is **true**, but `0 == BLANK()` is **false**. Use
 strict `==` when you must distinguish a real zero from a blank. (Knowing 0 ≡ blank saves
 hours of debugging.)

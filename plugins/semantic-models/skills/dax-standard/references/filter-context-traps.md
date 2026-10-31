@@ -106,6 +106,23 @@ per group, so every selection applies at once, provided each group has its own `
 calculation group whose first item is plain `SELECTEDMEASURE()` (the "All" item), bound to a
 single-select slicer on the group's name column sorted by its ordinal.
 
+## A measure that ignores a grouped column fills every combination
+
+`SUMMARIZECOLUMNS` keeps a row wherever some measure is non-blank. A share that removes the filter
+on one of the grouped columns (each path's share of the month, with `REMOVEFILTERS` on the path
+columns in its denominator) is non-blank for every month and path pair, including pairs with no
+tickets, so the visual gains rows that have no data: a blank path, a zero bar. Return blank where
+the row has nothing:
+
+```dax
+VAR __Result =
+    IF ( NOT ISBLANK ( [Tickets] ), DIVIDE ( [Tickets], __MonthTickets ) )
+```
+
+The same measure grouped by the very column whose filter it needs to keep has the opposite
+problem: grouped by escalation reason and handoff band, a late-handoff share measured each band
+against itself. Group by the reason alone, or remove the band's filter inside the measure.
+
 ## A variable named after a DAX keyword
 
 `VAR Rows = ...` parses, round-trips through TMDL and passes `pbir validate --fields`; nothing offline

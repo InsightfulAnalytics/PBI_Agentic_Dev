@@ -1,7 +1,7 @@
 ---
 name: fabric-app-workflow
 version: 26.40.3
-description: The authoring conventions for a Fabric / Rayfin data app over a published semantic model (how query+spec+factory files are organised, the mockup→wire-spec→production pipeline, the Claude Design ZIP handoff, reusable Sparkline props, and matrix/table UI gotchas). Invoke when adding a new chart/visual to a Fabric App, asking "where do DAX queries live", "how do I wire a Vega spec", "where do I put a new query", working with `mockups/`, `.vl.json5` / `.jsonc` specs, `npm run mockups:watch` / `wire-spec` / `import-design`, the `src/queries/<domain>/` triplet pattern, building a reusable Sparkline component, or fighting matrix/table column widths and `replace_all` indentation edits.
+description: The authoring conventions for a Fabric / Rayfin data app over a published semantic model (how query+spec+factory files are organised, the mockup→wire-spec→production pipeline, the Claude Design ZIP handoff, reusable Sparkline props, and matrix/table UI gotchas). Invoke when adding a new chart/visual to a Fabric App, asking "where do DAX queries live", "how do I wire a Vega spec", "where do I put a new query", working with `mockups/`, `.vl.json5` / `.jsonc` specs, `npm run mockups:watch` / `wire-spec` / `import-design`, the `src/queries/<domain>/` triplet pattern, building a reusable Sparkline component, fighting matrix/table column widths or fabric-datagrid headers cut short, Show as table printing raw numbers, a page that breaks at phone or laptop widths, writing card titles that state a finding computed from the rows, or `replace_all` indentation edits.
 ---
 
 # Fabric App authoring workflow
@@ -67,3 +67,21 @@ fork the component:
 - **`replace_all` respects indentation:** if the same line appears at two indent levels (e.g.
   a per-row cell vs a total-row cell), one `old_string` only matches one of them. **Grep after
   a `replace_all`** to confirm every intended occurrence was actually hit.
+
+## Layout, finding titles and checks
+
+- Layout at every width, fabric-datagrid column widths, Show as table values, the header
+  toolbar, and the browser layout check (`scripts/inspect-layout.js`):
+  [references/layout-and-tables.md](references/layout-and-tables.md). Run the check before
+  calling a page done.
+- A card title or lede that states a finding computed from the rows:
+  [references/finding-titles.md](references/finding-titles.md). Read it before writing one
+  and before reviewing a page.
+- `npm run validate:visual -- <factory.ts> '<props json>'` renders the module's first function
+  export, and module namespace keys sort alphabetically, so a helper exported beside a
+  factory gets rendered instead. Export one function per factory module. The JSON report
+  follows npm's header lines: parse from the first line that starts with `{`.
+- `npm run lint` crashes with `ENOENT ... scandir` while DAX queries run, because
+  `fabric-app-semantic-model-tools` creates and removes `.fabric-app-semantic-model-tools-*`
+  folders in the app root as ESLint walks it; the template's visual-input tests time out at
+  5 s under the same load. Run both when no query is running.
