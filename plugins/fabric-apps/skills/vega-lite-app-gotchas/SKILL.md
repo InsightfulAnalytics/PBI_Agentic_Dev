@@ -1,7 +1,7 @@
 ---
 name: vega-lite-app-gotchas
 version: 26.40.3
-description: Hard-won fixes for Vega-Lite specs rendered inside a React / Power BI / Fabric App (the `VegaVisual` + Tailwind stack). Invoke when a Vega-Lite chart "sorts alphabetically instead of by month", an ordinal axis won't honour a string `sort` array, a multi-series line chart shows all series in one tooltip or ignores a custom `tooltip`, tooltip numbers mix `$420k` and `$1.2M`, a chart renders with no color / "color is not a valid CSS color" after using `var(--ds-*)`, the chart loses its brand color, axis labels get clipped by the card, you're laying out a KPI card in Vega, or you hit "Duplicate signal name" on hover_tuple. Covers ordinal sorting, multi-series tooltips, value pre-formatting, CSS-variable resolution in SVG, the `--color-brand` theming bridge, card overflow clipping, and KPI-card layout.
+description: Hard-won fixes for Vega-Lite specs rendered inside a React / Power BI / Fabric App (the `VegaVisual` + Tailwind stack). Invoke when a value label is cut at the plot edge or runs into the row names, two-line axis labels overlap the marks, a layer reports "Conflicting axis property", a Vega-Lite chart "sorts alphabetically instead of by month", an ordinal axis won't honour a string `sort` array, a multi-series line chart shows all series in one tooltip or ignores a custom `tooltip`, tooltip numbers mix `$420k` and `$1.2M`, a chart renders with no color / "color is not a valid CSS color" after using `var(--ds-*)`, the chart loses its brand color, axis labels get clipped by the card, you're laying out a KPI card in Vega, or you hit "Duplicate signal name" on hover_tuple. Covers ordinal sorting, multi-series tooltips, value pre-formatting, CSS-variable resolution in SVG, the `--color-brand` theming bridge, card overflow clipping, and KPI-card layout.
 ---
 
 # Vega-Lite gotchas (React / Power BI App)
@@ -9,6 +9,11 @@ description: Hard-won fixes for Vega-Lite specs rendered inside a React / Power 
 Eight traps that cost real time when rendering Vega-Lite specs through a `VegaVisual`
 component (Vega writes resolved SVG; Tailwind tree-shakes; cards clip). Each looks like it
 *should* work; the fix is non-obvious.
+
+Labels, layers and dates are in
+[references/labels-layers-dates.md](references/labels-layers-dates.md): a value label cut
+at the plot edge or over the row names, two-line axis labels on the marks, `Conflicting axis
+property labelExpr`, a test on a temporal field that never matches, month labels a month out.
 
 > Source: distilled from the Sparklines / Bullet / Imperial-DSMS Fabric Apps. Hex values
 > in examples are the corporate-blue design tokens (`--ds-blue-700` = `#1F4E8C`).
