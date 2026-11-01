@@ -25,6 +25,10 @@ Confirm `columnMetadata` keys from real CLI output:
 npx fabric-app-data query semanticModel <alias> -q "EVALUATE ..."
 ```
 
+On the late-October 1.36 connector template there is no `fabric-app-data`: run
+`npx fabric-app-semantic-model-tools run-dax-query --dax <file> --alias <connection>` instead
+(see `rayfin-fabric-cli`).
+
 ## Mockup → wire-spec → production pipeline
 
 1. Hand-author a `.vl.json5` (or `.jsonc`) in `mockups/` using **inline preview data**.
