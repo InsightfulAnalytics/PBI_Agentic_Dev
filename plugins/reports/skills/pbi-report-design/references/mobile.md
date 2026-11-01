@@ -41,3 +41,18 @@ of editing `mobile.json`.
   `pbir visuals mobile` respectively
 - Delete a visual with `pbir rm` so its mobile state is removed with it
 - Absence of `mobile.json` is not automatically a defect; tie severity to intent (a headline KPI page with no mobile layout is high severity; a back-of-house detail page is usually fine)
+
+## Publish to web ignores the mobile layout
+
+Publish to web does not support mobile layout views: they are item 20 in its considerations and
+limitations ([Publish to web from Power BI](https://learn.microsoft.com/power-bi/collaborate-share/service-publish-to-web#considerations-and-limitations)).
+A public embed on a phone shows the desktop page shrunk to the screen's width, so a `mobile.json`
+layout is wasted on a report meant for a website.
+
+For a public report that has to read on a phone, build a second report on the same semantic model
+with narrow pages (about 400 px wide, as tall as the content; FitToWidth scales it to the phone),
+publish both, and let the website choose the embed by screen width (a CSS media query or a
+`matchMedia` check that swaps the iframe `src`). Design that report as its own layout: one column,
+navigation and filters in a band across the top, every chart the full width. Generate both reports
+from one source of card definitions when you can, so a change reaches both. Retest: the
+limitations list on that page still names Mobile layout views (checked 2026-11-02).
