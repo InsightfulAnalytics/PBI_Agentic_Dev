@@ -164,6 +164,25 @@ tooltip on a panel whose author believed tooltips were off. A theme's
 `visualStyles."*"."*".visualHeader[0].show = false` is only a default: set the per-visual property
 as well, which is what Desktop writes when a person toggles the card and what survives a theme swap.
 
+**A container title or subtitle `fontFamily` naming one face, such as `'Segoe UI Bold'`, can render
+in a serif fallback.** Write the stack Desktop writes, face first and its web font after:
+`'Segoe UI Bold', wf_segoe-ui_bold, helvetica, arial, sans-serif` (stored as a literal, so each
+inner `'` doubled), and the same shape for `Segoe UI Semibold` (`wf_segoe-ui_semibold`) and
+`Segoe UI` (`wf_segoe-ui_normal`). (Verified 2026-11-01, Desktop 26.10.)
+Retest: set one container title's `fontFamily` to `'Segoe UI Bold'` alone and screenshot it beside
+one set to the stack.
+
+**A line break in a measure-bound subtitle does not break the line.** `UNICHAR ( 10 )` in the text
+measure renders as a space. For a second line (a note under a chart's subtitle), use the chart's own
+title (a Deneb spec's `title`), or a separate visual placed under the subtitle.
+
+**A table's `spaceBelowTitleArea` does not move its grid down.** Set to 34 on a `tableEx` with a
+two-line subtitle, the column headers still sat about 4 px under the subtitle, so a line placed in
+that gap covered them. To put anything between a table's subtitle and its grid, draw the title and
+subtitle on a frame visual behind it and place an untitled table below. (Verified 2026-11-01, Desktop 26.10.)
+Retest: on a `tableEx` with a two-line subtitle, set `spaceBelowTitleArea` to 4 and then 34 and
+compare where the column headers render.
+
 **The selection pane name is `visualContainerObjects.title[0].properties.text`.** Keep
 `title.show: false` and the visual is named without a title bar.
 
