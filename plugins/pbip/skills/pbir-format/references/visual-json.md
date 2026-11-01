@@ -502,6 +502,38 @@ Column widths in tables and matrices are set via the `columnWidth` object with a
 
 Each entry sets the width for one column, identified by `metadata` selector using `Table.Column` format.
 
+**To fill the visual instead**, set the column headers' auto-size behaviour to grow to fit; each
+column keeps its content width and the spare width is shared out, so a narrow `#` column stays
+narrow:
+
+```json
+"columnHeaders": [{"properties": {
+  "autoSizeColumnWidth": {"expr": {"Literal": {"Value": "true"}}},
+  "columnAdjustment": {"expr": {"Literal": {"Value": "'growToFit'"}}}
+}}]
+```
+
+`columnAdjustment` also takes `'fitToContent'` (the default look, columns as wide as their
+content) and `'fixedWidth'`.
+
+**Per-column alignment goes in `columnFormatting`, not `columnHeaders`.** A `columnHeaders` entry
+with a `metadata` selector and `alignment` is accepted and does nothing: the header stays left over
+right-aligned figures. The table's "Specific column" settings live in `columnFormatting`, and
+`styleHeader` carries the alignment to the header:
+
+```json
+"columnFormatting": [{
+  "properties": {
+    "alignment": {"expr": {"Literal": {"Value": "'Right'"}}},
+    "styleHeader": {"expr": {"Literal": {"Value": "true"}}},
+    "styleValues": {"expr": {"Literal": {"Value": "true"}}}
+  },
+  "selector": {"metadata": "_Measures.Cost per Ticket"}
+}]
+```
+
+Both observed on a published `tableEx` in the Power BI service, 1 Nov 2026.
+
 ## Visual Groups
 
 Visuals can be grouped into a container that moves and resizes as a unit. A group visual uses `visualGroup` instead of `visual`:
