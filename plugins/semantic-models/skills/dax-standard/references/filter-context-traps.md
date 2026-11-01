@@ -123,6 +123,50 @@ The same measure grouped by the very column whose filter it needs to keep has th
 problem: grouped by escalation reason and handoff band, a late-handoff share measured each band
 against itself. Group by the reason alone, or remove the band's filter inside the measure.
 
+## A focal-item measure runs in every chart row
+
+A measure that names the item a chart emphasises (the path that trails, the channel that sends
+most work to a person) and returns 'focal' or 'context' per row is evaluated once per chart row.
+Any table it builds over a column the chart groups by (`SUMMARIZE ( 'Route', 'Route'[Path] )`) is
+already filtered to that row's member, so each row finds its own winner and the chart emphasises
+one mark per group. Find the focal item with the grouping columns' filters removed, then compare:
+
+```dax
+VAR __Focal =
+    CALCULATE ( [Mix Focal Channel], REMOVEFILTERS ( 'Route'[Path], 'Route'[Path Order] ) )
+VAR __Row = SELECTEDVALUE ( 'Channel Axis'[Channel] )
+RETURN
+    IF ( NOT ISBLANK ( [Mix Share] ), IF ( __Row = __Focal, "focal", "context" ) )
+```
+
+Test it by running the visual's own `SUMMARIZECOLUMNS` and counting the 'focal' rows.
+
+## Highlight a slicer's member instead of filtering to it
+
+A chart that should keep every channel and mark the one the Channel slicer picks cannot group by
+the slicer's column: the slicer filters the grouped values too. Group by a copy with no
+relationship, map it back in each measure, and read the slicer for the mark:
+
+```dax
+-- calculated table, no relationship
+Channel Axis = DATATABLE ( "Channel", STRING, { { "Live chat" }, { "Messaging" }, { "Email" } } )
+
+Mix Share =
+CALCULATE ( [Share], TREATAS ( VALUES ( 'Channel Axis'[Channel] ), 'Route'[Channel] ) )
+
+Channel Selected =
+VAR __Picked =
+    IF ( ISFILTERED ( 'Route'[Channel] ) && HASONEVALUE ( 'Route'[Channel] ), VALUES ( 'Route'[Channel] ) )
+RETURN
+    IF ( NOT ISBLANK ( __Picked ), IF ( SELECTEDVALUE ( 'Channel Axis'[Channel] ) = __Picked, "on", "off" ) )
+```
+
+`TREATAS` replaces the slicer's filter on that column, so every channel keeps its own figure while
+the other slicers still apply. Guard the flag with the row's own figure, or it adds empty rows (the
+trap above). A `DATATABLE` that references no model table is allowed in a Direct Lake on OneLake
+model, which otherwise refuses calculated tables over its Direct Lake tables (Microsoft Learn,
+"Direct Lake overview", considerations and limitations; deployed and queried 1 Nov 2026).
+
 ## A variable named after a DAX keyword
 
 `VAR Rows = ...` parses, round-trips through TMDL and passes `pbir validate --fields`; nothing offline
