@@ -35,6 +35,25 @@ hours of debugging.)
 **Rounding family** (know the differences): `INT`, `TRUNC`, `ROUND`, `ROUNDDOWN`, `ROUNDUP`,
 `MROUND` (nearest multiple), `CEILING`, `ISO.CEILING`, `FLOOR`, `EVEN`, `ODD`, `CURRENCY`.
 
+**`ROUND` and `FORMAT` round the decimal, not the double.** Both first cut the value to 15
+significant digits, so a double a hair under a half rounds up: `11.364999999999993` formats as
+`11.37` in DAX and as `11.36` through JavaScript's `Math.round ( x * 100 ) / 100` (numfmt, which a
+Fabric App's charts and tables format with). It matters when a DAX text measure must print the
+figure another formatter prints. Round the binary value first; `INT`, `TRUNC`, `FLOOR` and
+`ROUNDDOWN` cut to 15 digits too, so the fix compares instead:
+
+```DAX
+VAR __y = ABS ( __x ) * 100                  -- 10 ^ decimals
+VAR __n = ROUND ( __y, 0 )                   -- may overshoot by one
+VAR __Shown = SIGN ( __x ) * IF ( __n - __y > 0.5, __n - 1, __n ) / 100
+RETURN FORMAT ( __Shown, "#,0.00" )
+```
+
+For a percent, numfmt first cuts `x * 100` to 16 significant digits and then rounds, so a share
+needs that step as well. `FORMAT` also drops the sign of a negative that rounds to zero:
+`FORMAT ( -0.0004, "0.0%;-0.0%;0.0%" )` is `0.0%`. (Checked on a live model and against numfmt,
+1 Nov 2026.)
+
 **Trig & powers:** `SIN/COS/TAN/COT` (+ `H` hyperbolic, + `A` inverse) expect **radians** —
 convert with `RADIANS()` or `* PI()/180`. `SQRT(x)` ≡ `POWER(x, 0.5)`.
 

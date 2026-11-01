@@ -191,6 +191,16 @@ For offline checks and for any copy of a spec rendered outside Power BI:
   exact string against the real font instead, for example Pillow's
   `ImageFont.truetype("segoeui.ttf", px).getlength(s)` (`segoeuib.ttf` for bold) on Windows.
 
+## A spec from another Vega host
+
+A spec written for a host that passes the rows in (a Fabric App's `VegaVisual`, `vega-embed` with
+data set in code) has no `data` block. Deneb fills only the dataset a spec names, so the visual
+draws the axes a fixed `domain` gives it and no marks, with no error. Add
+`"data": {"name": "dataset"}` at the root. The same port also drops `width`/`height` set to
+`"container"` (the config's `autosize: fit` sizes it), swaps CSS variables (`var(--color-*)`),
+which nothing resolves inside Deneb, for hex values, and adds `format` with
+`formatType: "pbiFormat"` to each text mark and labelled axis that the host formatted for it.
+
 ## In Desktop
 
 - **A Deneb visual renders blank for a few seconds after `pbir desktop refresh`.** The custom visual

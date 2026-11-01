@@ -37,4 +37,10 @@ More silent failures are in [`silent-traps.md`](silent-traps.md).
 
 ## Titles
 
+**A finding as the title.** For a title or subtitle that a measure writes (a sentence computed
+from the visual's own data), bind the container `title` or `subTitle` `text` to the text measure
+(`{"expr": {"Measure": {...}}}`) with `titleWrap: true`. The container wraps it; Vega text marks do
+not wrap. A Deneb visual kept only for its container (a frame behind smaller panel visuals, a page
+lede) still binds one field, its title measure.
+
 **Title it in the container or the spec, never in a textbox above it** -- use the visual container's `title` and `subTitle` (themed like every other visual on the page; PBIR in the `pbip:pbir-format` skill's `references/visual-container-formatting.md`), or the spec's `title` with `subtitle` (`"title": {"text": "...", "subtitle": "..."}`, in Vega and Vega-Lite alike). Use one, not both. A spec title takes its font from the spec's `config`, not from the theme's container title settings, so set its font, size and colour there to match the container titles elsewhere on the page. An apostrophe in either is doubled in the stored literal
