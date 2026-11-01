@@ -1,12 +1,12 @@
 ---
 name: vega-lite-app-gotchas
 version: 26.40.3
-description: Hard-won fixes for Vega-Lite specs rendered inside a React / Power BI / Fabric App (the `VegaVisual` + Tailwind stack). Invoke when a value label is cut at the plot edge or runs into the row names, two-line axis labels overlap the marks, a layer reports "Conflicting axis property", a Vega-Lite chart "sorts alphabetically instead of by month", an ordinal axis won't honour a string `sort` array, a multi-series line chart shows all series in one tooltip or ignores a custom `tooltip`, tooltip numbers mix `$420k` and `$1.2M`, a chart renders with no color / "color is not a valid CSS color" after using `var(--ds-*)`, the chart loses its brand color, axis labels get clipped by the card, you're laying out a KPI card in Vega, or you hit "Duplicate signal name" on hover_tuple. Covers ordinal sorting, multi-series tooltips, value pre-formatting, CSS-variable resolution in SVG, the `--color-brand` theming bridge, card overflow clipping, and KPI-card layout.
+description: Hard-won fixes for Vega-Lite specs rendered inside a React / Power BI / Fabric App (the `VegaVisual` + Tailwind stack). Invoke when a value label is cut at the plot edge or runs into the row names, two-line axis labels overlap the marks, a layer reports "Conflicting axis property", a Vega-Lite chart "sorts alphabetically instead of by month", an ordinal axis won't honour a string `sort` array, a multi-series line chart shows all series in one tooltip or ignores a custom `tooltip`, tooltip numbers mix `$420k` and `$1.2M`, a chart renders with no color / "color is not a valid CSS color" after using `var(--ds-*)`, the chart loses its brand color, axis labels get clipped by the card, you're laying out a KPI card in Vega, or you hit "Duplicate signal name" on hover_tuple. Also invoke on fabric-visuals 5.0 when a null `axis` still draws an axis, an axis `format` prints NaN or is ignored, labelled bars sort alphabetically ("unioned domains only support"), text labels read "2.1K", or a click's selection predicates come back with `fieldId`. Covers ordinal sorting, multi-series tooltips, value pre-formatting, CSS-variable resolution in SVG, the `--color-brand` theming bridge, card overflow clipping, KPI-card layout, and the fabric-visuals 5.0 axis, sort, label and interaction traps.
 ---
 
 # Vega-Lite gotchas (React / Power BI App)
 
-Eight traps that cost real time when rendering Vega-Lite specs through a `VegaVisual`
+Fourteen traps that cost real time when rendering Vega-Lite specs through a `VegaVisual`
 component (Vega writes resolved SVG; Tailwind tree-shakes; cards clip). Each looks like it
 *should* work; the fix is non-obvious.
 
@@ -127,3 +127,74 @@ percent format without baking d3-format codes into the spec.
 
 Re-rendering the same named selection triggers **"Duplicate signal name: hover_tuple"**. The
 invisible-rule + `pivot` pattern in #2 is selection-free and side-steps this entirely.
+
+## fabric-visuals 5.0: six more traps in `VegaVisual` and `VisualContainer`
+
+Found building the Reading Room app on `@microsoft/fabric-visuals` 5.0.0 (31 Oct 2026), each
+confirmed with a headless `renderVisualToSvg` render as well as in the browser.
+
+### 9. `axis: null` is ignored: switch the parts off one by one
+
+The axis still draws, labels, ticks and title included. For a bar chart labelled at the bar
+ends:
+
+```ts
+x: { field: "Hours", type: "quantitative",
+     axis: { labels: false, ticks: false, domain: false, grid: false, title: null } }
+```
+
+### 10. Axis `format` and `formatType` are ignored: format ticks with `labelExpr`
+
+A temporal axis with `format: "%a %e %b"` printed NaN, and a quantitative axis with
+`format: ".0%"` used the column's model format string instead. `labelExpr` is honoured:
+
+```ts
+axis: { labelExpr: "utcFormat(datum.value, '%a %e %b')" }  // temporal
+axis: { labelExpr: "format(datum.value, '.0%')" }          // a 0-1 share
+```
+
+### 11. A layered spec drops a `sort` with the default op: use `max` or `min`
+
+Layers share (union) the y scale's domain, and a union accepts only `count`, `min` and `max`
+sort ops (the warning reads "as unioned domains only support boolean or op "count", "min",
+and "max""). `sort: { field:
+"Hours", order: "descending" }` defaults to `sum`, so it is dropped and the bars fall back to
+alphabetical order. A bar plus its text label is two layers, so this bites every labelled bar:
+
+```ts
+y: { field: "Area", type: "nominal", sort: { field: "Hours", op: "max", order: "descending" } }
+```
+
+### 12. Number text marks are compacted: print a string column
+
+A `text` mark over a number prints "2.1K" for 2,131. Add the label as a pre-formatted string
+column in the data table (as in #3) and encode it as `nominal`.
+
+### 13. Interaction predicates name the field `fieldId`, and values are tagged
+
+`onInteraction` events carry `selections[0].predicates`, each
+`{ type: "set", fieldId, values: [{ kind: "value", value }] }` (not `name` and bare values). A
+clear arrives as `action: "clear"` or an empty `selections`.
+`selectableFields` lets a click select a field the mark does not encode, such as the part of the
+site behind a page's bar.
+
+### 14. `VisualContainer`'s header toolbar re-wraps the title on hover
+
+With a `header`, the Copy visual and More actions toolbar sits in flow beside it at zero width
+and widens on hover or focus, by design, so a wrapping title re-wraps and the chart under it
+jumps. Keep the width and fade the toolbar instead, in a cascade layer after `fabric-visuals`
+(the library's Griffel styles live there):
+
+```css
+@layer components {
+  [vc-toolbar=""] { width: auto; margin-inline-start: var(--spacing-m); overflow: visible;
+                    opacity: 0; transition: opacity 150ms ease-out; }
+  [data-lyra-selection-boundary]:hover [vc-toolbar=""],
+  [data-lyra-selection-boundary]:focus-within [vc-toolbar=""],
+  [vc-toolbar=""]:has([aria-expanded="true"]) { opacity: 1; }
+}
+```
+
+`[data-lyra-selection-boundary]` is the container's own root; a bare `section:hover` also
+matches any `<section>` inside the card. Without a `header` the toolbar floats above the card's
+top edge instead, which overlaps the card above in a tight grid.

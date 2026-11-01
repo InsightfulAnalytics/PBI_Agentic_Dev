@@ -1,7 +1,7 @@
 ---
 name: rayfin-fabric-cli
 version: 26.40.3
-description: Operational gotchas for building Microsoft Fabric Apps with the Rayfin scaffold and the `fabric-app-data` / `rayfin` CLIs (Vite + React data apps over a published semantic model, with optional Fabric SQL DB writeback via DAB GraphQL). Invoke on TLS/certificate errors from npm/npx or the Fabric SDK, "rayfin up" / "db apply" failures, `fabric-app-data query` "too many arguments", "Dialect is required when Data module is enabled", "No compiled data/*.js files found", TS6377 tsBuildInfo errors, a writeback `create()` that silently never lands a row, UUID primary-key / `NEWID()` issues, or enabling the data service on an app scaffolded without it. Also invoke before scaffolding a new app (`npm create @microsoft/rayfin`, `rayfin init`), before passing `--overwrite`, or when a fresh `dataapp` scaffold has no `fabric-app-data`, `fabric-visuals` or `src/queries`. Covers scaffold target safety, template versions, NODE_OPTIONS, AVG HTTPS-shield interference, query CLI syntax, the five edits to turn on writeback, and client-supplied UUID ids.
+description: Operational gotchas for building Microsoft Fabric Apps with the Rayfin scaffold and the `fabric-app-data` / `rayfin` CLIs (Vite + React data apps over a published semantic model, with optional Fabric SQL DB writeback via DAB GraphQL). Invoke on TLS/certificate errors from npm/npx or the Fabric SDK, "rayfin up" / "db apply" failures, `fabric-app-data query` "too many arguments", "Dialect is required when Data module is enabled", "No compiled data/*.js files found", TS6377 tsBuildInfo errors, a writeback `create()` that silently never lands a row, UUID primary-key / `NEWID()` issues, or enabling the data service on an app scaffolded without it. Also invoke before scaffolding a new app (`npm create @microsoft/rayfin`, `rayfin init`), before passing `--overwrite`, when a fresh `dataapp` scaffold has no `fabric-visuals` or `src/queries`, when the scaffold's install fails with EALLOWSCRIPTS, or when running DAX through `fabric-app-semantic-model-tools run-dax-query`. Covers scaffold target safety, the template versions (SDK or connector), NODE_OPTIONS, the npm 11.16 allow-scripts failure, AVG HTTPS-shield interference, query CLI syntax, what the first `rayfin up` changes, the five edits to turn on writeback, and client-supplied UUID ids.
 ---
 
 # Rayfin / Fabric-App CLI gotchas
@@ -23,12 +23,22 @@ app gets the app in a subfolder. (Read from rayfin-cli 1.36.2,
 ## Use `@latest`: an old cached `dataapp` template is a different starter
 
 The npx cache can hold an old rayfin-cli. Its 1.33.1 `dataapp` template is a writeback starter
-(`rayfin-client`, `react-router-dom`) with no `fabric-app-data`, `fabric-visuals`,
-`src/queries`, `AGENTS.md` or `.agents/skills`. From 1.36 the same template name is the Fabric
-Apps Analytics template: semantic-model SDK, `fabric.yaml`, `use-semantic-model-query`, the nine
-agent skills, the Playwright config and `scripts/open-fabric-portal.mjs`. If a fresh scaffold has
-no `fabric-app-data` in `package.json`, rerun with `@latest`. Those skills are also newer than
-copies in older apps, so take them from a fresh scaffold rather than copying them across.
+(`rayfin-client`, `react-router-dom`) with no `fabric-visuals`, `src/queries`, `AGENTS.md` or
+`.agents/skills`. From 1.36 the same template name is the Fabric Apps Analytics template. If a
+fresh scaffold has no `@microsoft/fabric-visuals` in `package.json` and no `src/queries`, rerun
+with `@latest`. Its agent skills are also newer than copies in older apps, so take them from a
+fresh scaffold rather than copying them across.
+
+The 1.36 template itself moved on in late October 2026, so two apps on "1.36" can differ:
+
+| | Mid-October 1.36 | Late-October 1.36 (Reading Room, 31 Oct 2026) |
+| --- | --- | --- |
+| Model link | `fabric.yaml`, the `fabric-app-data` SDK | a connector in `rayfin/rayfin.yml` (`type: fabric-semanticmodel`, a `name` used as the connection) |
+| Query hook | `use-semantic-model-query` over the SDK | `useSemanticModelQuery({ connection, query })` over `@microsoft/rayfin-connector-fabric-semanticmodel` |
+| CLI DAX | `npx fabric-app-data query semanticModel <alias> -f <file>` | `npx fabric-app-semantic-model-tools run-dax-query --dax <file> --alias <connection>` |
+| Charts | `fabric-visuals` | `fabric-visuals`, `fabric-datagrid` and `fabric-visuals-extensibility` 5.0.0 |
+
+Neither one is the stale starter: check which you have before following an older app's code.
 
 ## Every npm/npx call needs `NODE_OPTIONS='--use-system-ca'`
 
@@ -38,6 +48,20 @@ $env:NODE_OPTIONS='--use-system-ca'
 
 Without it the Fabric SDK's HTTPS requests fail cert validation against
 corporate-CA-signed endpoints. Set it once per shell.
+
+## npm 11.16 stops the scaffold's install: EALLOWSCRIPTS
+
+The scaffold copies the template, then runs an install with `--allow-scripts`, which npm 11.16
+refuses in a project-scoped install ("--allow-scripts is not allowed in project-scoped installs.
+Add the entries to the "allowScripts" field in package.json, or to .npmrc, instead."). The files
+are all there; run `npm install` in the new folder. npm then skips the install scripts of seven
+packages (esbuild, @swc/core, keytar, msal-node-runtime and others) with a warning, and `vite`,
+`vitest`, `rayfin login` and `rayfin up` still work (31 Oct 2026).
+
+## The first `rayfin up` edits `rayfin/rayfin.yml`
+
+It adds the deployed app's URL to `services.auth.allowedRedirectUris` and sets
+`staticHosting.assetAccess: protected`. Commit both with the app.
 
 ## AVG Web/Mail Shield breaks `query`, `add --from-url`, and `rayfin up`
 
@@ -54,6 +78,14 @@ npx fabric-app-data query starwars --query "EVALUATE ..."
 # ✅
 npx fabric-app-data query semanticModel starwars -q "EVALUATE ..."
 npx fabric-app-data query semanticModel starwars -f path/to/query.dax
+```
+
+On the connector template, `run-dax-query` takes one to four `--dax` files per call ("Provide
+one to four --dax files"), so check a folder of queries in batches of four:
+
+```bash
+NODE_OPTIONS=--use-system-ca npx fabric-app-semantic-model-tools run-dax-query \
+  --dax src/queries/a.dax --dax src/queries/b.dax --alias reading
 ```
 
 ## Enabling writeback on an app scaffolded WITHOUT the data service: five edits
