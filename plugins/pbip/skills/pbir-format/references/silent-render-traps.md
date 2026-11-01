@@ -176,6 +176,15 @@ one set to the stack.
 measure renders as a space. For a second line (a note under a chart's subtitle), use the chart's own
 title (a Deneb spec's `title`), or a separate visual placed under the subtitle.
 
+**A container subtitle stops at three lines.** A longer subtitle wraps to three lines and the third
+ends in an ellipsis, however tall the visual and whatever `spaceBelowTitleArea` leaves for it; on a
+narrow (phone width) page a measure-bound lede or a long chart subtitle loses its end. Where the
+text can run longer, draw the title and subtitle in a Deneb visual (wrap the text in the spec: a
+`replace` with `regexp('(.{1,N})( +|$)', 'g')` and a `lineBreak`, N calibrated on the font) on an
+untitled frame, with the chart below it. (Verified 2026-11-02, Desktop 26.10.)
+Retest: on a 400 px wide page, bind a subtitle measure that returns about 300 characters to a
+368 px visual 400 px tall and count the rendered lines.
+
 **A table's `spaceBelowTitleArea` does not move its grid down.** Set to 34 on a `tableEx` with a
 two-line subtitle, the column headers still sat about 4 px under the subtitle, so a line placed in
 that gap covered them. To put anything between a table's subtitle and its grid, draw the title and
