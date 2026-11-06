@@ -83,8 +83,10 @@ RESULT=$(jq -r '
     (.datasetReference.byConnection.connectionString // "")
 ' "$FILE_PATH" 2>/dev/null) || exit 0
 
+# A native Windows jq.exe ends every line in CRLF, and Git Bash's command substitution
+# drops only the last one. Strip the \r from each line or "object" never matches.
 VALS=()
-while IFS= read -r line; do VALS+=("$line"); done <<< "$RESULT"
+while IFS= read -r line; do line=${line%$'\r'}; VALS+=("$line"); done <<< "$RESULT"
 BYPATH_TYPE="${VALS[0]:-}"
 BYPATH_PATH="${VALS[1]:-}"
 BYCONN_TYPE="${VALS[2]:-}"

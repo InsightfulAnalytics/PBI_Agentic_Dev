@@ -248,6 +248,10 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   `session_context` toggle and its table row, and README's trigger column, which says Write and
   Edit only (upstream's says Bash too, but its `hooks.json` registers no Bash matcher). Keep them
   when taking upstream hook changes.
+- `plugins/pbip/hooks/{validate-pbir,validate-report-binding}.sh` (2026-11-06): every loop that
+  reads a multi-line `jq -r` result strips a trailing `\r` from each line. A native Windows
+  `jq.exe` writes CRLF, so without it the hooks reported fields that were present as missing and
+  blocked every valid edit. Keep the strip when taking upstream hook changes.
 - `plugins/pbi-desktop/hooks/{hooks.json,config.yaml,README.md}` and the *Validation hooks* line in
   `connect-pbid/SKILL.md`: the hooks are off. Keep `"hooks": {}` when taking upstream hook changes.
 - The `disable-model-invocation: true` line in `custom-visuals/skills/powerbi-custom-visuals/SKILL.md`.
