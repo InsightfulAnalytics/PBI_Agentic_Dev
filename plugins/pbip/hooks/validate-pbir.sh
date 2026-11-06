@@ -114,8 +114,11 @@ validate_file() {
                 (.name // "")
             ' "$FILE_PATH" 2>/dev/null) || return 0
 
+            # A native Windows jq.exe ends every line in CRLF, and Git Bash's command
+            # substitution drops only the last one. Strip the \r from each line, here and in
+            # the loops below, or a "true" read from jq never equals "true".
             VALS=()
-            while IFS= read -r line; do VALS+=("$line"); done <<< "$RESULT"
+            while IFS= read -r line; do line=${line%$'\r'}; VALS+=("$line"); done <<< "$RESULT"
             SCHEMA="${VALS[0]:-}"
             local HAS_NAME="${VALS[1]:-}" HAS_POSITION="${VALS[2]:-}"
             local HAS_VISUAL="${VALS[3]:-}" HAS_VISUAL_GROUP="${VALS[4]:-}"
@@ -208,7 +211,7 @@ validate_file() {
             ' "$FILE_PATH" 2>/dev/null) || return 0
 
             VALS=()
-            while IFS= read -r line; do VALS+=("$line"); done <<< "$RESULT"
+            while IFS= read -r line; do line=${line%$'\r'}; VALS+=("$line"); done <<< "$RESULT"
             SCHEMA="${VALS[0]:-}"
             local HAS_NAME="${VALS[1]:-}" HAS_DISPLAY_NAME="${VALS[2]:-}"
             local HAS_DISPLAY_OPTION="${VALS[3]:-}" NAME="${VALS[4]:-}"
@@ -280,7 +283,7 @@ validate_file() {
             ' "$FILE_PATH" 2>/dev/null) || return 0
 
             VALS=()
-            while IFS= read -r line; do VALS+=("$line"); done <<< "$RESULT"
+            while IFS= read -r line; do line=${line%$'\r'}; VALS+=("$line"); done <<< "$RESULT"
             SCHEMA="${VALS[0]:-}"
             local HAS_THEME="${VALS[1]:-}"
 
@@ -322,7 +325,7 @@ validate_file() {
             ' "$FILE_PATH" 2>/dev/null) || return 0
 
             VALS=()
-            while IFS= read -r line; do VALS+=("$line"); done <<< "$RESULT"
+            while IFS= read -r line; do line=${line%$'\r'}; VALS+=("$line"); done <<< "$RESULT"
             SCHEMA="${VALS[0]:-}"
             local HAS_VERSION="${VALS[1]:-}" HAS_DATASET_REF="${VALS[2]:-}"
 
