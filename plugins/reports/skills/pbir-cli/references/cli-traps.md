@@ -4,8 +4,9 @@ Commands that exit 0 and did something other than what was asked, or that report
 there. The relative-path hijack by an active connection is the biggest of these and lives in
 [cli-reference.md](./cli-reference.md), "Report Creation and Management"; this file carries the rest.
 
-Every item was observed on pbir 0.9.x under Windows between July and October 2026. Before relying
-on one, run the command's `--help` and check whether a newer release changed it.
+Every item was observed on pbir 0.9.x under Windows between July and October 2026. Items stamped
+"still on 0.9.33" were re-run on that release on 27 October 2026, from the CLI side only. Before
+relying on one, run the command's `--help` and check whether a newer release changed it.
 
 ## `pbir desktop`
 
@@ -18,28 +19,27 @@ on a background window.
 Retest: `pbir desktop screenshot "<Report>.Report/<second page>.Page" -o p2.png` on a report whose
 pages look different, and compare `p2.png` with page one.
 
-**`pbir desktop list` truncates the Open File column with an ellipsis.** A project deep in a tree
-shows as `...\.scratch\report-ha…`, so the report's own name is never in the output, and a wait loop
-that greps for it hangs until its timeout instead of failing:
+**Never grep the `pbir desktop list` table for a report name.** On 0.9.32 the Open File column cut a
+deep path short with an ellipsis (`...\.scratch\report-ha…`); on 0.9.33 it wraps the path across
+lines instead, which can split the name just the same. Either way a wait loop that greps for the name
+hangs until its timeout instead of failing:
 
 ```bash
-# Never matches. Runs until the timeout, whatever Desktop is doing.
+# Can never match. Runs until the timeout, whatever Desktop is doing.
 until pbir desktop list | grep -qi "MyReport"; do sleep 3; done
 ```
 
-Wait on something the table does print, such as the PID, and do not anchor the pattern to the start
-of the line: the table is drawn with box-drawing characters, three bytes each in UTF-8, so `^. ` in a
-byte-oriented grep never fires.
+Use `pbir desktop list --json` (0.9.33): a top-level `status` (`ready`, or `not_connected` when no
+Desktop is reachable), `connectionErrors`, and per instance `pid`, `currentFilePath`,
+`hasUnsavedChanges`, `reportDir` and `pages` (`name`, `displayName`), none of them truncated. Match
+the report on `currentFilePath`. (Verified 2026-10-27 with Desktop 26.10 open.)
 
-```bash
-until pbir desktop list 2>/dev/null | grep -qE '[0-9]{4,6}'; do sleep 3; done
-```
+Retest: `pbir desktop list` with a project open from a deep path, then `pbir desktop list --json`.
 
 **A row in that table means Desktop has a window, not that the report has loaded.** A screenshot
 fired the moment the row appeared failed with
 `application.state.get/v1: Another operation is already in progress`. Retry the operation you
-actually want in a loop instead of waiting on the list and firing once. There is no `--json` or
-`--no-truncate` on `list` to lean on.
+actually want in a loop instead of waiting on the list and firing once.
 
 **`pbir desktop refresh --model` refuses a model below `compatibilityLevel` 1606**; raise it in
 `database.tmdl`. It also re-applies the model definition **without refreshing data**: after a Power
@@ -75,17 +75,18 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   this way silently filtered every visual in the report to one row. It does not show under the
   visual's own filters; find it in `report.json` `filterConfig` and remove it with
   `pbir rm "<Report>.Report/filter:<name>"`. To scope a filter to one visual, set it in that visual's
-  own `filterConfig`.
+  own `filterConfig`. (Still on 0.9.33; pbir.tools #74.)
 - **`pbir add page "<Report>.Report/<Folder>.Page" -n "<Display>"` also creates a default title
-  textbox** (folder `Title`). Remove it when the page gets its own header. The page folder on disk is
-  a hash, not the path segment you typed.
+  textbox** (folder `Title`, 480x120 at 20,20), and `pbir add visual` then refuses anything that
+  overlaps it unless you pass `--force`. Remove it when the page gets its own header. The page
+  folder on disk is a hash, not the path segment you typed. (Still on 0.9.33.)
 - **pbir addresses pages and visuals by display name** (`"<Report>/Opening Tooltip.Page"`), not by
   the hash folder. A glob through a page path that contains spaces (`".../Opening Tooltip.Page/*.Visual"`)
   matched no visuals; operate per visual instead.
 - **`pbir set ...visualTooltip.*` fails on a custom visual** with `Unknown component: visualTooltip`,
   because custom visuals are not in the core catalog. Edit the visual.json directly
   (`pbip:pbir-format` `references/page.md`, Tooltip Pages). `pbir pages set-tooltip` sets the page's
-  `type` and `displayOption`; set `visibility` to `HiddenInViewMode` separately.
+  `type` and `displayOption`; set `visibility` to `HiddenInViewMode` separately. (Still on 0.9.33.)
 - **`pbir visuals title` takes `--show` / `--no-show`.** There is no `--hide` and no `-f`.
 - **`pbir add title` and `pbir add subtitle` add page-level textboxes; they never set a visual's
   title.** A visual's own title and subtitle are `pbir visuals title "<Visual>" --text "..." --show`
@@ -97,7 +98,7 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   `pbir validate` reports the broken one as valid. Pass it already doubled,
   `--text "Each store''s sales"`, which pbir stores as `'Each store''s sales'`. In PowerShell, use
   double quotes around the argument so the two apostrophes reach pbir as typed. (pbir 0.9.32.
-  Verified 2026-10-03.)
+  Verified 2026-10-03; still on 0.9.33; pbir.tools #72.)
 
   Retest: `pbir visuals title "<Visual>" --text "It's"`, then read the `title` entry in that
   visual.json.
@@ -106,10 +107,18 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   string literal inside an expression). Power BI Desktop then draws nothing where the visual sits:
   no error, no placeholder, not even the spec's static marks. `pbir validate` passes. Embed with
   `deneb_spec.py embed` from the `custom-visuals:deneb-pbir` skill instead, which doubles them.
-  (pbir 0.9.32. Verified 2026-10-09.)
+  (pbir 0.9.32. Verified 2026-10-09; still on 0.9.33; pbir.tools #72.)
 
   Retest: embed a spec containing `"expr": "'a'"` with `pbir visuals deneb`, then count the `'`
   inside the `jsonSpec` literal: correct output has twice as many as the spec file.
+- **`pbir set --value` writes `'` undoubled too, in any string property.** A font stack in Desktop's
+  own quoted form, `--value "'Segoe UI Bold', wf_segoe-ui_bold, helvetica, arial, sans-serif"`, is
+  stored as `''Segoe UI Bold', wf_segoe-ui_bold, ...'`, a broken literal. Pass a font stack unquoted,
+  `--value "Segoe UI Bold, wf_segoe-ui_bold, helvetica, arial, sans-serif"`, which Desktop renders in
+  the right face. (pbir 0.9.33. Verified 2026-10-29.)
+
+  Retest: `pbir set "<Visual>.values.fontFamily" --value "'Segoe UI Bold', arial"`, then read
+  `fontFamily` in that visual.json.
 - **Container formatting on a custom visual is out of reach of `pbir set` and `pbir visuals`.**
   `title`, `padding`, `background`, `border` and `dropShadow` all fail with `Unknown component`,
   with `--rawdog` and with `--skip schema` too; `pbir visuals general --altText` is the one that
@@ -117,57 +126,74 @@ Schema-version warnings such as `'2.10.0' not available locally` are harmless fa
   `visualStyles["<visualType>"]["*"]` (for example `deneb7E15AEF80B9E4D4F8E12924291ECE89A`), apply it
   with `pbir theme create-template` + `apply-template`, and clear visual-level leftovers with
   `pbir visuals clear-formatting "<Visual>" --only-containers -f`. That also clears `altText`, so
-  set it again afterwards. (pbir 0.9.32. Verified 2026-10-09.)
+  set it again afterwards. (pbir 0.9.32. Verified 2026-10-09; still on 0.9.33; pbir.tools #52, fixed for 1.0.)
 - **A slicer's default selection cannot be set.** `pbir set "<Slicer>.general.filter" --json ...`
   fails with `Component 'general' has no property 'filter'. Did you mean: filter, selfFilter?`, with
   or without `--rawdog`. Select the value in Desktop and save, or give the measures a sensible
-  fallback for the no-selection state. (pbir 0.9.32. Verified 2026-10-09.)
+  fallback for the no-selection state. (pbir 0.9.32. Verified 2026-10-09; still on 0.9.33; pbir.tools #77.)
 
   Retest: the same `pbir set` with a one-value `In` filter, then read `objects.general` in the
   slicer's visual.json.
+- **Two containers fail on core visuals too: a page navigator's `title` and any visual's
+  `stylePreset`.** `pbir visuals title "<Navigator>" --no-show` and
+  `pbir set "<Navigator>.title.show" --value false` both fail with `Unknown component: title`,
+  though `--title` on `pbir add visual` wrote one; the same commands work on a button.
+  `pbir set "<Visual>.stylePreset.name" --value "Tab"` fails with `Unknown component: stylePreset`,
+  though `pbir schema describe pageNavigator stylePreset` lists `name`. Set the default in the theme
+  instead (`visualStyles["pageNavigator"]["*"]`, and `stylePreset` inside `"*"` picks the preset new
+  visuals start with; `reports:modifying-theme-json` `references/style-presets.md`), or pick it in
+  Desktop and save. (pbir 0.9.33. Verified 2026-10-29.)
+
+  Retest: the two `pbir set` commands above on a page navigator.
+- **A text box's `general.paragraphs` needs `--json`.** With `--value '<json>'` pbir stores the whole
+  array as one quoted string literal; `--json '[{"textRuns":[{"value":"...","textStyle":{...}}]}]'`
+  stores the array. In Windows PowerShell 5.1 the `--json` value does not survive native argument
+  passing: a value with spaces splits (`Got unexpected extra argument(s)`), and escaping its double
+  quotes did not help. Run that command from Git Bash. (pbir 0.9.33. Verified 2026-10-29.)
+
+  Retest: `pbir set "<Textbox>.general.paragraphs" --value '[{"textRuns":[{"value":"a"}]}]'`, then
+  read `paragraphs` in that visual.json.
 - **`pbir visuals rename --to`, `pbir mv` and `pbir cp` rename the folder, not the visual.** The
   visual's `name` keeps its old value (`cp` mints a new hex one), so folder and `name` differ. pbir
   treats that as valid; the `pbip:pbir-format` skill expects them equal. To line them up, rename the
-  folder to the `name` the JSON already carries.
+  folder to the `name` the JSON already carries. (Still on 0.9.33.)
 
 ## Visual types and properties the catalog does not know yet
 
 A built-in visual newer than pbir's core catalog is treated like a custom visual, and only its
 position can be changed. If `pbir schema roles <type>` answers `Unknown visual type`, plan for this
-before promising a build. (pbir 0.9.32, Power BI Desktop 26.10. Verified 2026-10-19.)
+before promising a build. The native Gantt was one until 0.9.33.
 
-Retest: `pbir schema roles ganttChart`.
+- **The native Gantt (`ganttChart`) is supported from 0.9.33, with three catches.** Create it with
+  `pbir add visual gantt <page> -d "Task:<Table>.<Column>" -d "StartDate:<Table>.<Measure>" ...`;
+  `StartDate`, `EndDate` and `Progress` take measures only (a date column is refused with
+  `Role 'StartDate' accepts ['Measure']`), and `pbir set`, `pbir visuals cf`, `title` and `subtitle`
+  reach its objects. The catches: pbir offers a `TaskId` role that Desktop 26.10's Gantt does not
+  declare, so leave it unbound; pbir adds a default sort on `StartDate` **descending**, so set
+  `pbir visuals sort "<Gantt>" -f "<Table>.<Start measure>" -d Ascending` for the usual top-down
+  timeline; and `bar.color` applies only once `bar.customizeColor` is true. `pbir schema describe
+  ganttChart` lists only `general`, though `axis`, `bar`, `row` and the rest set fine. The wells,
+  selectors and format shapes that rendered are in `pbip:pbir-format` `references/visual-json.md`,
+  "Gantt Chart". (pbir 0.9.33, Desktop 26.10. CLI checked 2026-10-27; a pbir-built Gantt has not
+  been rendered yet. pbir.tools #76.)
 
-- **The native Gantt (`ganttChart`) cannot be created, bound or formatted per visual.**
-  `pbir add visual ganttChart` has no template; `pbir visuals bind` stops with
-  `Data roles for 'ganttChart' not found`, with `--rawdog` too; `pbir visuals title`, `subtitle`,
-  `cf` and `pbir set` on any of its objects stop with `Unknown component`. `pbir visuals position`
-  and `z-order` work. Two routes do work: type-wide defaults in the report theme,
-  `pbir theme set-formatting "<Report>.Report" "ganttChart.*.axis.primaryUnit" --value month`
-  (any Gantt object: `axis`, `bar`, `progress`, `milestone`, `row`, `columnHeaders`, `columnValue`,
-  plus `title` and `subTitle`), and field wells, measure-driven colours and per-visual titles set in
-  Desktop. Seed the visual in Desktop first; `pbir cp` then copies it, formatting included. Where
-  the user allows hand-edited PBIR for the gap, the wells, selectors and format shapes that
-  rendered are in the `pbip:pbir-format` skill, `references/visual-json.md`, "Gantt Chart".
-- **`listSlicer` has no `data.dropdownMode` in the catalog**, so `pbir set "<Slicer>.data.dropdownMode"`
-  fails with `Component 'data' has no property 'dropdownMode'`. Writing it to the theme
-  (`listSlicer.*.data.dropdownMode`) succeeds but Desktop still drew a list. Switch one slicer to
-  dropdown in Desktop, then `pbir cp` it and rebind with `pbir visuals bind -r/-a`, or (where hand
-  edits are allowed) set it in the visual's own `objects`, as `pbip:pbir-format` "Slicer Formatting"
-  shows.
-- **`pbir visuals padding` on a `listSlicer` fails** with
-  `Component 'padding' has no property 'paddingIndividual'`. Set the padding in the theme instead:
-  `listSlicer.*.padding.top`.
+  Retest: build one with `pbir add visual gantt`, apply it in Desktop and screenshot; compare
+  `pbir schema roles ganttChart` with the roles in that section.
+- **`listSlicer` dropdown mode works per visual only.** Since 0.9.33,
+  `pbir set "<Slicer>.data.dropdownMode" --value true` writes the visual-level shape that rendered
+  (`pbip:pbir-format` "Slicer Formatting"); 0.9.32 refused it. The theme route
+  (`listSlicer.*.data.dropdownMode`) is accepted, but Desktop 26.10 still drew a list.
 - **`pbir visuals border --radius` on a new Card (`cardVisual`) fails** with
   `Component 'border' has no property 'radius'`: the card's own `border` object shadows the container
-  one. For a tile with rounded corners, put a rounded shape behind a transparent card.
+  one. For a tile with rounded corners, put a rounded shape behind a transparent card. (Still on
+  0.9.33; pbir.tools #75.)
 
 ## Measure filters and measure-driven shape text
 
 - **`pbir add filter` takes columns only.** A visual-level filter on a measure, such as
   `Release Count is not blank` to hide slicer items with no data, fails with
   `Filter field must be a Column, got Measure`. Set it in Desktop's Filters pane, then `pbir cp` the
-  configured visual where it is needed again. (pbir 0.9.32. Verified 2026-10-19.)
+  configured visual where it is needed again. (pbir 0.9.32. Verified 2026-10-19; still on 0.9.33; pbir.tools #77.)
 
   Retest: `pbir add filter "<Table>" "<Measure>" -v "<Visual>" --type Advanced --operator IsNotBlank`.
 - **A shape's text from a measure has to go in its default-state entry.** Shapes keep their text
@@ -192,16 +218,35 @@ Retest: `pbir schema roles ganttChart`.
   one with literal text, then screenshot it.
 - **`pbir visuals group --add` keeps the visual's page coordinates**, while the other children of a
   group are positioned relative to it. Run `pbir visuals position` on the child afterwards with
-  group-relative values. (pbir 0.9.32. Verified 2026-10-19.)
+  group-relative values. (pbir 0.9.32. Verified 2026-10-19; still on 0.9.33.)
 - **`pbir add filter` appends; it never replaces.** Running the same command twice leaves two
   identical filters on the visual. Read `filterConfig` before adding, or remove the extra one with
-  `pbir rm "<Visual>/filter:<name>" -f`. (pbir 0.9.32. Verified 2026-10-19.)
+  `pbir rm "<Visual>/filter:<name>" -f`. (pbir 0.9.32. Verified 2026-10-19; still on 0.9.33; pbir.tools #74.)
+
+  Retest: run `pbir add filter "<Table>" "<Column>" -v "<Visual>"` twice, then count the entries in
+  that visual's `filterConfig.filters`.
 - **Shapes have no diamond.** `shape.tileShape` refuses `diamond`. For a milestone-style legend
   marker, set `shape.tileShape` to `rectangle` and `rotation.shapeAngle` to `45`. A
   `rectangleRoundedByPixel` swatch about 22x10 px drew as an oval, so legend swatches want
-  `rectangle` too. (pbir 0.9.32, Desktop 26.10. Verified 2026-10-19.)
+  `rectangle` too. (pbir 0.9.32, Desktop 26.10. Verified 2026-10-19; `diamond` still refused on
+  0.9.33.)
 
   Retest: `pbir set "<Shape>.shape.tileShape" --value diamond`.
+- **A `rectangleRoundedByPixel` shape takes its radius from `shape.rectangleRoundedCurve`**
+  ("Rounded corners"), not `shape.roundEdge`. With only `roundEdge` set, values from 2 to 16 all drew
+  the same corners of about 15 px. Set the radius with
+  `pbir set "<Shape>.shape.rectangleRoundedCurve" --value 9`. (pbir 0.9.32, Desktop 26.10. Verified
+  2026-10-19.)
+
+  Retest: set `roundEdge` to 2 on one rounded-by-pixel shape and 16 on another, then screenshot.
+- **`pbir visuals action --type PageNavigation --target` writes the target as given.** Desktop
+  navigates by the page's `name` (its folder under `definition/pages`), so a display name such as
+  `"Release anatomy"` is accepted, validates, and does nothing when clicked. Pass the page's folder
+  name, and check that every `navigationSection` matches a page folder. (pbir 0.9.32, Desktop 26.10.
+  Verified 2026-10-19.)
+
+  Retest: `pbir visuals action "<Visual>" --type PageNavigation --target "<display name>"`, then
+  `pbir visuals action "<Visual>" --show`.
 
 ## Bookmarks on a copied page
 
@@ -217,11 +262,21 @@ bookmark file with the section key renamed and the group added to `bookmarks.jso
 
 Retest: copy a bookmark, run `pbir bookmarks page` on it, and read the copy's `sections` keys.
 
+**A copied page's visuals have new names.** `pbir cp` of a page keeps each visual's folder name but
+writes a new `name` inside its `visual.json`. pbir paths resolve the folder, while Desktop, bookmarks
+(`targetVisualNames`, the `sections` keys) and `parentGroupName` use the inner name. Anything that
+refers to a visual from outside pbir must read the `name` field, not the folder. (pbir 0.9.32.
+Verified 2026-10-19.)
+
+Retest: `pbir cp` a page, then compare a copied visual's folder name with the `name` in its
+`visual.json`.
+
 ## `pbir model -q`
 
 **`-F json` fails on any date value** with `Error: Object of type datetime is not JSON serializable`,
 whatever the query. Format dates in the query (`FORMAT ( [Start], "yyyy-mm-dd" )`, or `"" & [Measure]`
-to stringify every column), or use the default table output. (pbir 0.9.32. Verified 2026-10-19.)
+to stringify every column), or use the default table output. (pbir 0.9.32 and 0.9.33, also with `--json` and
+`--output-format json`. Verified 2026-10-27; pbir.tools #78.)
 
 Retest: `pbir model "<Report>.Report" -F json -q "EVALUATE ROW(\"d\", TODAY())"`.
 
