@@ -401,6 +401,34 @@ Three places have to agree with the CSV header, in order and in count: the `colu
 Then grep every `visual.json` for the old column name: a stale `"Property": "<DroppedColumn>"` fails
 the visual and surfaces as a model error, not a report one.
 
+## An Import table Desktop did not write survives a TOM refresh, then breaks on Desktop's Refresh
+
+Symptom: every visual reads *Something's wrong with one or more fields* with a *Fix this* button,
+and the field wells show a warning on each measure, right after the Refresh button in Desktop. A TOM
+`RequestRefresh` of the same TMDL loaded cleanly a minute earlier.
+
+Mechanism: a TOM refresh maps each column to the query output by `sourceColumn`. Desktop's Refresh
+makes the model match the Power Query output instead, and re-creates any column it does not
+recognise as its own. Two cases, both seen on an Import copy made from a Direct Lake model
+(Verified 2026-11-06, Desktop 26.10):
+
+1. **Names.** `column 'Issue Key'` with `sourceColumn: IssueKey` came back as a column named
+   `IssueKey`, so 248 measures that read `Issue[Issue Key]` failed. Fix: rename in the query
+   (`Table.RenameColumns`) to the model's names and set each `sourceColumn` to the column's own
+   name. A `Table.SelectColumns` of the model's columns first keeps an extra source column out.
+2. **Shape.** With the names right, Desktop still re-created every column (new `lineageTag`s;
+   format strings, `sortByColumn`, `isHidden`, descriptions, `isKey` and the table's
+   `dataCategory: Time` gone, and with them the relationship to the date table). It stopped once
+   each table looked like one Desktop writes: no `sourceLineageTag` on the table or its columns,
+   `annotation PBI_ResultType = Table` and `annotation PBI_NavigationStepName = Navigation` on the
+   table, and `annotation UnderlyingDateTimeDataType = Date` on each date-only column. All three
+   went in together, so which one Desktop keys on is not isolated.
+
+Check: after the Refresh button, compare column `lineageTag`s over TOM with the TMDL; a changed
+tag means Desktop re-created the column. `ErrorMessage` on the measures names the column it lost.
+Retest: refresh a table whose `sourceColumn` differs from its name with the Refresh button, then
+read its column names over TOM.
+
 ## Adding to this file
 
 This file is the in-repo home for TMDL authoring failure modes. A new one goes here rather than in a
