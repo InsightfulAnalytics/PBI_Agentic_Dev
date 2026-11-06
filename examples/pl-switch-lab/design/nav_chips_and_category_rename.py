@@ -40,11 +40,11 @@ TRANSPARENT = {"solid": {"color": {"expr": {"Measure": {
 # ------------------------------------------------------------ 1. category rename
 txt = PRODUCTS.read_text(encoding="utf-8")
 OLD_SRC = '''				let
-				    Source = Parquet.Document(File.Contents("B:\\VS Code Files\\PBI Projects\\PL Switch Lab\\data\\demo\\products.parquet"))
+				    Source = Parquet.Document(File.Contents("W:\\pbi_projects\\pl_switch_lab\\data\\demo\\products.parquet"))
 				in
 				    Source'''
 NEW_SRC = '''				let
-				    Source = Parquet.Document(File.Contents("B:\\VS Code Files\\PBI Projects\\PL Switch Lab\\data\\demo\\products.parquet")),
+				    Source = Parquet.Document(File.Contents("W:\\pbi_projects\\pl_switch_lab\\data\\demo\\products.parquet")),
 				    Renamed = Table.ReplaceValue(Source, "(Not product-related)", "Non-Product", Replacer.ReplaceValue, {"Category"})
 				in
 				    Renamed'''
