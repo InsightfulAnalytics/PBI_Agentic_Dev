@@ -650,7 +650,7 @@ Model query routing: thin reports (`byConnection`) query the Power BI / Fabric s
 
 ## Desktop Operations (Windows)
 
-Requires Power BI Desktop running with the report open and the preview feature "Enable external tool access to Power BI Desktop through secure local APIs" enabled.
+Requires Power BI Desktop running with the report open and the Desktop Bridge setting "Enable external tool access to Power BI Desktop through secure local APIs" on (File > Options and settings > Options > Security in current builds, on by default there; Preview features in older builds). Restart Desktop after changing it. If `pbir` warns that Desktop's local API is not reachable, check the Security page (Preview features on older builds) even if the warning names Preview features; if the setting is already on, see "Caveats and Troubleshooting" in `desktop-integration.md` and `pbi-desktop:connect-pbid` `references/desktop-bridge.md` for the other causes, including an administrator policy that disables the bridge.
 
 ```bash
 pbir desktop list                                # Running instances (PID, open file, unsaved state, pages)

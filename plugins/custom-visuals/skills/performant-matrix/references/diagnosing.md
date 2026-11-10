@@ -167,8 +167,12 @@ It prints elapsed ms plus rows x columns per run and dumps the first `-Rows` res
 200; `-Rows 0` to time only), so you can eyeball the result while you time it. `-Port` overrides
 discovery, which is needed when two Desktop instances are open. `-AdomdDll` overrides the probe.
 
-`pbir model -q` is an alternative only where the "Enable external tool access to Power BI Desktop
-through secure local APIs" preview is turned on. Where it is off, go straight to ADOMD.
+`pbir model -q` is an alternative only while the Desktop Bridge is reachable. That needs the
+Desktop Bridge setting ("Enable external tool access to Power BI Desktop through secure local
+APIs": File > Options and settings > Options > Security in current builds, on by default there;
+Preview features in older builds) and an open report. Where the bridge is unreachable, go straight
+to ADOMD; `pbi-desktop:connect-pbid` `references/desktop-bridge.md` has the other causes and the
+checks.
 
 ### 3. Pin the filter context
 

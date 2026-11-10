@@ -1,9 +1,10 @@
 # Driving Desktop's UI without stealing the foreground
 
 **Power BI Desktop only, so Windows only.** Some Desktop features have no API at all: Performance
-Analyzer, Export data, Show as a table, switching the visible page when the local-API preview is off.
-They can still be driven end to end through Windows UI Automation (the `UIAutomationClient`
-assemblies), and none of the routes below needs Desktop in the foreground.
+Analyzer, Export data, Show as a table, switching the visible page when the
+[Desktop Bridge](./desktop-bridge.md) is unreachable. They can still be driven end to end through
+Windows UI Automation (the `UIAutomationClient` assemblies), and none of the routes below needs
+Desktop in the foreground.
 
 **Never use SendKeys or coordinate clicks against Desktop when a UIA route exists.** Windows blocks
 `SetForegroundWindow` from a background process, so keystrokes and clicks land in whatever window the

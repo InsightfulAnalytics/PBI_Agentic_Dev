@@ -5,9 +5,13 @@ edits on the canvas without reopening the file, drive an open Desktop instance w
 `pbir desktop` commands (reports plugin, `pbir-cli` skill); they reload the report and
 screenshot pages over Desktop's local API.
 
-Requires a **preview setting**: in Power BI Desktop, File > Options and settings >
-Options > Preview features, enable "external tool access to Power BI Desktop through
-secure local APIs", then restart Desktop.
+Requires the **Desktop Bridge setting**, "Enable external tool access to Power BI Desktop
+through secure local APIs": in Power BI Desktop, File > Options and settings > Options >
+Security in current builds, on by default there (Preview features in older builds).
+Restart Desktop after changing it, and keep a report open. If `pbir` says the local API
+is not reachable, the setting is only one possible cause, and `pbir`'s warning may still
+name Preview features. The `pbi-desktop:connect-pbid` skill's `references/desktop-bridge.md`
+covers the admin policy and the other causes.
 
 ## The loop
 

@@ -27,7 +27,8 @@ there is any doubt.
 Load `pbi-desktop:connect-pbid` and query the live instance. The point is to prove the
 table, column or measure you are about to reference actually exists and holds what you think.
 
-- `pbir model -q` fails on this machine (the local-API preview is off). Go straight to the
+- `pbir model -q` needs the Desktop Bridge setting (Options > Security in current builds, Preview
+  features in older ones). If it warns that the local API is not reachable, go straight to the
   direct ADOMD path in that skill — DAX Studio's `Microsoft.AnalysisServices.AdomdClient.dll`
   is the one that loads under PowerShell 5.1. Tabular Editor 3's is .NET 8 and throws.
 - If Desktop isn't open, read the TMDL under `<Model>.SemanticModel/definition/tables/`.
@@ -114,8 +115,8 @@ the change as working. The trap and its workaround are in `pbip:tmdl`
 - Model-wide audit? `tabular-editor:te-cli` / `bpa-rules`.
 - Needs a refresh? `semantic-models:refresh-semantic-model`. For a hand-authored PBIP whose
   first open shows "incomplete or no data", refresh through TOM
-  (`$db.Model.RequestRefresh('Full')` + `SaveChanges()`) — the local-API preview is off, so
-  `pbir desktop refresh` is unavailable.
+  (`$db.Model.RequestRefresh('Full')` + `SaveChanges()`) — where the Desktop Bridge setting is
+  off, `pbir desktop refresh` is unavailable.
 - Report visuals affected by the change? Hand over to `reports:pbir-cli`, and verify with
   `reports:pbi-verify-loop`.
 - After fixing a nontrivial error, record the root cause in the project's own `LEARNINGS.md`,

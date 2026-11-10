@@ -16,10 +16,10 @@ Drive a running Power BI Desktop instance from the CLI: reload the on-disk repor
 ## Requirements
 
 - Windows only; Power BI Desktop must be running with the report open
-- The Desktop preview feature must be enabled: File > Options and settings > Options > Preview features > "Enable external tool access to Power BI Desktop through secure local APIs"; restart Desktop after enabling
+- The Desktop Bridge setting must be on: "Enable external tool access to Power BI Desktop through secure local APIs" (File > Options and settings > Options > Security in current builds, on by default there; Preview features in older builds). Restart Desktop after changing it
 - Screenshots additionally require the Desktop window to be in the **Report view** (not Model or Table view)
 
-When the bridge is unreachable, the CLI prints the preview-feature hint; when no instance has the target report open, it says so and names the report it looked for.
+When the bridge is unreachable, the CLI prints a hint for that setting. The hint can point to Preview features even on builds that list it under Security, so check the Security page first. When no instance has the target report open, it says so and names the report it looked for.
 
 ## Commands
 
@@ -118,7 +118,7 @@ Each open report is a separate Desktop process with its own bridge endpoint and 
 - **Refresh on a dirty instance saves first.** If the report has unsaved changes in Desktop, `file.reload` makes Desktop save before reloading; the whole definition is rewritten (re-indented, schema versions bumped, active page recorded). Expect git churn; commit or stash before iterating on a report a user has open with edits. That save is also how a user's canvas edits reach disk, which is the subject of the next section.
 - **"Report view is not active"**: switch the Desktop window to the Report view and retry the screenshot.
 - **Transient errors right after a refresh** (HostNotReady): handled automatically; the CLI honors the bridge's retry protocol.
-- **Bridge unreachable**: enable the preview feature (see Requirements) and restart Desktop.
+- **Bridge unreachable**: check that the Desktop Bridge setting is on (see Requirements), then restart Desktop with the report open. If the setting is already on, check that no administrator policy (`DesktopNamedPipeBridge`) disables the bridge, that a report is open, and the bridge-fault bullet below. `pbi-desktop:connect-pbid` `references/desktop-bridge.md` has the policy value, the CLI's warning text, and a "Pipe is broken" handshake drop that gives the same warning.
 - **Bridge fault after a Desktop upgrade** (seen with the August 2026 Desktop release): the named-pipe bridge can break in place. Since 0.9.31 the CLI tells this apart from a timeout or a closed report, prints Repair guidance for the Desktop installation (Windows Settings > Apps > Power BI Desktop > Repair), and emits a distinct bridge-fault diagnostic in automation output. Do not retry in a loop; repair Desktop, reopen the report, then `pbir desktop list`.
 - **ADOMD client not found** when querying a local model: install DAX Studio or set `PBIR_ADOMD_DIR`.
 

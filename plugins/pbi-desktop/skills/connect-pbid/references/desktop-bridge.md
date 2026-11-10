@@ -21,12 +21,23 @@ snapshot the report to confirm the visuals reflect the change.
   Where-Object { $_ -match 'pbi-desktop-bridge-(\d+)$' }
 ```
 
-  The bridge needs its **preview setting enabled**: in Power BI Desktop, File > Options
-  and settings > Options > Preview features, turn on the developer-mode / report-bridge
-  preview feature and restart Desktop. If no pipe is found, that setting is off or
-  Desktop is closed. **Pipe enumeration is not an availability check**, though: a pipe
-  can be present and the bridge still drop the client (next section), so confirm with a
-  `bridge.manifest` round trip before building a workflow on it.
+  The bridge needs its **Desktop Bridge setting enabled**: in Power BI Desktop, File >
+  Options and settings > Options > Security (a Global page), under the heading "Desktop
+  Bridge", the checkbox "Enable external tool access to Power BI Desktop through secure
+  local APIs". It is on by default in current builds. Older builds list the same
+  checkbox under Preview features instead, where it is opt-in. Either way, restart
+  Desktop after changing it, and the bridge only reports a file when a report is open.
+  Administrators can disable it for every user with the registry policy value
+  `DesktopNamedPipeBridge` (DWORD, `0` disables, `1` enables) under
+  `HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Power BI Desktop`. If no pipe is
+  found, that setting is off (by hand or by that policy) or Desktop is closed. **Pipe
+  enumeration is not an availability check**, though: a pipe can be present and the
+  bridge still drop the client (next section), so confirm with a `bridge.manifest`
+  round trip before building a workflow on it. (Security page placement observed on
+  Desktop 2.159.1231.0, the October 2026 release, and documented in Microsoft Learn
+  "Power BI Desktop bridge overview", updated 2026-09-29; Verified 2026-11-10.)
+  Retest: open File > Options and settings > Options and look for the "Desktop Bridge"
+  heading on the Security page.
 - Protocol: JSON-RPC 2.0 with LSP-style `Content-Length` framing (vscode-jsonrpc over
   the pipe stream). No initialize handshake; connect and call.
 
@@ -37,7 +48,7 @@ present for every Desktop process while the bridge still drops the client: a raw
 to `\\.\pipe\pbi-desktop-bridge-<PID>` succeeds, the first write then fails with
 **"Pipe is broken"**, and `pbir desktop list` reports that the local API is not reachable.
 The bridge is accepting the connection and dropping the client at handshake rather than
-refusing it outright. (Observed with the preview toggle in a particular state, not
+refusing it outright. (Observed with the bridge setting in a particular state, not
 documented product behaviour.)
 Retest: connect to the pipe and call `bridge.manifest`.
 
@@ -55,19 +66,40 @@ When it fails this way, route around it rather than trying to repair it:
 - **Model work**: unaffected. The Analysis Services port is independent of the bridge
   (next section).
 
-## When the local API preview is off
+## When the Desktop Bridge setting is off
 
-`pbir model -q` depends on the same preview feature. With it off, the command fails with:
+`pbir model -q` depends on the same setting. With it off, `pbir` warns:
+
+```
+Warning: Power BI Desktop's local API is not reachable. In Desktop, enable File > Options and settings > Options > Preview features > 'Enable external tool access to Power BI Desktop through secure local APIs', then restart Desktop with the report open.
+```
+
+`pbir model -q` has also failed with:
 
 ```
 Local model is not open in Power BI Desktop ... enable 'Enable external tool access to Power BI Desktop through secure local APIs'
 ```
 
-That is a per-machine preview toggle, not a product limitation and not something a
-command-line flag works around. **Go straight to ADOMD rather than spending turns fixing
-`pbir`.** The direct ADOMD path in SKILL.md connects to the Analysis Services port and
-works regardless of the toggle: the XMLA port is always there when Desktop has a model
-loaded, the named pipe only when the preview is on.
+The warning names Preview features even on builds that list the checkbox on the Security
+page. When you see it, check once: Options > Security under "Desktop Bridge" (Preview
+features on an older build), the `DesktopNamedPipeBridge` policy value (endpoint section
+above), that a report is open, the "Pipe is broken" handshake drop above, and a bridge
+that faults after a Desktop upgrade (Repair Desktop; `reports:pbir-cli`
+`references/desktop-integration.md`). (Warning text from pbir 0.9.33. Verified
+2026-11-10.)
+Retest: with the setting off, run `pbir desktop list` and read the path the warning names.
+
+With the setting on, `pbir desktop list`, `pbir desktop screenshot` and `pbir model -q`
+all worked against an open PBIP. (Observed on pbir 0.9.33. Verified 2026-11-10.)
+Retest: with the setting on and a PBIP open, run `pbir desktop list`, then
+`pbir desktop screenshot` and `pbir model -q` against it.
+
+The Desktop Bridge setting is a local Desktop option (an administrator policy can
+override it), not a product limitation and not something a command-line flag works
+around. **Go straight to ADOMD rather than spending turns fixing `pbir`.** The direct
+ADOMD path in SKILL.md connects to the Analysis Services port and works regardless of
+the setting: the XMLA port is always there when Desktop has a model loaded, the named
+pipe only when the setting is on.
 
 Treat `pbir desktop list` as worth one attempt, not as a dependency. If it returns
 nothing, correlate `msmdsrv` ports to their `PBIDesktop.exe` parents through the process
@@ -79,8 +111,8 @@ Two separate Desktop features, easily conflated:
 
 | | Desktop Bridge (this file) | Apply external changes |
 |---|---|---|
-| What it is | The "secure local APIs" preview: a per-process named pipe speaking JSON-RPC 2.0 | A banner and a WPF button in the Desktop UI that reloads a PBIP in place |
-| Gated by | The preview setting, per machine | The Desktop build (26.08+) |
+| What it is | The "secure local APIs" setting (Options > Security under "Desktop Bridge" in current builds, on by default there; Preview features in older ones): a per-process named pipe speaking JSON-RPC 2.0 | A banner and a WPF button in the Desktop UI that reloads a PBIP in place |
+| Gated by | The Desktop Bridge setting, per machine, and the `DesktopNamedPipeBridge` policy | The Desktop build (26.08+) |
 | Reloads | PBIR report definition (`file.reload/v1`) | The whole PBIP project, model included |
 | Drivable by | `pbir desktop`, or the raw pipe | UIAutomation |
 
@@ -90,7 +122,7 @@ the banner's feature symbols live in `Microsoft.PowerBI.Client.Windows.dll`
 (`ExternalChangesTracker`, `PBIPReload`, `ProjectExternalChangesDetected`).
 
 The consequence that matters: the banner does **not** depend on the bridge or on that
-preview setting, so it stays available on a machine where the bridge is off or broken.
+setting, so it stays available on a machine where the bridge is off or broken.
 Do not report the canvas as unreachable just because `pbir desktop list` fails. Full
 treatment in [desktop-lifecycle.md](./desktop-lifecycle.md).
 
@@ -198,7 +230,7 @@ $reportDir = Join-Path (Split-Path $pbip) ((Split-Path $pbip -LeafBase) + ".Repo
 
 If the raw pipe client misbehaves (framing, encoding, or a build that changed a param
 shape), use the `pbir desktop` commands (reports plugin `pbir-cli` skill); they speak the
-same methods over the same pipe (the same preview setting must be enabled):
+same methods over the same pipe (the same Desktop Bridge setting must be enabled):
 
 ```bash
 pbir desktop list                                  # list instances; pick the PID (`status` is an alias)
