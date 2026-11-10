@@ -63,10 +63,10 @@ Write captures to the session scratchpad, not the project. They are throwaway.
 
 ## When NOT to use this
 
-- **The Power BI report canvas, where the local-API preview is on.** `reports:pbi-verify-loop` is
-  better: it refreshes the canvas from disk and waits for a stable render instead of guessing a
-  sleep. This skill is the fallback for machines where that preview is off, which is a per-machine
-  toggle. Check `pbir desktop list` before assuming either way.
+- **The Power BI report canvas, where the Desktop Bridge setting is on.** `reports:pbi-verify-loop`
+  is better: it refreshes the canvas from disk and waits for a stable render instead of guessing a
+  sleep. This skill is the fallback where that setting is off, disabled by policy, or the bridge is
+  otherwise unreachable. Check `pbir desktop list` before assuming either way.
 - **A published report in the Service.** Render server-side with `ExportTo` as described above. No
   GUI needed and it works headless.
 - **Web pages you control.** Drive a real browser instead.

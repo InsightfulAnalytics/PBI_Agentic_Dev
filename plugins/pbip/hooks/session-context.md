@@ -16,7 +16,7 @@ one you missed.
 - Report or visual work in .pbip/.pbir: `reports:pbir-cli`; a new report `reports:create-pbi-report`
 - Queries or TOM against live Desktop: `pbi-desktop:connect-pbid`; never hand-roll ADOMD or TOM
 - Screenshots after report edits: `reports:pbi-verify-loop` (`reports:desktop-screen-capture` if the
-  local-API preview is off)
+  Desktop Bridge is off or unreachable)
 - Deneb or Vega: `custom-visuals:deneb-visuals` (author), `custom-visuals:deneb-pbir` (edit, render)
 - Claude Design URL or ZIP handoff, report design questions: `reports:pbi-report-design`
 - Themes: `reports:power-bi-theme` (presets), `reports:modifying-theme-json` (edit or enforce)

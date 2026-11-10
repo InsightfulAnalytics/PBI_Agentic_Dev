@@ -170,7 +170,7 @@ A report must be connected to a semantic model. There are two ways to do this:
 
 **Core references:**
 - **`references/visual-json.md`** -- visual.json: expressions, field refs, query roles, position, objects vs vCO, selectors, sorting, filters, drill-down propagation
-- **`references/desktop-bridge.md`** -- Verifying PBIR edits on the canvas via `pbir desktop` reload + screenshot; preview setting; locating the open PBIP
+- **`references/desktop-bridge.md`** -- Verifying PBIR edits via `pbir desktop` reload + screenshot; Desktop Bridge setting; locating the open PBIP
 - **`references/pbir-structure.md`** -- PBIR folder structure, adding or removing a page or visual by hand (folder discovery vs `pages.json` `pageOrder`), mobile.json storage mechanics, git hygiene
 - **`references/schemas.md`** -- Schema versions, URLs, and embedded schema coupling
 - **`references/validation.md`** -- Conformance dimensions and how to validate (schema, names and ids, required fields, fields, enums, roles, layout, theme, semantic); `pbir validate` categories; audit and discovery commands; the failures a clean validate misses, the no-BOM rule, and verifying the render with or without Desktop

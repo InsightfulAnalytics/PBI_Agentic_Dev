@@ -147,7 +147,7 @@ Prefer `Get-NetTCPConnection` over parsing `netstat -ano` text: it is the same c
 
 ## 2a. Correlating Ports to Reports (Multiple Instances)
 
-A port alone does not identify the report it serves; correlate before connecting to avoid modifying the wrong model. With the `pbir` CLI and Desktop's "external tool access" preview feature enabled, `pbir desktop list` shows each Desktop PID with the exact file it has open. Map ports to those PIDs through the process tree (each `msmdsrv.exe` is a child of its `PBIDesktop.exe`):
+A port alone does not identify the report it serves; correlate before connecting to avoid modifying the wrong model. With the `pbir` CLI and the Desktop Bridge setting on (Options > Security in current builds, Preview features in older ones), `pbir desktop list` shows each Desktop PID with the exact file it has open. Map ports to those PIDs through the process tree (each `msmdsrv.exe` is a child of its `PBIDesktop.exe`):
 
 ```powershell
 $conns = Get-NetTCPConnection -State Listen
@@ -497,7 +497,7 @@ foreach ($m in ($model.Tables | ForEach-Object { $_.Measures })) {
 
 TOM does not expose the `.pbix`/`.pbip` file path directly.
 
-**Primary method, the Desktop bridge:** `pbir desktop list` reports the exact file each running instance has open (requires the `pbir` CLI and the "external tool access" preview feature; see Section 2a). Use the methods below only when that is unavailable.
+**Primary method, the Desktop bridge:** `pbir desktop list` reports the exact file each running instance has open (requires the `pbir` CLI and the Desktop Bridge setting; see Section 2a). Use the methods below only when that is unavailable.
 
 **Fallback, FileHistory in User.zip (works for Store and non-Store):**
 
@@ -563,8 +563,8 @@ For syntax, structure, and editing patterns for these files, load the relevant s
 The rule is **do not leave Desktop's in-memory copy and the disk copy diverging**. An edit made on disk while Desktop holds the project, and never applied, is silently reverted when Desktop closes: it takes the model too, it produces no warning, and the eventual symptom is a query failing with "The value for 'X' cannot be determined". So after any on-disk edit, apply it into the running instance before touching the canvas again. In order of preference:
 
 1. **TOM modifications** (`$model.SaveChanges()`) apply to the running instance immediately. Prefer this for model metadata; nothing on disk diverges in the first place.
-2. **Apply external changes** (Desktop 26.08+, PBIP/PBIR only). Edit PBIR or TMDL on disk and Desktop shows a banner with an **Apply external changes** button that reloads the whole project in place, model included. It is a plain WPF button and is scriptable through UIAutomation. It does not depend on the local-API preview feature, so it works where the Desktop Bridge does not.
-3. **PBIR report-definition edits** (pages, visuals) hot-reload into the open canvas with `pbir desktop refresh "Report.Report"` (PBIP/PBIR only, not `.pbix`; requires the preview feature; the Desktop Bridge `file.reload/v1` method, see section 13). On 26.10, edits to the active custom theme reload too; a theme swap is untested ([desktop-lifecycle.md](./references/desktop-lifecycle.md)). If the instance has unsaved changes, Desktop saves first and may overwrite the on-disk edit.
+2. **Apply external changes** (Desktop 26.08+, PBIP/PBIR only). Edit PBIR or TMDL on disk and Desktop shows a banner with an **Apply external changes** button that reloads the whole project in place, model included. It is a plain WPF button and is scriptable through UIAutomation. It does not depend on the Desktop Bridge setting, so it works where the Desktop Bridge does not.
+3. **PBIR report-definition edits** (pages, visuals) hot-reload into the open canvas with `pbir desktop refresh "Report.Report"` (PBIP/PBIR only, not `.pbix`; requires the Desktop Bridge setting; the Desktop Bridge `file.reload/v1` method, see section 13). On 26.10, edits to the active custom theme reload too; a theme swap is untested ([desktop-lifecycle.md](./references/desktop-lifecycle.md)). If the instance has unsaved changes, Desktop saves first and may overwrite the on-disk edit.
 4. **Everything else** (a theme swap, `.pbix`, a Desktop build older than 26.08): close Power BI Desktop, edit, reopen. Close it gracefully; never `Stop-Process -Force` after a save.
 
 For the banner's scripted invoke, the silent-revert evidence, the `cache.abf` truncation that a force-kill causes, and the pre-edit check for an open instance, see [desktop-lifecycle.md](./references/desktop-lifecycle.md), which also carries the observed Desktop build behind the 26.08+ claim.
@@ -657,7 +657,7 @@ pbir desktop screenshot "Report.Report/Page Name.Page" -o verify.png          # 
 
 The `--%` stop-parsing token prevents Windows PowerShell 5.1 from stripping the embedded quotes; omit it in bash or PowerShell 7+.
 
-Without `pbir`, drive the pipe raw from PowerShell, the same way this skill drives TOM/ADOMD. It requires the Desktop bridge **preview setting** enabled (File > Options and settings > Options > Preview features, then restart). Auto-discover the PID by enumerating the pipe directory; then over JSON-RPC: `application.state.get/v1` returns the open file path (`currentFilePath`, so the bridge can locate the PBIP on disk), `file.reload/v1` reloads the on-disk PBIR into the canvas, and `report.snapshot.capture/v1` returns a page PNG.
+Without `pbir`, drive the pipe raw from PowerShell, the same way this skill drives TOM/ADOMD. It requires the **Desktop Bridge setting** (Options > Security in current builds, Preview features in older ones; policy and checks in [desktop-bridge.md](./references/desktop-bridge.md)). Auto-discover the PID by enumerating the pipe directory; then over JSON-RPC: `application.state.get/v1` returns the open file path (`currentFilePath`, so the bridge can locate the PBIP on disk), `file.reload/v1` reloads the on-disk PBIR into the canvas, and `report.snapshot.capture/v1` returns a page PNG.
 
 Model-plus-report loop: edit the model with TOM and `$model.SaveChanges()` (applies live), then `reload` and `screenshot` the report to confirm visuals reflect the change (a renamed measure, a new format string, a repaired relationship). On-disk **report** (PBIR) edits are picked up by `reload`; on-disk **model** (TMDL) edits are not, so apply them with live TOM `SaveChanges()` or with the **Apply external changes** banner on Desktop 26.08+ (see [desktop-lifecycle.md](./references/desktop-lifecycle.md) for the observed build and the retest). A theme swap still needs a reopen; edits to the active theme reload on 26.10. The bridge drives the Windows app, so on macOS run it inside the Parallels VM (see [parallels-macos.md](./references/parallels-macos.md)).
 
@@ -684,7 +684,7 @@ Alternative path (only if driving the raw pipe runs into trouble, framing, encod
 - [Refresh Model](./references/refresh-model.md) - All refresh methods (TMSL, TOM RequestRefresh, ADOMD.NET), including the hand-authored PBIP that opens with "Some of the tables have incomplete or no data"
 - [macOS + Parallels Guide](./references/parallels-macos.md) - Connecting from macOS when PBI Desktop runs in a Parallels VM
 - [DAX Library Packages](./references/daxlib.md) - Installing reusable DAX UDF packages from daxlib.org; DaxLib.SVG, PowerofBI.IBCS, package structure, annotations
-- [Desktop Bridge (report canvas)](./references/desktop-bridge.md) - Reload + screenshot the open report canvas over the raw named-pipe JSON-RPC API (PowerShell; or the `pbir desktop` commands); pairing model (TOM) edits with report verification. Also: the pipe-present-but-broken symptom, what to do when the local-API preview is off, and how the bridge differs from Apply external changes
+- [Desktop Bridge (report canvas)](./references/desktop-bridge.md) - Reload + screenshot the open report canvas over the raw named-pipe JSON-RPC API (PowerShell; or the `pbir desktop` commands); pairing model (TOM) edits with report verification. Also: the pipe-present-but-broken symptom, what to do when the Desktop Bridge setting is off, and how the bridge differs from Apply external changes
 - [Desktop Process Lifecycle](./references/desktop-lifecycle.md) - Windows and Desktop only. Check before bulk-editing, Apply external changes on 26.08+, the silent revert of on-disk edits, a field Desktop saw deleted staying broken, two instances on one project, a TOM refresh racing Desktop's UI, the `cache.abf` truncation a force-kill causes, and why `CloseMainWindow()` is not the escalation. Names the headless substitutes for a machine with no Desktop
 - [Desktop UI Automation](./references/desktop-ui-automation.md) - Windows and Desktop only. Driving features with no API (Performance Analyzer, Export data, Show as a table, page switching) through UI Automation without stealing the foreground; why SendKeys and coordinate clicks are the last resort
 - [Assembly Discovery](./references/assembly-discovery.md) - Probe for an installed ADOMD.NET or TOM assembly before running `nuget install`, then match its target framework to the host (`net45`/`net472` under Windows PowerShell 5.1, `net6.0`/`net8.0` under `pwsh` 7 or a `net8.0` project). Covers the `ReflectionTypeLoadException` misdiagnosis and the Linux/macOS routes

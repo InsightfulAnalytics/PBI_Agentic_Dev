@@ -176,9 +176,10 @@ Power BI Desktop shows "Some of the tables have incomplete or no data" and does 
 the first open of a PBIP whose model was written by hand. The data image has never been built and
 nothing in the open sequence builds it, so the model looks broken when it is only empty.
 
-Do not go looking for a Desktop command to fix it. Where the secure-local-APIs preview is off,
-`pbir desktop refresh` is unavailable and synthesised ribbon clicks do not land. Refresh through TOM
-against the running instance instead:
+Do not go looking for a Desktop command to fix it. Where the Desktop Bridge is unreachable (its
+setting off, or another cause in [desktop-bridge.md](./desktop-bridge.md)), `pbir desktop refresh` is
+unavailable and synthesised ribbon clicks do not land. Refresh through TOM against the running
+instance instead:
 
 ```powershell
 $server.Connect("Data Source=localhost:$port")

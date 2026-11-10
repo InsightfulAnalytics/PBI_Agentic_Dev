@@ -84,7 +84,7 @@ while a Power Query change still needs a refresh (see "A Power Query change empt
 
 If no banner appears after an on-disk edit, the build predates the feature: fall back to closing and
 reopening, or to live TOM `SaveChanges()` for model changes. This is a *different* feature from the
-`pbir` local API preview, and does not depend on it. See
+Desktop Bridge (the `pbir` local API), and depends on neither the bridge nor its setting. See
 [desktop-bridge.md](./desktop-bridge.md#apply-external-changes-is-not-the-pbir-local-api).
 (Observed on Desktop 2.157.879.0, 26.08. Verified 2026-08-28.)
 Retest: edit a `.tmdl` file of an open PBIP on disk and watch for the banner, or

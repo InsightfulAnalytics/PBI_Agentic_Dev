@@ -13,7 +13,8 @@ Usage:
 --region coordinates are in CAPTURE pixels (i.e. after --scale; default scale 2 doubles them).
 Exit codes: 0 = stable capture written; 2 = timed out (last capture still written); 1 = hard error.
 Requires: pbir CLI on PATH, Power BI Desktop running with the report open,
-Desktop preview feature "external tool access" enabled. Pillow needed only for --compare.
+Desktop Bridge setting "external tool access" on (Options > Security, or Preview features
+on older builds). Pillow needed only for --compare.
 """
 import argparse, hashlib, json, os, re, subprocess, sys, tempfile, time, shutil
 

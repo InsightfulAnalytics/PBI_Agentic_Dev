@@ -201,9 +201,14 @@ Add-Type -Path "C:\Program Files\DAX Studio\bin\Microsoft.AnalysisServices.Adomd
 
 Pick a .NET 8 copy instead (Tabular Editor 3 ships one) and `Add-Type` throws
 `ReflectionTypeLoadException` ("Unable to load one or more of the requested types") under Windows
-PowerShell 5.1. That error means the wrong build, not a missing ADOMD. `pbir model -q` is an
-alternative only where the "Enable external tool access to Power BI Desktop through secure local
-APIs" preview is turned on; where it is off, go straight to ADOMD.
+PowerShell 5.1. That error means the wrong build, not a missing ADOMD.
+
+`pbir model -q` is an alternative only while the Desktop Bridge is reachable. That needs the
+Desktop Bridge setting ("Enable external tool access to Power BI Desktop through secure local
+APIs": File > Options and settings > Options > Security in current builds, on by default there;
+Preview features in older builds) and an open report. Where the bridge is unreachable, go straight
+to ADOMD; `pbi-desktop:connect-pbid` `references/desktop-bridge.md` has the other causes and the
+checks.
 
 The bundled harness does the connect/time/print loop for you. Save the query to a `.dax` file:
 the pinned one below, or the text **Copy query** gave you, and point the script at it:
