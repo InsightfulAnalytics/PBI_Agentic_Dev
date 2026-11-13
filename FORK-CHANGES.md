@@ -212,6 +212,10 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/reports/skills/pbi-plan/references/data-triage.md`
 - `plugins/semantic-models/skills/dax-standard/references/filter-context-traps.md`
 - `plugins/semantic-models/skills/dax-standard/references/{flat-vars,house-style,number-formatting,tables-from-power-query}.md`
+- `plugins/semantic-models/skills/dax-standard/references/udf-authoring.md`: upstream's
+  `dax/references/udf-authoring.md` (26.45) in the house style (`Table[Column]`, `__` variables)
+  and corrected against Microsoft Learn: optional parameters exist and rename fix-up works. The
+  fork has no `dax` skill, so upstream changes to that file are folded in here by hand.
 - `plugins/custom-visuals/skills/deneb-visuals/references/{gotchas,editions-and-editor,expression-functions,interactivity-and-runtime-fields,field-parameters,images-and-external-resources}.md`
 - `plugins/custom-visuals/skills/performant-matrix/references/{consultation-block,gotchas}.md`
   (the whole `performant-matrix` and `deneb-pbir` skills are fork-owned)
@@ -284,6 +288,10 @@ Modified upstream-authored files, which **will** conflict on a harvest:
   `tmdl/SKILL.md`, `agents/pbip-validator.agent.md` and `pbip/scripts/validate_pbip.py`. Keep the
   fork's snake_case names and formatter layout when taking upstream changes to these files, and
   the two `formatter/` lines in `.gitignore`.
+- `te-cli/SKILL.md`: the `version:` line and the 472-char `description` (upstream's is 682).
+  `scripts/sync-te-cli-skill.sh` keeps both on every sync: it re-stamps the version where
+  upstream's strips it, and its `description` override carries the fork's text. Take upstream's
+  other changes to the script and keep those two hunks.
 - `organize-semantic-model/SKILL.md`: the `version:` line, `dax-optimisation` in the
   description, and passes 12 and 13, rewritten to defer to `dax-standard`; plus the body-comment
   line in its `references/udfs.md`. Keep the fork's versions.
