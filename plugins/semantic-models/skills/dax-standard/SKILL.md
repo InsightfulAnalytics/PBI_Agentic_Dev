@@ -256,7 +256,7 @@ CALCULATE-based patterns (DAX001, DAX005, DAX008, DAX010, …) only when profili
 specific measure too slow and a rewrite helps. The full reconciliation is in
 [`references/calculate-and-performance.md`](references/calculate-and-performance.md).
 
-## References (progressive disclosure — read as needed)
+## References (read as needed)
 
 - [`references/method.md`](references/method.md): think in DAX, FILTER, X-aggregators,
   variables, the core pattern, debugging, the explicit form vs the CALCULATE form. **Read first.**
@@ -283,6 +283,8 @@ specific measure too slow and a rewrite helps. The full reconciliation is in
   how a Desktop save re-inlines one-liners, and a worked measure in DAX and TMDL.
 - [`references/number-formatting.md`](references/number-formatting.md): dynamic format strings
   in TMDL, the `Fmt.Scaled` UDF, UDF load traps, and the display-unit gotchas.
+- [`references/udf-authoring.md`](references/udf-authoring.md): UDF signatures, parameter types and
+  defaults, VAL vs EXPR, type checks, testing, restrictions.
 - [`references/tables-from-power-query.md`](references/tables-from-power-query.md): why tables
   come from the source or Power Query, the M form of each common calculated table, and the
   TMDL conversion.
