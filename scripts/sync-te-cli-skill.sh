@@ -8,10 +8,14 @@
 #      vendored here; this stops the copy from drifting).
 #   2. Preserve the local `version:` frontmatter (keeps the marketplace lockstep,
 #      all plugins/skills on the same YY.WW, untouched).
-#   3. (Re)write references/get-te-cli.md -- a local-only reference telling the
+#   3. Keep the local references/pbir-cli-tandem.md (this repo maintains its own,
+#      written against the pbir-cli plugin here; upstream's variant is ignored).
+#   4. (Re)write references/get-te-cli.md -- a local-only reference telling the
 #      agent how to download the `te` binary per platform and put it on PATH.
-#   4. Inject a one-line pointer to that reference into SKILL.md, just under the
-#      title. Both survive every sync because they are re-applied here.
+#   5. Re-inject the local-only SKILL.md content: the get-te-cli pointer under
+#      the title, its entry in the References list, the AI-metadata bullet in
+#      "Make bulk changes", and the "Bundled scripts" section. All survive every
+#      sync because they are re-applied here.
 #
 # Upstream CHANGELOG/LICENSE/README are distribution metadata and are not vendored.
 # Fail-open: no network / bad clone / missing upstream file leaves the current
@@ -40,7 +44,7 @@ write_get_ref() {
 The `te` (Tabular Editor CLI) binary is published per platform on a public CDN,
 no account or auth needed:
 
-    https://cdn.tabulareditor.com/files/cli/latest/te-<os>-<arch>.tar.gz   (.zip on Windows)
+    https://cdn.tabulareditor.com/files/latest/cli/te-<os>-<arch>.tar.gz   (.zip on Windows)
 
 Pick the asset for the platform:
 
@@ -57,7 +61,7 @@ Pick the asset for the platform:
 os=$(uname -s | tr 'A-Z' 'a-z'); [ "$os" = darwin ] && os=osx
 arch=$(uname -m); case "$arch" in arm64|aarch64) arch=arm64 ;; x86_64|amd64) arch=x64 ;; esac
 mkdir -p "$HOME/.local/bin"
-curl -fsSL "https://cdn.tabulareditor.com/files/cli/latest/te-$os-$arch.tar.gz" \
+curl -fsSL "https://cdn.tabulareditor.com/files/latest/cli/te-$os-$arch.tar.gz" \
   | tar xz -C "$HOME/.local/bin" te
 chmod +x "$HOME/.local/bin/te"
 export PATH="$HOME/.local/bin:$PATH"          # this shell
@@ -76,7 +80,7 @@ echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc   # or ~/.zshrc
 $arch = if ($env:PROCESSOR_ARCHITECTURE -eq 'ARM64') { 'arm64' } else { 'x64' }
 $dir  = "$env:LOCALAPPDATA\Programs\te"
 New-Item -ItemType Directory -Force -Path $dir | Out-Null
-Invoke-WebRequest "https://cdn.tabulareditor.com/files/cli/latest/te-win-$arch.zip" -OutFile "$env:TEMP\te.zip"
+Invoke-WebRequest "https://cdn.tabulareditor.com/files/latest/cli/te-win-$arch.zip" -OutFile "$env:TEMP\te.zip"
 Expand-Archive -Force "$env:TEMP\te.zip" -DestinationPath $dir
 [Environment]::SetEnvironmentVariable('Path', "$([Environment]::GetEnvironmentVariable('Path','User'));$dir", 'User')
 & "$dir\te.exe" --version
@@ -87,6 +91,9 @@ Expand-Archive -Force "$env:TEMP\te.zip" -DestinationPath $dir
 `te --version` prints the build. The CDN `latest` path is always the newest at
 download time; for a binary that keeps itself current, use the self-updating
 `te` wrapper instead (`te --update`, plus a daily check on `te --version`).
+
+The CDN serves GET only; HEAD requests return 404. Probe availability with a
+ranged GET (`curl -r 0-99 -o /dev/null -w "%{http_code}"`), never `curl -I`.
 GETREF_EOF
 }
 
@@ -98,6 +105,69 @@ inject_pointer() {
     { print }
     /^# / && !done { print ""; print p; done=1 }
   ' "$DEST/SKILL.md" > "$t" && mv "$t" "$DEST/SKILL.md"
+}
+
+inject_local_sections() {
+  local skill="$DEST/SKILL.md" t
+
+  # 1. AI-metadata bullet at the end of the "Make bulk changes" list, keyed off
+  #    the macro-run bullet that closes it upstream.
+  if ! grep -qF 'manage-ai-metadata.csx' "$skill"; then
+    t="$(mktemp)" || return 0
+    awk '
+      { print }
+      /te macro run "<name>" --on/ && !done {
+        print "   - AI metadata CRUD: use `scripts/manage-ai-metadata.csx` for non-interactive `CustomInstructions` and Copilot schema `Entities` management; use `scripts/edit-ai-instructions-interactive.csx` or `scripts/edit-ai-schema-interactive.csx` inside TE3 Desktop."
+        done=1
+      }
+    ' "$skill" > "$t" && mv "$t" "$skill"
+  fi
+
+  # 2. Bundled scripts section immediately above "## References".
+  if ! grep -qF '## Bundled scripts' "$skill"; then
+    t="$(mktemp)" || return 0
+    awk '
+      /^## References$/ && !done {
+        print "## Bundled scripts"
+        print ""
+        print "- `scripts/manage-ai-metadata.csx` - non-interactive `te script` CRUD for"
+        print "  semantic model AI instructions (`CustomInstructions`) and AI schema"
+        print "  (`Entities`) stored in culture linguistic metadata."
+        print "- `scripts/edit-ai-instructions-interactive.csx` - TE3 Desktop GUI editor for"
+        print "  semantic model AI instructions."
+        print "- `scripts/edit-ai-schema-interactive.csx` - TE3 Desktop GUI editor for"
+        print "  semantic model AI schema."
+        print "- `scripts/manage-ai-metadata-interactive.csx` - original combined TE3 Desktop"
+        print "  editor prototype."
+        print ""
+        done=1
+      }
+      { print }
+    ' "$skill" > "$t" && mv "$t" "$skill"
+  fi
+
+  if ! grep -qF '`references/dax-test-patterns.md`' "$skill"; then
+    t="$(mktemp)" || return 0
+    awk '
+      { print }
+      /^- `references\/testing\.md`/ && !done {
+        print "- `references/dax-test-patterns.md` - what to test: measure contracts (additivity, time shift, blank, safe division, bounds), integrity and schema checks, verified suite examples, CI tagging"
+        done=1
+      }
+    ' "$skill" > "$t" && mv "$t" "$skill"
+  fi
+
+  # 3. get-te-cli.md entry at the top of the bundled-references list.
+  if ! grep -qF '`references/get-te-cli.md`' "$skill"; then
+    t="$(mktemp)" || return 0
+    awk '
+      /^- `references\/command-reference\.md`/ && !done {
+        print "- `references/get-te-cli.md` - agent self-service install of the `te` binary from the public CDN"
+        done=1
+      }
+      { print }
+    ' "$skill" > "$t" && mv "$t" "$skill"
+  fi
 }
 
 install_hook() {
@@ -139,16 +209,28 @@ ver="${ver:-0.0.0}"
 
 cp "$SRC/SKILL.md" "$DEST/SKILL.md"
 mkdir -p "$DEST/references"
-# Drop upstream-managed references (keep the local-only one), then copy upstream's.
-find "$DEST/references" -maxdepth 1 -name '*.md' ! -name 'get-te-cli.md' -delete 2>/dev/null
-cp "$SRC/references/"*.md "$DEST/references/"
+# Drop upstream-managed references (keep the local-only ones), then copy upstream's.
+find "$DEST/references" -maxdepth 1 -name '*.md' ! -name 'get-te-cli.md' ! -name 'pbir-cli-tandem.md' ! -name 'dax-test-patterns.md' -delete 2>/dev/null
+for f in "$SRC/references/"*.md; do
+  case "$(basename "$f")" in pbir-cli-tandem.md) continue ;; esac
+  cp "$f" "$DEST/references/"
+done
 
-# Re-stamp the preserved version onto the first frontmatter `version:` line.
-VER="$ver" perl -pi -e 'if(!$d && s/^version:.*$/version: $ENV{VER}/){$d=1}' "$DEST/SKILL.md"
+# Re-stamp the preserved version: replace upstream's `version:` line, or add one after `name:`.
+if grep -q '^version:' "$DEST/SKILL.md"; then
+  VER="$ver" perl -pi -e 'if(!$d && s/^version:.*$/version: $ENV{VER}/){$d=1}' "$DEST/SKILL.md"
+else
+  VER="$ver" perl -pi -e 'if(!$d && /^name:/){$_ .= "version: $ENV{VER}\n"; $d=1}' "$DEST/SKILL.md"
+fi
+
+perl -pi -e 'BEGIN{$d=shift} $_="$d\n" if /^description:/' 'description: Expert guidance for the cross-platform Tabular Editor CLI (the `te` binary, in preview) that manages Power BI and Analysis Services semantic models from the terminal. Use when the user mentions the `te` CLI or Tabular Editor CLI, or runs `te` to scaffold, inspect, edit, validate, run BPA on, query, deploy, refresh, test or migrate a model, including DAX regression tests, measure contracts and A/B model compares. Not for the legacy TabularEditor.exe (TE2).' "$DEST/SKILL.md"
+perl -pi -e 's{`--save` here names the snapshot file to write and has nothing to do with the mutation flag on editing commands\.}{`-o, --output-file` names the snapshot file to write; `--save` is rejected here.}' "$DEST/references/testing.md"
+find "$DEST" -name '*.md' -exec perl -pi -e 's{cdn\.tabulareditor\.com/files/cli/latest/}{cdn.tabulareditor.com/files/latest/cli/}g' {} +
 
 # Re-apply the local-only augmentations (upstream does not carry these).
 write_get_ref
 inject_pointer
+inject_local_sections
 
 # status --porcelain sees modified tracked files AND untracked new ones
 # (diff --quiet misses files upstream adds that are not yet tracked here).

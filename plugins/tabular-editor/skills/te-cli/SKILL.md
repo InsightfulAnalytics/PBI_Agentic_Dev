@@ -1,7 +1,7 @@
 ---
 name: te-cli
 version: 26.40.3
-description: Expert guidance for the cross-platform Tabular Editor CLI (the `te` binary, currently in preview) that manages Power BI / Analysis Services semantic models from the terminal on macOS, Linux, and Windows. Use when the user mentions the `te` CLI or "Tabular Editor CLI" (not the "2"), or runs a `te <command>` to scaffold, inspect, edit, validate, run BPA on, query, deploy, refresh, test, or migrate a semantic model. Not for the legacy Windows-only `TabularEditor.exe` (TE2).
+description: Expert guidance for the cross-platform Tabular Editor CLI (the `te` binary, in preview) that manages Power BI and Analysis Services semantic models from the terminal. Use when the user mentions the `te` CLI or Tabular Editor CLI, or runs `te` to scaffold, inspect, edit, validate, run BPA on, query, deploy, refresh, test or migrate a model, including DAX regression tests, measure contracts and A/B model compares. Not for the legacy TabularEditor.exe (TE2).
 ---
 
 # Tabular Editor CLI (`te`)
@@ -12,7 +12,7 @@ The `te` CLI is a single self-contained binary that loads, edits, validates, dep
 
 **Always pass `--output-format json`** when driving `te` programmatically. The default text/table output uses tables and ANSI styling that mangle in agent transcripts; JSON is parseable and avoids rendering issues.
 
-**Limited public preview.** Preview builds stop functioning after 2026-10-31. No license is required during preview. Issues and feedback: https://github.com/TabularEditor/CLI
+**Limited public preview.** Preview builds stop functioning after 2026-12-31. No license is required during preview. Issues and feedback: https://github.com/TabularEditor/CLI
 
 **Not the TE2 CLI.** This is a different product from the legacy Windows-only `TabularEditor.exe` (TE2). If the user invokes TE2 flag syntax (`-D`, `-S`, `-A`, `-B`, `-TMDL`, `-O`, `-C`, `-V`, `-G`), route it through the compat layer (`TE_COMPAT=te2`) or invoke `TabularEditor.exe` directly. See `references/te2-migration.md`.
 
@@ -147,7 +147,7 @@ Eleven command families. Full flags and examples in `references/command-referenc
 - Model I/O: `te save-as` (alias `save`), `te init`
 - Editing: `te set` (properties, `--unset`, `--format`, `--update-schema`), `te add`, `te remove`, `te move`
 - Inspection: `te get` (`--ls`, `--where`, `--deps`, `--unused`, `--properties`), `te list`, `te find`, `te diff`, `te deps`
-- Analysis & quality: `te validate`, `te bpa run`, `te bpa rules`, `te vertipaq`
+- Analysis & quality: `te validate`, `te schemacheck`, `te bpa run`, `te bpa rules`, `te vertipaq`
 - Execution: `te query`, `te script`, `te macro`
 - Deploy & refresh: `te deploy`, `te refresh` (refresh policies via `te set <table>/RefreshPolicy` and `te refresh --apply-refresh-policy`)
 - Testing: `te test` (`run`, `init`, `list`, `spec`, `use`, `snapshot`, `compare`); suite authoring in `references/testing.md`
@@ -196,6 +196,7 @@ Bundled (load as needed):
 - `references/get-te-cli.md` - agent self-service install of the `te` binary from the public CDN
 - `references/command-reference.md` - object path grammar, global options, all command families, authentication, connections/profiles/sessions
 - `references/testing.md` - authoring `.test.yaml` suites (assertions, tolerance, tags, matrix), snapshot regression, A/B compare across workspaces
+- `references/dax-test-patterns.md` - what to test: measure contracts (additivity, time shift, blank, safe division, bounds), integrity and schema checks, verified suite examples, CI tagging
 - `references/semantic-modeling-practices.md` - modeling best practices tied to `te` commands, with sources
 - `references/workflows.md` - multi-step recipes (table + M partition, format conversions, deploy, refresh, perspectives, translations, incremental refresh, field parameters)
 - `references/gotchas.md` - path/property traps, output shapes, behavior traps
