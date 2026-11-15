@@ -1460,6 +1460,8 @@ fab auth login -I
 
 Setting up the service principal itself (az CLI creation, workspace role, the tenant-setting security group it also needs to be in, and a non-destructive way to test its auth without touching your own fab session): [service-principals.md](./service-principals.md).
 
+On Windows, the interactive `fab auth login` (no credential flags) needs a real Windows console. Under Git Bash's mintty, or an agent shell escape that runs Git Bash (Claude Code's `!` prefix), it fails with `[UnexpectedError] Found xterm-256color, while expecting a Windows console`. Have the user run it in a PowerShell, cmd or Windows Terminal window instead: the login goes to the per-user token cache, so `fab` in the agent's own shell is logged in afterwards with no restart. Linux and macOS never hit this.
+
 ### Resource Not Found
 
 ```bash
