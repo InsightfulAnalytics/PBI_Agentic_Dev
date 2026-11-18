@@ -5,24 +5,36 @@ Windows build of Power BI Desktop into a managed Wine prefix and runs it as a sy
 With it, a Linux host needs no Windows machine for the open, refresh, edit, verify loop. What
 differs from Windows is which tools can reach Desktop.
 (Desktop 2.159.1231.0, Wine 11.18, Hyprland. Verified 2026-11-18.)
-Retest: `pbi-linux doctor`, then open a PBIP with `pbi-linux open` and run `scripts/linux/pbid-dax.sh --port`.
+Retest: `pbi-linux doctor`, then open a PBIP with `pbi-linux open` and run `pbir desktop list --json`
+and `scripts/linux/pbid-dax.sh --port`.
 
 ## What reaches Desktop, and what does not
 
 | Need | Windows | Linux under Wine |
 |---|---|---|
 | Open a project | double-click, `Start-Process` | `pbi-linux open "<file>.pbip"` |
-| Is Desktop running | `pbir desktop list`, `Get-Process` | `systemctl --user is-active pbi-linux-session.service` |
-| DAX against the open model | `pbir model -q`, `query-dax.ps1` | `scripts/linux/pbid-dax.sh '<DAX>'` |
+| Is Desktop running | `pbir desktop list`, `Get-Process` | `pbir desktop list`; stock: `systemctl --user is-active pbi-linux-session.service` |
+| DAX against the open model | `pbir model -q`, `query-dax.ps1` | `pbir model -q`; stock: `scripts/linux/pbid-dax.sh '<DAX>'` |
 | Model edit | TOM `SaveChanges()` | edit TMDL on disk, then Apply external changes |
-| Reload the canvas | `pbir desktop refresh` | Apply external changes (below) |
-| Screenshot | `pbir desktop screenshot` | screenshot the window (below) |
+| Reload the canvas | `pbir desktop refresh` | `pbir desktop refresh`; stock: Apply external changes (below) |
+| Screenshot | `pbir desktop screenshot` | `pbir desktop screenshot`; stock: screenshot the window (below) |
 | Refresh data | the Refresh button | the Refresh button, clicked over CDP (below) |
 | Validate, read, write PBIR | `pbir` | `pbir` (the `reports:pbir-cli` skill's `references/linux-wine.md`) |
 
-Not available: the Desktop Bridge through `pbir` (Wine cannot list `\\.\pipe\`, see that same
-reference), PowerShell 5.1 and so every `.ps1` in this skill, UI Automation, `te --local`, DAX
+"Stock" is a powerbi-linux runtime without the named pipe listing patch: there `pbir` cannot find
+Desktop's pipe and `pbir desktop list` answers `not_connected` (`reports:pbir-cli`
+`references/linux-wine.md`, "The Desktop bridge"). `pbid-dax.sh` works on either runtime.
+
+Not available: PowerShell 5.1 and so every `.ps1` in this skill, UI Automation, `te --local`, DAX
 Studio, Tabular Editor's GUI.
+
+The `te` CLI's Linux build works on TMDL files (`te -m "<name>.SemanticModel" ls`, `validate`,
+`bpa run`) but cannot reach Desktop: `--local` is Windows-only, and `-s localhost:<port> -d <database>`
+fails with "This feature is supported for a .NET Core client only on Windows systems". For DAX against
+the open model use `pbir model -q` or `pbid-dax.sh`. (te 0.8.1.1. Verified 2026-11-18.)
+Retest: `te -s localhost:<port> -d <database> query -q 'EVALUATE ROW("x", 1)'`, with the port from
+`scripts/linux/pbid-dax.sh --port` and the database the GUID in the `<guid>.<n>.db` folder name under the
+profile's newest `AppData/Local/Microsoft/Power BI Desktop/AnalysisServicesWorkspaces/*/Data`.
 
 ## Paths and drives
 
@@ -88,15 +100,18 @@ python3 -c 'import sys,pathlib; p=pathlib.Path(sys.argv[1]); p.write_bytes(p.rea
 
 The banner appears at once. Click "Apply external changes" in `reportView.html`; when Desktop
 holds unsaved edits a confirmation follows in `desktopDialogHost.html` with a button of the same
-name. A report edit, a new page and a new TMDL measure all came through this way.
+name. A report edit, a new page and a new TMDL measure all came through this way. Where `pbir`
+reaches Desktop, `pbir desktop refresh` reloads report edits without the nudge; keep the nudge for
+TMDL edits.
 Retest: edit a `visual.json` of an open PBIP and watch for the banner for 20 seconds.
 
 ## Traps
 
 - A project last saved by Desktop on Windows opened with "Some of the tables have incomplete or no
   data" and blank visuals until the first refresh.
-- A save drops `$schema` from four project files and `pbir validate` then fails: see
-  `reports:pbir-cli` `references/linux-wine.md`.
+- A save from a profile that has never been signed in drops `$schema` from four project files, and
+  `pbir validate` then fails. Two registry values fix it: see `reports:pbir-cli`
+  `references/linux-wine.md`.
 - Do not attach `winedbg` to a hung Desktop: it blocks on the loader lock, and stopping it ends
   Desktop and the session. Take stacks with `sudo eu-stack -p <linux pid>`.
 - A second `wine` process in Desktop's prefix while the session is stopped lingers a few seconds
