@@ -8,6 +8,7 @@
 #   PBIR_WINE_HOME   where install-linux.sh put things (default ~/.local/share/pbir-wine)
 #   PBIR_WINE        the wine binary (default: the powerbi-linux runtime, else `wine`)
 #   PBIR_WINE_DEBUG  1 prints the prefix, the wine binary and the rewritten arguments
+#   PBIR_ADOMD_DIR   read by pbir itself; when unset, `model` commands get Desktop's ADOMD.NET client
 set -u
 
 home="${PBIR_WINE_HOME:-$HOME/.local/share/pbir-wine}"
@@ -78,6 +79,18 @@ to_windows() {
 args=()
 for a in "$@"; do args+=("$(to_windows "$a")"); done
 
+# `pbir model -q` loads the ADOMD.NET client by its official file name, which no Wine prefix has.
+# Desktop ships its own build of that client under another name: link it under the official one,
+# unless PBIR_ADOMD_DIR already names a folder.
+if [ "$sub" = model ] && [ -z "${PBIR_ADOMD_DIR:-}" ] && [ -n "$desktop_prefix" ]; then
+  adomd="$desktop_prefix/drive_c/Program Files/Microsoft Power BI Desktop/bin/Microsoft.PowerBI.AdomdClient.dll"
+  if [ -f "$adomd" ]; then
+    mkdir -p "$home/adomd"
+    ln -sfn "$adomd" "$home/adomd/Microsoft.AnalysisServices.AdomdClient.dll"
+    export PBIR_ADOMD_DIR="$(to_windows "$home/adomd")"
+  fi
+fi
+
 export WINEPREFIX="$prefix"
 export WINEDEBUG="${WINEDEBUG:--all}"
 if [ "$shared" = 0 ]; then
@@ -86,7 +99,7 @@ if [ "$shared" = 0 ]; then
 fi
 
 if [ "${PBIR_WINE_DEBUG:-0}" = 1 ]; then
-  printf 'pbir-wine: prefix=%s wine=%s\n' "$prefix" "$wine" >&2
+  printf 'pbir-wine: prefix=%s wine=%s adomd=%s\n' "$prefix" "$wine" "${PBIR_ADOMD_DIR:-}" >&2
   printf 'pbir-wine: arg=%s\n' "${args[@]}" >&2
 fi
 

@@ -198,6 +198,12 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `pbir-cli/references/linux-wine.md` and `connect-pbid/references/desktop-on-linux.md` cover `pbir`
   and Power BI Desktop under Wine (the powerbi-linux project), with `connect-pbid/scripts/linux/pbid-dax.sh`
   standing in for `pbir model -q`. The one-line Linux notes in nine other skill files now point there.
+- `pbir desktop` and `pbir model -q` reach Desktop on Linux (2026-11-18), fork-original: on a powerbi-linux
+  runtime built with `wine-11.18-named-pipe-directory.patch` (the InsightfulAnalytics fork), and
+  `pbir-wine` links Desktop's ADOMD.NET client for `model` commands. `linux-wine.md`, `desktop-on-linux.md`,
+  `pbir-format/references/validation.md`, the `pbir-cli` SKILL.md and `session-context.md` keep the
+  substitutes for a runtime without the patch. `linux-wine.md` also names why a Desktop save drops
+  `$schema` (Desktop's `PbipWithSchema` switch is off in a profile never signed in) and the registry fix.
 
 ### Fork-owned files, for upstream harvest resolution
 

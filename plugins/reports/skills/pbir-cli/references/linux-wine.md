@@ -44,44 +44,64 @@ produces the same bytes as on Windows: CRLF, no BOM. A cold start costs about a 
 - Both prefixes share one `pbir` configuration (`~/.local/share/pbir-wine/config`), and the private
   prefix mirrors the extra drive letters of the powerbi-linux profile.
 
-## What does not work: the Desktop bridge
+## The Desktop bridge
 
+`pbir` finds Desktop's local API, the pipe `\\.\pipe\pbi-desktop-bridge-<PID>`, by listing
+`\\.\pipe\`. Wine 11.18 cannot list that directory, so on a stock powerbi-linux runtime
 `pbir desktop list` answers `not_connected` and `pbir model -q` answers "Local model is not open in
-Power BI Desktop", even with Desktop open and the Desktop Bridge setting on. Desktop does create
-its pipe (`\\.\pipe\pbi-desktop-bridge-<PID>` accepts a connection from inside the prefix). `pbir`
-finds it by listing `\\.\pipe\`, and Wine 11.18 cannot list that directory: `FindFirstFileExW` on
-`\\.\pipe\*.*` opens the directory and `NtQueryDirectoryFile` then fails. `--pid` does not help; it
-filters the same listing. The warning `pbir` prints (enable the preview feature) is wrong here: do
-not send the user to Options.
+Power BI Desktop", even with Desktop open and the Desktop Bridge setting on. The warning `pbir`
+prints there (enable the preview feature) is wrong: do not send the user to Options.
 
-Until Wine can list named pipes, use the substitutes in the `pbi-desktop:connect-pbid` skill's
+A runtime built with `wine-11.18-named-pipe-directory.patch` lists the pipes, and `desktop list`,
+`refresh` and `screenshot` then work as on Windows. The patch lives in the
+[InsightfulAnalytics fork](https://github.com/InsightfulAnalytics/powerbi-linux) of powerbi-linux,
+not in a published runtime. (Local runtime 0.1.7-local.8, Desktop 2.159.1231.0. Verified 2026-11-18.)
+Retest: with Desktop open, `pbir desktop list --json` names the instance.
+
+`pbir model -q` also needs an ADOMD.NET client, which on Windows it borrows from DAX Studio, Tabular
+Editor 3 or SSMS. For `model` commands the launcher links Desktop's own build of the client
+(`Microsoft.PowerBI.AdomdClient.dll`) as
+`~/.local/share/pbir-wine/adomd/Microsoft.AnalysisServices.AdomdClient.dll` and points
+`PBIR_ADOMD_DIR` at that folder, unless the variable is already set. That reaches the model open in
+Desktop; a workspace model over XMLA is untested.
+
+On a stock runtime, use the substitutes in the `pbi-desktop:connect-pbid` skill's
 `references/desktop-on-linux.md`:
 
-| Windows | Linux under Wine |
+| Windows | Linux under Wine, stock runtime |
 |---|---|
 | `pbir desktop list` | `systemctl --user is-active pbi-linux-session.service`, `hyprctl clients` or the window list |
 | `pbir desktop refresh` | rewrite `definition.pbir` in place, then click "Apply external changes" |
 | `pbir desktop screenshot` | screenshot the Desktop window |
 | `pbir model -q` | `scripts/linux/pbid-dax.sh '<DAX>'` in that skill |
 
-Retest: with Desktop open, `pbir desktop list --json`. Anything but `not_connected` means the
-runtime learned to list pipes and this section can go.
-
 ## A Desktop save can break `pbir validate`
 
-Power BI Desktop 2.159.1231.0 under powerbi-linux drops the `$schema` line from `<name>.pbip`,
-`definition.pbir` and `definition.pbism` on every save, and writes `"version"` in its place in
-`.pbi/editorSettings.json`. `pbir validate` then fails with
-`SCHEMA_ERROR (root): '$schema' is a required property` on `definition.pbism`. The same files saved
-by Desktop on Windows keep the line. After a save on Linux, restore those files from git before
-validating or committing:
+Power BI Desktop writes `<name>.pbip`, `definition.pbir`, `definition.pbism` and
+`.pbi/editorSettings.json` with `$schema` only while its `PbipWithSchema` switch is on. With it off,
+a save drops the line (and writes `"version": "1.0"` in `editorSettings.json`), and `pbir validate`
+then fails with `SCHEMA_ERROR (root): '$schema' is a required property` on `definition.pbism`. The
+switch is the environment variable `PBI_pbipWithSchema` (`1`, `true` or `yes`) when it is set, else
+the user setting of that name, else the signed-in account's switch from the Power BI service, which
+Desktop then keeps as the user setting. A Desktop that has never been signed in, such as a new
+powerbi-linux profile, has it off. A second switch of the same kind, `PbipWithSimplifiedDatasetConnectionString`,
+picks `definitionProperties` 2.0.0 over 1.0.0 for `definition.pbir`. Nothing here is a Wine effect.
+
+Turn both on once per Wine profile, with Desktop closed:
 
 ```bash
-git checkout -- "<name>.pbip" "<name>.Report/definition.pbir" \
-  "<name>.SemanticModel/definition.pbism" "<name>.SemanticModel/.pbi/editorSettings.json"
+prefix=$(jq -r .prefix ~/.local/share/powerbi-linux/active.json)
+runtime=$(jq -r .runtime ~/.local/share/powerbi-linux/active.json)
+for v in PBI_pbipWithSchema PBI_pbipWithSimplifiedDatasetConnectionString; do
+  WINEPREFIX="$prefix" "$runtime/bin/wine" reg add 'HKCU\Environment' /v "$v" /d 1 /f
+done
+WINEPREFIX="$prefix" "$runtime/bin/wineserver" -w
 ```
 
-Desktop reopens the project either way. (Verified 2026-11-18. Cause not established.)
+`powerbi-linux` strips `PBI_*` variables from the environment it starts Desktop with, so a shell
+export does not reach Desktop; the registry's user environment does. The next save writes `$schema`
+again, and the four files then match a Windows save byte for byte apart from line ends. (Desktop
+2.159.1231.0, switches read from its IL, save tested on Linux. Verified 2026-11-18.)
 Retest: save an open PBIP from Desktop on Linux and run `git diff --stat`.
 
 ## `SCHEMA_DEGRADED` is not a Wine effect
