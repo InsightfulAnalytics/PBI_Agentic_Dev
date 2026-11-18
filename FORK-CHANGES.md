@@ -204,6 +204,8 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   `pbir-format/references/validation.md`, the `pbir-cli` SKILL.md and `session-context.md` keep the
   substitutes for a runtime without the patch. `linux-wine.md` also names why a Desktop save drops
   `$schema` (Desktop's `PbipWithSchema` switch is off in a profile never signed in) and the registry fix.
+- `connect-pbid/scripts/linux/te-desktop.sh` (2026-11-18), fork-original: runs the Windows build of the `te` CLI
+  under Wine against the model open in Desktop on Linux, where the Linux build cannot connect.
 
 ### Fork-owned files, for upstream harvest resolution
 

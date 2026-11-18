@@ -15,7 +15,7 @@ and `scripts/linux/pbid-dax.sh --port`.
 | Open a project | double-click, `Start-Process` | `pbi-linux open "<file>.pbip"` |
 | Is Desktop running | `pbir desktop list`, `Get-Process` | `pbir desktop list`; stock: `systemctl --user is-active pbi-linux-session.service` |
 | DAX against the open model | `pbir model -q`, `query-dax.ps1` | `pbir model -q`; stock: `scripts/linux/pbid-dax.sh '<DAX>'` |
-| Model edit | TOM `SaveChanges()` | edit TMDL on disk, then Apply external changes |
+| Model edit | TOM `SaveChanges()`, `te --local` | `scripts/linux/te-desktop.sh ... --save`, or edit TMDL on disk, then Apply external changes |
 | Reload the canvas | `pbir desktop refresh` | `pbir desktop refresh`; stock: Apply external changes (below) |
 | Screenshot | `pbir desktop screenshot` | `pbir desktop screenshot`; stock: screenshot the window (below) |
 | Refresh data | the Refresh button | the Refresh button, clicked over CDP (below) |
@@ -25,16 +25,24 @@ and `scripts/linux/pbid-dax.sh --port`.
 Desktop's pipe and `pbir desktop list` answers `not_connected` (`reports:pbir-cli`
 `references/linux-wine.md`, "The Desktop bridge"). `pbid-dax.sh` works on either runtime.
 
-Not available: PowerShell 5.1 and so every `.ps1` in this skill, UI Automation, `te --local`, DAX
-Studio, Tabular Editor's GUI.
+Not available: PowerShell 5.1 and so every `.ps1` in this skill, UI Automation, DAX Studio,
+Tabular Editor's GUI, and `te --local` from the Linux build of `te` (use `te-desktop.sh`, below).
 
 The `te` CLI's Linux build works on TMDL files (`te -m "<name>.SemanticModel" ls`, `validate`,
 `bpa run`) but cannot reach Desktop: `--local` is Windows-only, and `-s localhost:<port> -d <database>`
-fails with "This feature is supported for a .NET Core client only on Windows systems". For DAX against
-the open model use `pbir model -q` or `pbid-dax.sh`. (te 0.8.1.1. Verified 2026-11-18.)
-Retest: `te -s localhost:<port> -d <database> query -q 'EVALUATE ROW("x", 1)'`, with the port from
-`scripts/linux/pbid-dax.sh --port` and the database the GUID in the `<guid>.<n>.db` folder name under the
-profile's newest `AppData/Local/Microsoft/Power BI Desktop/AnalysisServicesWorkspaces/*/Data`.
+fails with "This feature is supported for a .NET Core client only on Windows systems". The Windows
+build can, under Wine in Desktop's prefix: `scripts/linux/te-desktop.sh <te arguments>` fetches it once
+from Tabular Editor's CDN, finds Desktop's port and database and passes them as `-s`/`-d`:
+
+```bash
+scripts/linux/te-desktop.sh query -q 'EVALUATE ROW("Rows", COUNTROWS(Sales))'
+scripts/linux/te-desktop.sh --output-format json ls
+scripts/linux/te-desktop.sh add "Sales/Margin" -t Measure -p 'Expression=[Revenue] - [Cost]' --save
+```
+
+A measure added with `--save` could be queried at once, and Desktop's next save wrote it to the TMDL
+files. (te 0.8.1.1, Desktop 2.159.1231.0. Verified 2026-11-18.)
+Retest: with Desktop open, `scripts/linux/te-desktop.sh query -q 'EVALUATE ROW("x", 1)'`.
 
 ## Paths and drives
 
