@@ -102,7 +102,7 @@ relative `./folder/Name.Report` path can resolve to the connected report instead
 `reports:pbir-cli` skill, `references/cli-reference.md`, "Report Creation and Management".
 
 This keeps report creation inside `pbir`; do not scaffold PBIR JSON manually, except on
-Linux where `pbir` cannot be installed at all. See the
+a Linux host with no Wine, where `pbir` cannot run at all. See the
 [pbip](../../../../pbip/skills/pbip/SKILL.md) skill for project structure.
 
 ## Upload back to Fabric (import)

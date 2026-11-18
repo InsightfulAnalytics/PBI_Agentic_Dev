@@ -193,6 +193,11 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   example now closes on a 1280px page. `ThemeDataColor` examples use ColorId 2 for the first data
   color. `cards-and-kpis.md`, `design-identity.md`, `modifying-theme-json` (`SKILL.md`,
   `theme-authoring.md`, `re-theming.md`) and `codex/AGENTS-pbi.md` follow.
+- Added a Linux route that needs no Windows machine (2026-11-18), fork-original: `pbir-cli/bin/install-linux.sh`
+  and the launcher `pbir-cli/bin/pbir-wine` run the unmodified Windows build of `pbir` under Wine;
+  `pbir-cli/references/linux-wine.md` and `connect-pbid/references/desktop-on-linux.md` cover `pbir`
+  and Power BI Desktop under Wine (the powerbi-linux project), with `connect-pbid/scripts/linux/pbid-dax.sh`
+  standing in for `pbir model -q`. The one-line Linux notes in nine other skill files now point there.
 
 ### Fork-owned files, for upstream harvest resolution
 
@@ -209,6 +214,8 @@ New files, so they merge at file granularity even though upstream owns the conta
 - `plugins/pbip/skills/pbir-format/references/silent-render-traps.md`
 - `plugins/custom-visuals/skills/deneb-visuals/references/silent-traps.md`
 - `plugins/reports/skills/pbir-cli/references/cli-traps.md`
+- `plugins/reports/skills/pbir-cli/references/linux-wine.md`, `plugins/reports/skills/pbir-cli/bin/{install-linux.sh,pbir-wine}`
+- `plugins/pbi-desktop/skills/connect-pbid/references/desktop-on-linux.md`, `plugins/pbi-desktop/skills/connect-pbid/scripts/linux/**`
 - `plugins/reports/skills/pbi-plan/references/data-triage.md`
 - `plugins/semantic-models/skills/dax-standard/references/filter-context-traps.md`
 - `plugins/semantic-models/skills/dax-standard/references/{flat-vars,house-style,number-formatting,tables-from-power-query}.md`

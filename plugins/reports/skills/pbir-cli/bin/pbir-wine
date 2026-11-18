@@ -1,0 +1,93 @@
+#!/usr/bin/env bash
+# pbir on Linux: run the unmodified Windows build of pbir-cli under Wine.
+#
+# pbir-cli ships no Linux wheel, and its licence forbids derivative works, so this launcher
+# changes nothing in it: it picks a Wine prefix, rewrites Linux paths to Windows ones and
+# runs the binary that install-linux.sh unpacked. Install it as `pbir` on PATH.
+#
+#   PBIR_WINE_HOME   where install-linux.sh put things (default ~/.local/share/pbir-wine)
+#   PBIR_WINE        the wine binary (default: the powerbi-linux runtime, else `wine`)
+#   PBIR_WINE_DEBUG  1 prints the prefix, the wine binary and the rewritten arguments
+set -u
+
+home="${PBIR_WINE_HOME:-$HOME/.local/share/pbir-wine}"
+exe="$home/current/pbir_binary_wheel/runtime/pbir-runtime.exe"
+active="$HOME/.local/share/powerbi-linux/active.json"
+unit="pbi-linux-session.service"
+
+if [ ! -f "$exe" ]; then
+  echo "pbir: no Windows build under $home. Run install-linux.sh from the pbir-cli skill's bin folder." >&2
+  exit 127
+fi
+
+# The powerbi-linux runtime and profile, when that project is installed.
+runtime=""; desktop_prefix=""
+if [ -f "$active" ] && command -v jq >/dev/null; then
+  runtime="$(jq -r '.runtime // empty' "$active")"
+  desktop_prefix="$(jq -r '.prefix // empty' "$active")"
+fi
+
+wine="${PBIR_WINE:-}"
+if [ -z "$wine" ]; then
+  if [ -n "$runtime" ] && [ -x "$runtime/bin/wine" ]; then wine="$runtime/bin/wine"
+  elif command -v wine >/dev/null; then wine="$(command -v wine)"
+  else echo "pbir: no wine found. Install powerbi-linux, or set PBIR_WINE." >&2; exit 127
+  fi
+fi
+
+# The first word that is not a global option is the subcommand.
+sub=""; skip=0
+for a in "$@"; do
+  if [ "$skip" = 1 ]; then skip=0; continue; fi
+  case "$a" in
+    --output-format | --error-format | --skip) skip=1 ;;
+    -*) ;;
+    *) sub="$a"; break ;;
+  esac
+done
+
+# `desktop` and `model` talk to a running Power BI Desktop over a named pipe, and a Wine
+# named pipe is visible only inside the prefix that owns it. Everything else runs in a
+# private prefix, so a busy or hung Desktop cannot hold up a validate.
+prefix="$home/prefix"
+shared=0
+case "$sub" in
+  desktop | model)
+    if [ -n "$desktop_prefix" ] && [ -d "$desktop_prefix" ] &&
+      systemctl --user is-active --quiet "$unit" 2>/dev/null; then
+      prefix="$desktop_prefix"; shared=1
+    fi
+    ;;
+esac
+
+# An absolute Linux path becomes Z:\... up to its longest existing prefix; the rest (a
+# Page.Page/Visual.Visual tail, or a file that does not exist yet) is left as written.
+to_windows() {
+  local arg="$1" head tail=""
+  case "$arg" in /?*) ;; *) printf '%s' "$arg"; return ;; esac
+  head="$arg"
+  while [ "$head" != "/" ] && [ ! -e "$head" ]; do
+    tail="/${head##*/}$tail"
+    head="${head%/*}"
+    [ -z "$head" ] && head="/"
+  done
+  if [ "$head" = "/" ]; then printf '%s' "$arg"; return; fi
+  printf 'Z:%s%s' "${head//\//\\}" "$tail"
+}
+
+args=()
+for a in "$@"; do args+=("$(to_windows "$a")"); done
+
+export WINEPREFIX="$prefix"
+export WINEDEBUG="${WINEDEBUG:--all}"
+if [ "$shared" = 0 ]; then
+  # The private prefix has no .NET or Gecko, and must never offer to install them.
+  export WINEDLLOVERRIDES="${WINEDLLOVERRIDES:-mscoree,mshtml=;winemenubuilder.exe=d}"
+fi
+
+if [ "${PBIR_WINE_DEBUG:-0}" = 1 ]; then
+  printf 'pbir-wine: prefix=%s wine=%s\n' "$prefix" "$wine" >&2
+  printf 'pbir-wine: arg=%s\n' "${args[@]}" >&2
+fi
+
+exec "$wine" "$exe" "${args[@]}"

@@ -2,7 +2,8 @@
 
 A last resort, not an alternative. Install `pbir` with `uv tool install pbir-cli` or
 `pip install pbir-cli` in every ordinary case on macOS and Windows, including when the
-command is missing. On Linux neither command works: see the Linux note below.
+command is missing. On Linux neither command works: run `./install-linux.sh` (see the Linux
+note below).
 
 Use this folder **only** on macOS or Windows, when `pbir` is not installed *and* cannot be:
 no network access to PyPI, no Python, or a machine that forbids installs. A portable build
@@ -26,11 +27,16 @@ pbir-portable-macos-arm64.tar.gz    macOS, Apple silicon      ~66 MB
 pbir-portable-windows-x64.exe       Windows x64              ~180 MB
 ```
 
-Linux has no portable build and no installable one either. Every `pbir-cli` release
-publishes exactly two wheels, `macosx_11_0_arm64` and `win_amd64`, and no sdist, so both
-`pip install pbir-cli` and `uv tool install pbir-cli` fail there with "No matching
-distribution found for pbir-cli". That is absence, not a degraded mode: do not spend turns
-retrying the install. On Linux, hand-author PBIR JSON from the `pbip:pbir-format` skill's
+Linux has no portable build and no wheel. Every `pbir-cli` release publishes exactly two
+wheels, `macosx_11_0_arm64` and `win_amd64`, and no sdist, so both `pip install pbir-cli` and
+`uv tool install pbir-cli` fail there with "No matching distribution found for pbir-cli". Do
+not spend turns retrying them. `./install-linux.sh` installs the Windows build under Wine
+instead: it downloads the `win_amd64` wheel from PyPI, verifies its SHA-256, unpacks it
+unchanged under `~/.local/share/pbir-wine` and installs `pbir-wine` (the launcher in this
+folder) as `~/.local/bin/pbir`. It needs a Wine: the powerbi-linux runtime when that project
+is installed, else a system `wine`. `../references/linux-wine.md` says what works.
+
+On a Linux host with no Wine, hand-author PBIR JSON from the `pbip:pbir-format` skill's
 `examples/visuals/` templates, check every file's JSON syntax with `jq empty` and its
 structure against that skill's `references/validation.md`, then with the user's permission
 publish the report to a sandbox workspace with `fab import` (byConnection reports only;

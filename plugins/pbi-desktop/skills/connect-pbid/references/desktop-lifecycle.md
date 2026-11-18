@@ -5,7 +5,9 @@ holds a file, when it writes, when it reverts your edits, and how to make it pic
 disk. None of it applies to the Analysis Services connection the rest of this skill drives, and none
 of it applies where Desktop is not installed.
 
-Where Desktop is unavailable (Linux, macOS outside a VM, a Codespace, CI), two substitutes cover
+On Linux, Desktop can run under Wine through the powerbi-linux project: see
+[desktop-on-linux.md](./desktop-on-linux.md). Where Desktop is unavailable (macOS outside a VM, a
+Codespace, CI, a Linux host without it), two substitutes cover
 most of what an agent actually wants from it:
 
 - **Seeing the report render**: render server-side with the `ExportTo` API instead (fabric-cli

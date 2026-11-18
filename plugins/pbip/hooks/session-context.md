@@ -40,6 +40,8 @@ Before hand-authoring TMDL or PBIR JSON, read `pbip:tmdl` `references/authoring-
   without saving, and say which.
 - Desktop 26.08+ raises an "Apply external changes" banner, so close-and-reopen is not the default
   after a disk edit. Exceptions: `pbi-desktop:connect-pbid` `references/desktop-lifecycle.md`.
+- On Linux (Desktop under Wine), `pbir desktop` and `pbir model -q` cannot see Desktop: use the
+  substitutes in `pbi-desktop:connect-pbid` `references/desktop-on-linux.md`.
 - Never run a programmatic data refresh (TOM `RequestRefresh`) against a model Desktop has open
   and in use: it races Desktop's own UI. Ask the user to click Refresh, or refresh once on a
   freshly opened, idle instance. Same reference, "A TOM refresh races Desktop's own UI".

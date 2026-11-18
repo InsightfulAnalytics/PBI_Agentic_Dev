@@ -8,7 +8,7 @@ description: This skill should be used whenever the user mentions "pbir", "pbir-
 
 CLI for exploring, building, managing, formatting Power BI reports. All commands use `pbir`.
 
-**IMPORTANT:** ALWAYS use `pbir` CLI commands to inspect and modify reports. NEVER write, replace, copy, or patch report JSON files directly on Windows or macOS. If the CLI does not expose a required mutation, stop and report the missing capability; do not fall back to file editing. Reading JSON through `pbir cat`, `pbir get`, or read-only examples is allowed. The sole exception is Linux, where `pbir` cannot be installed at all and hand-authoring is the only route; see "When `pbir` is missing".
+**IMPORTANT:** ALWAYS use `pbir` CLI commands to inspect and modify reports. NEVER write, replace, copy, or patch report JSON files directly on Windows or macOS. If the CLI does not expose a required mutation, stop and report the missing capability; do not fall back to file editing. Reading JSON through `pbir cat`, `pbir get`, or read-only examples is allowed. The sole exception is a Linux host with no Wine, where `pbir` cannot run at all and hand-authoring is the only route; see "When `pbir` is missing".
 
 **IMPORTANT:** FIRST Read and adhere to the mental model in [MENTAL-MODEL.md](important/MENTAL-MODEL.md).
 
@@ -19,8 +19,14 @@ use in every ordinary case, including when the command is missing entirely.
 
 Not on Linux. Every `pbir-cli` release publishes exactly two wheels, `macosx_11_0_arm64` and
 `win_amd64`, and no sdist, so both commands fail there with "No matching distribution found
-for pbir-cli". There is no Linux build to fall back to, so do not retry the install. Work
-without the CLI instead: hand-author PBIR JSON from the `pbip:pbir-format` skill's
+for pbir-cli". Do not retry them. Run `bin/install-linux.sh` instead: it downloads the Windows
+wheel, checks it against PyPI's SHA-256 and installs a `pbir` launcher that runs that build
+unchanged under Wine (the powerbi-linux runtime when present, else a system `wine`). Validate,
+read and write commands work there as on Windows; what does not is in
+`references/linux-wine.md`. Run the script again to upgrade.
+
+Only where there is no Wine either (a Codespace, CI, a container), work without the CLI:
+hand-author PBIR JSON from the `pbip:pbir-format` skill's
 `examples/visuals/` templates, check every file's JSON syntax with `jq empty` and its
 structure against that skill's `references/validation.md`, then with the user's permission
 publish the report to a sandbox workspace with `fab import` (byConnection reports only;
@@ -197,7 +203,7 @@ Inspect the PNG after every meaningful batch. PBIX supports screenshots but not 
 
 Do not guess a sleep between refresh and screenshot: `--settle` only applies with `--all`, and there is no `--out` (the single-page flag is `-o/--output`). For a single page, use the **`reports:pbi-verify-loop`** skill, which refreshes and then captures until two consecutive screenshots match.
 
-**When the bridge is unavailable.** `pbir desktop` commands are Windows-only: on macOS and Linux do not use them at all; every invocation fails before reaching Desktop. On Windows, `pbir desktop list` distinguishes an unreachable bridge from no running instance having the target report open. If the bridge is unreachable, check the Desktop Bridge setting (Options > Security in current builds, Preview features in older ones), even if `pbir`'s warning names Preview features. If it is off, relay the enable steps and the Desktop restart to the user once and ask whether they want to turn it on; do not keep retrying bridge commands meanwhile. If it is on, see the other causes in `references/desktop-integration.md`. Until the bridge works, and always on macOS, verify with `pbir validate --all`, then with the user's permission deploy with `pbir publish` to a sandbox workspace in Fabric and inspect the rendered report in the browser through the Chrome MCP tools. On Linux `pbir` cannot be installed at all, so check the changed JSON with `jq empty` and against the `pbip:pbir-format` skill's `references/validation.md`, then with the user's permission publish the byConnection report to a sandbox workspace with `fab import` (always pass `-f`), and inspect the rendering by exporting it server-side through the Power BI ExportTo API.
+**When the bridge is unavailable.** `pbir desktop` commands are Windows-only: on macOS do not use them at all; every invocation fails before reaching Desktop. On Linux under Wine they report `not_connected` even with Desktop open (`references/linux-wine.md` has the cause and the substitute). On Windows, `pbir desktop list` distinguishes an unreachable bridge from no running instance having the target report open. If the bridge is unreachable, check the Desktop Bridge setting (Options > Security in current builds, Preview features in older ones), even if `pbir`'s warning names Preview features. If it is off, relay the enable steps and the Desktop restart to the user once and ask whether they want to turn it on; do not keep retrying bridge commands meanwhile. If it is on, see the other causes in `references/desktop-integration.md`. Until the bridge works, and always on macOS, verify with `pbir validate --all`, then with the user's permission deploy with `pbir publish` to a sandbox workspace in Fabric and inspect the rendered report in the browser through the Chrome MCP tools. On a Linux host with no Wine `pbir` cannot run at all, so check the changed JSON with `jq empty` and against the `pbip:pbir-format` skill's `references/validation.md`, then with the user's permission publish the byConnection report to a sandbox workspace with `fab import` (always pass `-f`), and inspect the rendering by exporting it server-side through the Power BI ExportTo API.
 
 ### Creating Reports
 
@@ -517,6 +523,7 @@ The same checks run implicitly on mutations. To bypass a category deliberately, 
 references/cli-reference.md: full syntax for any command with all flags; Windows console encoding
 references/exploration.md: exploring an unfamiliar report systematically
 references/desktop-integration.md: driving Power BI Desktop; canvas refresh, page screenshots, auto-refresh, local model queries, troubleshooting
+references/linux-wine.md: pbir on Linux through Wine; install, path rewriting, the two prefixes, why `pbir desktop` and `pbir model -q` report not_connected, the `$schema` a Desktop save drops
 references/cli-traps.md: commands that exit 0 and did something else; screenshot always page one, `desktop list` truncation and early rows, `refresh --model` limits, `validate --fields` false negatives from a stale compiled model, report-level `add filter -r`, thick-project publish
 references/manual-roundtrip-review.md: safe pull-down and semantic comparison of user edits; New Card and table-width lessons
 references/rendered-dashboard-loop.md: short validate/query/render batches; publish cadence and renderer-sensitive patterns
@@ -554,5 +561,5 @@ examples/visuals/formatted/*.json: read-only examples of formatting, CF, filters
 ## Related Skills
 
 - `pbi-report-design`: Use for design best practices and guidelines for reports
-- `pbip-format`: Use for understanding PBIP structure, not for bypassing `pbir` report mutations, except on Linux where `pbir` cannot be installed and hand-authoring is the only route
+- `pbip-format`: Use for understanding PBIP structure, not for bypassing `pbir` report mutations, except on a Linux host with no Wine, where `pbir` cannot run and hand-authoring is the only route
 - `create-pbi-report`: Use to follow step-by-step instructions for creating new reports

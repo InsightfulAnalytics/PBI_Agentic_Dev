@@ -114,7 +114,9 @@ after a hand edit as part of the change rather than as a follow-up, and budget f
 - **Desktop is running:** reload and screenshot the open instance and inspect the PNG; see
   `desktop-bridge.md`, or the `reports:pbi-verify-loop` skill, which captures until two consecutive
   screenshots match instead of guessing a sleep.
-- **No Desktop (a Linux session, a container, CI):** publish and render server-side. Export the
+- **Desktop under Wine on Linux (powerbi-linux):** screenshot the window; see the
+  `pbi-desktop:connect-pbid` skill's `references/desktop-on-linux.md`.
+- **No Desktop (a container, CI, a Linux session without it):** publish and render server-side. Export the
   report to PDF through the Power BI REST API, then rasterize the PDF. The recipe is in
   `fabric-cli:fabric-cli`, `references/reports.md`. This is also the only route that exercises the
   service's reference resolution, which is what surfaces the `Missing_References` failure above.
