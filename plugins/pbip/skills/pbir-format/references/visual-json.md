@@ -416,6 +416,44 @@ bundle for `level:task` and `isCategory` to see whether the selectors or the tas
   `zoomMin` / `zoomMax` hold the saved window as epoch milliseconds: absolute dates, so a saved zoom
   only fits the selection it was saved on.
 
+## Card Trend Chart (cardVisual Trend axis)
+
+The core Card's **Trend axis (Preview)** from the November 2026 release. Desktop 2.159 (26.10)
+already ships the code in `desktop.CardVisual.min.js`, behind the feature switch
+`trendVisualLibrary` (off); the shapes below were saved by that build with the switch forced on, so
+retest them on 26.11. pbir 0.9.33's schemas know none of these objects. Verified 2026-11-19.
+
+- **Roles**: the card's measure stays in `Data`; the trend field goes in `TrendVisualCategory`
+  (a column projection, `active: true`). `Rows` (Categories) still repeats the card, and each copy
+  draws its own trend. A sort-by column on the trend field sets the bar or column order.
+- **No selector means "Apply settings to: All".** Every trend object below is written that way
+  unless it targets one series.
+- `trendVisualLibrary`: `show`, `chartType` (`'line'`, `'column'`, `'bar'`, `'map'`),
+  `showTooltip`, `legendShow`, `legendPosition`, `legendFontSize`. A second measure on the chart
+  (pane: Trend chart > Value) is its own entry:
+  `{"properties": {"chartMeasure": {"expr": <Measure>}}, "selector": {"data": [{"dataViewWildcard": {"matchingOption": 0}}], "metadata": "<Entity>.<card measure>", "id": "field-<guid>", "order": 0}}`.
+- `cartesianTrendVisual`: `showXAxis`, `categoryAxisFontSize`, `categoryAxisColor`,
+  `categoryAxisPreferredCategoryWidth` (pane: Minimum category width; too wide adds a scroll bar),
+  `categoryAxisMaxMarginFactor`, `showYAxis`, `valueAxisStart`, `valueAxisEnd`,
+  `valueAxisFontSize`, `showDataLabels`, `dataLabel*`.
+- `lineTrendVisual`: `lineStyle` (`'dashed'`), `lineWidth`, `lineColor`, `lineShape`, `fillArea`,
+  `showMarkers`, `markerShape`, `dataLabelPosition`. One series (pane: Lines > Apply settings to)
+  takes `{"metadata": "<Entity>.<card measure>", "id": "<the added measure's field id>"}`.
+- `barColumnTrendVisual`: `columnColor`. In 2.159 the **bar** chart renders through a standalone
+  path: bars only, fixed `#0078D4`, no category or data labels whatever is set. Columns honour it.
+- `shapeMapTrendVisual`: one entry with `mapType: 'australia.states.topo'`, and one with
+  `map: {geoJson: {type: 'shared', name: 'australia.states.topo', content: {"expr": {"ResourcePackageItem": {"PackageName": "ShapeMap", "PackageType": 2, "ItemName": "australia.states.topo"}}}}}`.
+  report.json needs the SharedResources item
+  `{"name": "australia.states.topo", "path": "Shapemaps/australia.states.topo.json", "type": "ShapeMap"}`
+  and the file under `StaticResources/SharedResources/Shapemaps/`.
+- Layout: the trend chart takes the image slot. `layout.contentOrder`
+  `'callout_referenceLabel_image'` is the pane's "Callout, reference label, trend chart";
+  `layout.collage` `'Default'` gives the third part its own column (Vertical) or row (Horizontal);
+  `calloutSize` takes `{"id": "default"}`. Cards > Arrangement: Horizontal writes
+  `referenceLabelLayout.position` `'right'` with the default selector.
+- Multi-category: `smallMultiplesLayout.orientation` `2D` lays the copies out horizontally, and
+  `titleOrientation` `1D` writes the category header text horizontally.
+
 ## Slicer Sync Groups
 
 Slicers on different pages can be synced so they share the same selection. This is configured in `visual.syncGroup` inside the slicer's visual.json:
