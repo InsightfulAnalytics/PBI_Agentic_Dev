@@ -47,21 +47,22 @@ Functions live in `functions.tmdl` in the model definition:
 /// Scale-aware format string: K / M / B, with `decimals` decimal places.
 function 'Fmt.Scaled' =
 		(
-			value: NUMERIC VAL,
+			amount: NUMERIC VAL,
 			decimals: INT64 VAL
 		) =>
 
 		// The unit comes from the magnitude of the value being displayed.
-		VAR __Abs = ABS ( value )
-		// "0" repeated = the decimal placeholders.
-		VAR __Dp = REPT ( "0", decimals )
+		VAR __Abs = ABS ( amount )
+		// The decimal point and its "0" placeholders, or nothing for whole numbers.
+		VAR __Dp = IF ( decimals > 0, "." & REPT ( "0", decimals ), "" )
+		// Each scaling comma divides by 1,000 and must sit left of the decimal point.
 		VAR __Result =
 			SWITCH (
 				TRUE (),
-				__Abs >= 1E9, "#,0." & __Dp & ",,,""B""",
-				__Abs >= 1E6, "#,0." & __Dp & ",,""M""",
-				__Abs >= 1E3, "#,0." & __Dp & ",""K""",
-				"#,0." & __Dp
+				__Abs >= 1E9, "#,0,,," & __Dp & """B""",
+				__Abs >= 1E6, "#,0,," & __Dp & """M""",
+				__Abs >= 1E3, "#,0," & __Dp & """K""",
+				"#,0" & __Dp
 			)
 		RETURN
 			__Result
@@ -82,6 +83,10 @@ Editor 3 is not proof of an error either (`tabular-editor:te-docs`).
 
 ## Gotchas
 
+- **`value` is a reserved word**: a UDF parameter named `value` fails to load. Name it `amount`
+  or similar.
+- **Scaling commas go left of the decimal point.** `"#,0,,.0""M"""` shows 3.7M; `"#,0.0,,""M"""`
+  treats the commas after the decimals as text and shows `3,710,827.00,,M` (Desktop 26.10).
 - The expression must return **text**, and it is evaluated per cell in that cell's filter
   context — which is what lets it react to a currency slicer or to the magnitude of the value.
 - **Visual display units override it.** If a scaled format "does nothing", set the visual's
