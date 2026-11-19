@@ -423,6 +423,11 @@ already ships the code in `desktop.CardVisual.min.js`, behind the feature switch
 `trendVisualLibrary` (off); the shapes below were saved by that build with the switch forced on, so
 retest them on 26.11. pbir 0.9.33's schemas know none of these objects. Verified 2026-11-19.
 
+Retest: on 26.11 or later, put a month column on one card's Trend axis in the Build pane, add a
+second measure and a dashed line in the format pane, save, and diff its `visual.json` against the
+shapes below; then search `desktop.CardVisual.min.js` for `trend-visual-bar-root` to see whether
+the bar chart still skips its labels.
+
 - **Roles**: the card's measure stays in `Data`; the trend field goes in `TrendVisualCategory`
   (a column projection, `active: true`). `Rows` (Categories) still repeats the card, and each copy
   draws its own trend. A sort-by column on the trend field sets the bar or column order.
