@@ -208,7 +208,7 @@ This repository is a fork of [`data-goblin/power-bi-agentic-development`](https:
   under Wine against the model open in Desktop on Linux, where the Linux build cannot connect.
 - `pbir-format/references/visual-json.md` (2026-11-19), fork-original section: Card Trend Chart, the
   card visual's Trend axis (November 2026 preview) as Desktop saves it, with a routing row in
-  `pbir-format/SKILL.md`. `dax-standard/references/number-formatting.md`: the `Fmt.Scaled` example
+  `pbir-format/SKILL.md`, plus the callout's vertical alignment and padding properties. `dax-standard/references/number-formatting.md`: the `Fmt.Scaled` example
   no longer names a parameter `value` (reserved) and puts its scaling commas left of the decimal point.
 
 ### Fork-owned files, for upstream harvest resolution

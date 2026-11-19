@@ -456,6 +456,12 @@ the bar chart still skips its labels.
   `layout.collage` `'Default'` gives the third part its own column (Vertical) or row (Horizontal);
   `calloutSize` takes `{"id": "default"}`. Cards > Arrangement: Horizontal writes
   `referenceLabelLayout.position` `'right'` with the default selector.
+- Callout beside a reference label: Callout > Vertical alignment writes `layout.alignment`
+  (`'top'`, `'middle'` the default, `'bottom'`) into the layout entry with **no** selector; put in
+  the `calloutSize` entry (default selector) it is ignored. Callout > Padding writes
+  `cardCalloutArea`: `paddingUniform`, or `paddingIndividual: true` with `paddingTop` (a guessed
+  `topMargin` is dropped on save). The reference labels carry 4px of padding of their own, so
+  `'top'` plus `paddingTop` 6 sets the callout label level with the reference label title.
 - Multi-category: `smallMultiplesLayout.orientation` `2D` lays the copies out horizontally, and
   `titleOrientation` `1D` writes the category header text horizontally.
 
